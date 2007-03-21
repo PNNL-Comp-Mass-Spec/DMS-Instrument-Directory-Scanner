@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sections>
+	<section name="DatabaseSettings">
+		<item key="ConnectionString" value="Data Source=gigasax;Initial Catalog=DMS5;Integrated Security=SSPI;"/>
+	</section>
+	<section name="Output">
+		<item key="LogDir" value="Logs\"/>
+	</section>
+	<section name="Workgroup">
+		<item key="UserName" value="ftms"/>
+		<item key="UserPwd" value="hdqt3gto"/>
+	</section>
+</sections>

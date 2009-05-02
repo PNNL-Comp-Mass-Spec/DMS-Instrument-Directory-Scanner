@@ -2,7 +2,9 @@
 'File:  Main.vb
 'File Contents:  Directory scanning methods
 'Author(s):  Nathan Trimble
-'Comments:  Scans instrument directories and ouputs files listing contents of directories.
+'Comments:  Scans instrument directories and outputs files listing contents of directories.
+
+Option Strict On
 
 Imports System.Data
 Imports System.IO
@@ -28,6 +30,8 @@ Public Class InstDirScanner
 
     Public Function PerformInstDirScan(ByVal instrumentName As String) As Boolean
         Dim ds As DataSet = Me.GetInstData(instrumentName)
+        Dim swOutFile As System.IO.StreamWriter
+
         If ds Is Nothing Then
             Return False
         Else
@@ -36,22 +40,66 @@ Public Class InstDirScanner
             Dim oneRow As DataRow
 
             For Each oneRow In drc
-                instrumentName = oneRow.Item("Instrument")
-                Dim vol As String = oneRow.Item("vol")
-                Dim path As String = oneRow.Item("Path")
+                instrumentName = CStr(oneRow.Item("Instrument"))
+                Dim vol As String = CStr(oneRow.Item("vol"))
+                Dim path As String = CStr(oneRow.Item("Path"))
 
-                WriteToOutput(instrumentName, "", "", True)
-                If oneRow.Item("method") = "fso" Then
-                    GetFSODirectory(instrumentName, vol, path)
-                ElseIf oneRow.Item("method") = "secfso" Then
-                    GetWorkgroupShareDirectory(instrumentName, vol, path)
-                ElseIf oneRow.Item("method") = "ftp" Then
+                swOutFile = CreateOutputFile(instrumentName)
+
+                If CStr(oneRow.Item("method")) = "fso" Then
+                    GetFSODirectory(instrumentName, vol, path, swOutFile)
+                ElseIf CStr(oneRow.Item("method")) = "secfso" Then
+                    GetWorkgroupShareDirectory(instrumentName, vol, path, swOutFile)
+                ElseIf CStr(oneRow.Item("method")) = "ftp" Then
                     logger.PostEntry("FTP no longer supported, change instrument " & instrumentName & " ""method"" to ""fso"".", ILogger.logMsgType.logError, True)
                 End If
+
+                swOutFile.Close()
             Next
+
             Return True
         End If
     End Function
+
+    Private Function FileSizeToText(ByVal lngFileSizeBytes As Long) As String
+
+        Dim sngFileSize As Single
+        Dim intFileSizeIterator As Integer
+        Dim strFileSize As String
+        Dim strRoundSpec As String
+
+        sngFileSize = CSng(lngFileSizeBytes)
+
+        intFileSizeIterator = 0
+        Do While sngFileSize > 1024 And intFileSizeIterator < 3
+            sngFileSize /= 1024
+            intFileSizeIterator += 1
+        Loop
+
+        If sngFileSize < 10 Then
+            strRoundSpec = "0.0"
+        Else
+            strRoundSpec = "0"
+        End If
+
+        strFileSize = sngFileSize.ToString(strRoundSpec)
+
+        Select Case intFileSizeIterator
+            Case 0
+                strFileSize &= " bytes"
+            Case 1
+                strFileSize &= " KB"
+            Case 2
+                strFileSize &= " MB"
+            Case 3
+                strFileSize &= " GB"
+            Case Else
+                strFileSize &= " ???"
+        End Select
+
+        Return strFileSize
+    End Function
+
 
     Private Function GetInstData(ByRef instrumentName As String) As DataSet
         Dim sqlQuery As String
@@ -76,19 +124,20 @@ Public Class InstDirScanner
 
     'Function name is historic only.  File System Objects are no longer used in .Net, but the characters "fso"
     'are used in the DMS to indicate the use of SMB/CIFS protocol.
-    Private Sub GetFSODirectory(ByVal instrumentName As String, ByVal serverName As String, ByVal sourcePaths As String)
+    Private Sub GetFSODirectory(ByVal instrumentName As String, ByVal serverName As String, ByVal sourcePaths As String, ByRef swOutFile As System.IO.StreamWriter)
         Dim delimiter() As Char = {";"c}
         Dim paths() As String = sourcePaths.Split(delimiter)
         Dim path As String
+        Dim strFileSize As String
 
         For Each path In paths
             path = serverName & path
 
             Dim dir As New DirectoryInfo(path)
             logger.PostEntry("Reading " & instrumentName & ", Folder " & path, ILogger.logMsgType.logNA, True)
-            WriteToOutput(instrumentName, "Folder: " & path, "")
+            WriteToOutput(swOutFile, "Folder: " & path)
             If Not dir.Exists Then
-                WriteToOutput(instrumentName, "(folder does not exist)", "")
+                WriteToOutput(swOutFile, "(folder does not exist)")
             Else
                 Dim dirs() As DirectoryInfo = dir.GetDirectories
                 Dim files() As FileInfo = dir.GetFiles()
@@ -96,21 +145,25 @@ Public Class InstDirScanner
                 Dim aFile As FileInfo
 
                 For Each aDir In dirs
-                    WriteToOutput(instrumentName, "Dir ", aDir.Name)
+                    WriteToOutput(swOutFile, "Dir", aDir.Name)
                 Next
                 For Each aFile In files
-                    WriteToOutput(instrumentName, "File ", aFile.Name)
+                    strFileSize = FileSizeToText(aFile.Length)
+
+                    WriteToOutput(swOutFile, "File", aFile.Name, strFileSize)
                 Next
             End If
         Next
+
     End Sub
 
     'Eventually all servers will be migrated to this function as they are removed from the PNL domain and placed
     'on the BIONET workgroup.  This funtion connects to the shares on a workgroup using ShareConnector.vb
-    Private Sub GetWorkgroupShareDirectory(ByVal instrumentName As String, ByVal serverName As String, ByVal sourcePaths As String)
+    Private Sub GetWorkgroupShareDirectory(ByVal instrumentName As String, ByVal serverName As String, ByVal sourcePaths As String, ByRef swOutFile As System.IO.StreamWriter)
         Dim delimiter() As Char = {";"c}
         Dim paths() As String = sourcePaths.Split(delimiter)
         Dim path As String
+        Dim strFileSize As String
 
         For Each path In paths
             path = serverName & path
@@ -126,9 +179,9 @@ Public Class InstDirScanner
 
             Dim dir As New DirectoryInfo(path)
             logger.PostEntry("Reading " & instrumentName & ", Folder " & path, ILogger.logMsgType.logNA, True)
-            WriteToOutput(instrumentName, "Folder: " & path, "")
+            WriteToOutput(swOutFile, "Folder: " & path)
             If Not dir.Exists Then
-                WriteToOutput(instrumentName, "(folder does not exist)", "")
+                WriteToOutput(swOutFile, "(folder does not exist)")
             Else
                 Dim dirs() As DirectoryInfo = dir.GetDirectories
                 Dim files() As FileInfo = dir.GetFiles()
@@ -136,10 +189,11 @@ Public Class InstDirScanner
                 Dim aFile As FileInfo
 
                 For Each aDir In dirs
-                    WriteToOutput(instrumentName, "Dir ", aDir.Name)
+                    WriteToOutput(swOutFile, "Dir ", aDir.Name)
                 Next
                 For Each aFile In files
-                    WriteToOutput(instrumentName, "File ", aFile.Name)
+                    strFileSize = FileSizeToText(aFile.Length)
+                    WriteToOutput(swOutFile, "File ", aFile.Name, strFileSize)
                 Next
             End If
 
@@ -154,22 +208,56 @@ Public Class InstDirScanner
         Next
     End Sub
 
-    Private Function WriteToOutput(ByVal instrumentName As String, ByVal field1 As String, ByVal field2 As String, Optional ByVal clearFile As Boolean = False) As Boolean
-        Dim outputFileName As String = Me.outputFileDir & Path.DirectorySeparatorChar & instrumentName & "_source.txt"
-        Dim outputFile As TextWriter
+    Private Function CreateOutputFile(ByVal instrumentName As String) As System.IO.StreamWriter
 
-        If clearFile Then
-            Try
-                File.Delete(outputFileName)
-            Catch ex As Exception
-                logger.PostEntry("Deletion of file: " & outputFileName & " could not occur.", ILogger.logMsgType.logError, True)
-            End Try
-            outputFile = File.CreateText(outputFileName)
-        Else
-            outputFile = File.AppendText(outputFileName)
-        End If
-        outputFile.WriteLine(field1 & vbTab & field2)
-        Debug.WriteLine("WriteToOutput(" & field1 & vbTab & field2 & ")")
-        outputFile.Close()
+        Dim outputFilePath As String = Me.outputFileDir & Path.DirectorySeparatorChar & instrumentName & "_source.txt"
+        Dim swOutFile As System.IO.StreamWriter
+
+        Try
+            System.IO.File.Delete(outputFilePath)
+        Catch ex As Exception
+            logger.PostEntry("Deletion of file: " & outputFilePath & " could not occur: " & ex.message, ILogger.logMsgType.logError, True)
+        End Try
+
+        Try
+            swOutFile = New System.IO.StreamWriter(New System.IO.FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
+
+            ' The file always starts with a blank line (by convention)
+            swOutFile.WriteLine()
+
+        Catch ex As Exception
+            logger.PostEntry("Creation of file: " & outputFilePath & " failed: " & ex.message, ILogger.logMsgType.logError, True)
+        End Try
+
+        Return swOutFile
+
+    End Function
+
+    Private Function WriteToOutput(ByRef swOutFile As System.IO.StreamWriter, _
+                                   ByVal field1 As String) As Boolean
+
+        Return WriteToOutput(swOutFile, field1, String.Empty, String.Empty)
+    End Function
+
+    Private Function WriteToOutput(ByRef swOutFile As System.IO.StreamWriter, _
+                                   ByVal field1 As String, _
+                                   ByVal field2 As String) As Boolean
+
+        Return WriteToOutput(swOutFile, field1, field2, String.Empty)
+    End Function
+
+    Private Function WriteToOutput(ByRef swOutFile As System.IO.StreamWriter, _
+                                   ByVal field1 As String, _
+                                   ByVal field2 As String, _
+                                   ByVal field3 As String) As Boolean
+
+        Dim strLineOut As String
+
+
+        strLineOut = field1 & ControlChars.Tab & field2 & ControlChars.Tab & field3
+        Debug.WriteLine("WriteToOutput(" & strLineOut & ")")
+
+        swOutFile.WriteLine(strLineOut)
+
     End Function
 End Class

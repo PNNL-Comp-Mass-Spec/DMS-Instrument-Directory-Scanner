@@ -81,7 +81,7 @@ Public Module Main
             outputDir = Trim(args(1))
             Return True
         Else
-            fileLogger.PostEntry("Wrong number of arguments", ILogger.logMsgType.logError, True)
+            fileLogger.PostEntry("Wrong number of arguments; expecting InstrumentName, then a comma, then the output folder path", ILogger.logMsgType.logError, True)
             Return False
         End If
     End Function

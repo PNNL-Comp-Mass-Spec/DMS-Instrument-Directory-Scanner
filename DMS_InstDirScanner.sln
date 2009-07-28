@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DMS_InstDirScanner", "DMS_InstDirScanner\DMS_InstDirScanner.vbproj", "{92C612A7-CC20-4608-9B59-8B3DDFCFEA7F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92C612A7-CC20-4608-9B59-8B3DDFCFEA7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92C612A7-CC20-4608-9B59-8B3DDFCFEA7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92C612A7-CC20-4608-9B59-8B3DDFCFEA7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92C612A7-CC20-4608-9B59-8B3DDFCFEA7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

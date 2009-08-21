@@ -110,31 +110,31 @@ Public Class clsMainProcess
 
 		'Check to see if manager is active
 		If Not CBool(m_MgrSettings.GetParam("mgractive")) Then
-			m_StatusFile.UpdateDisabled(False)
 			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled in manager control DB")
 			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+			m_StatusFile.UpdateDisabled(False)
 			Exit Sub
 		ElseIf Not CBool(m_MgrSettings.GetParam("mgractive_local")) Then
-			m_StatusFile.UpdateDisabled(True)
 			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled locally")
 			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+			m_StatusFile.UpdateDisabled(True)
 			Exit Sub
 		End If
 
 		'Verify output directory can be found
 		If Not Directory.Exists(m_MgrSettings.GetParam("workdir")) Then
-			m_StatusFile.UpdateStopped(True)
 			WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Output directory not found")
 			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+			m_StatusFile.UpdateStopped(True)
 			Exit Sub
 		End If
 
 		'Get list of instruments from DMS
 		Dim InstList As List(Of clsInstData) = clsDbTools.GetInstrumentList(m_MgrSettings)
 		If InstList Is Nothing Then
-			m_StatusFile.UpdateStopped(True)
 			WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "No instrument list")
 			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+			m_StatusFile.UpdateStopped(True)
 			Exit Sub
 		End If
 
@@ -142,9 +142,9 @@ Public Class clsMainProcess
 		clsDirectoryTools.PerformDirectoryScans(InstList, m_MgrSettings.GetParam("workdir"), m_MgrSettings, m_StatusFile)
 
 		'All finished, so clean up and exit
-		m_StatusFile.UpdateStopped(False)
 		WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning complete")
 		WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+		m_StatusFile.UpdateStopped(False)
 
 	End Sub
 #End Region

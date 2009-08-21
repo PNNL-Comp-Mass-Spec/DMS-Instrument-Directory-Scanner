@@ -5,6 +5,7 @@
 ' Created 07/27/2009
 '
 ' Last modified 07/27/2009
+'						- 08/21/2009 (DAC) - Added additional status parameters
 '*********************************************************************************************************
 Imports log4net
 Imports System.Data
@@ -85,11 +86,16 @@ Public Class clsLogTools
 				Throw New Exception("Invalid logger type specified")
 		End Select
 
+		'Update the status file data
+		clsStatusData.MostRecentLogMessage = Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+			  & "; " & LogLevel.ToString()
 		'Send the log message
 		Select Case LogLevel
 			Case LogLevels.DEBUG
 				If MyLogger.IsDebugEnabled Then MyLogger.Debug(InpMsg)
 			Case LogLevels.ERROR
+				clsStatusData.AddErrorMessage(Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+					 & "; " & LogLevel.ToString())
 				If MyLogger.IsErrorEnabled Then MyLogger.Error(InpMsg)
 			Case LogLevels.FATAL
 				If MyLogger.IsFatalEnabled Then MyLogger.Fatal(InpMsg)
@@ -132,11 +138,16 @@ Public Class clsLogTools
 				Throw New Exception("Invalid logger type specified")
 		End Select
 
+		'Update the status file data
+		clsStatusData.MostRecentLogMessage = Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+			 & "; " & LogLevel.ToString()
 		'Send the log message
 		Select Case LogLevel
 			Case LogLevels.DEBUG
 				If MyLogger.IsDebugEnabled Then MyLogger.Debug(InpMsg, Ex)
 			Case LogLevels.ERROR
+				clsStatusData.AddErrorMessage(Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+					 & "; " & LogLevel.ToString)
 				If MyLogger.IsErrorEnabled Then MyLogger.Error(InpMsg, Ex)
 			Case LogLevels.FATAL
 				If MyLogger.IsFatalEnabled Then MyLogger.Fatal(InpMsg, Ex)

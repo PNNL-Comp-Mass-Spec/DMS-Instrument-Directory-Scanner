@@ -26,9 +26,12 @@ Public Class clsDirectoryTools
 		Dim Progress As Single
 		Dim InstCounter As Integer = 0
 		Dim InstCount As Integer = InstList.Count
+
+		ProgStatus.TaskStartTime = Now
+
 		For Each Inst As clsInstData In InstList
 			InstCounter += 1
-			ProgStatus.Duration = CSng(DateDiff(DateInterval.Hour, ProgStatus.StartTime, Now()))
+			ProgStatus.Duration = CSng(DateDiff(DateInterval.Hour, ProgStatus.TaskStartTime, Now()))
 			Progress = 100 * CSng(InstCounter) / CSng(InstCount)
 			ProgStatus.UpdateAndWrite(Progress)
 			OutFile = CreateOutputFile(Inst.InstName, OutFolder)
@@ -39,6 +42,7 @@ Public Class clsDirectoryTools
 
 			OutFile.Close()
 		Next
+
 		Return True
 
 	End Function

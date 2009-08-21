@@ -6,6 +6,7 @@
 '
 ' Last modified 01/16/2008
 '						- 05/20/2009 (DAC) - Modified for use of new status file format
+'						- 08/21/2009 (DAC) - Added additional properties and methods for status reporting
 '*********************************************************************************************************
 
 Public Interface IStatusFile
@@ -43,7 +44,7 @@ Public Interface IStatusFile
 #End Region
 
 #Region "Properties"
-	ReadOnly Property StartTime() As Date
+	Property TaskStartTime() As Date
 
 	Property FileNamePath() As String
 
@@ -95,6 +96,7 @@ Public Interface IStatusFile
 
 	Sub UpdateDisabled(ByVal Local As Boolean)
 
+	Sub InitStatusFromFile()
 #End Region
 
 End Interface

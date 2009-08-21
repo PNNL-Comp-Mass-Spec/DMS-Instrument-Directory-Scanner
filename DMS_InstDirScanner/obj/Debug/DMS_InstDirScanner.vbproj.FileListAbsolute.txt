@@ -10,3 +10,15 @@ D:\DMS_Controlled\DMS_InstDirScanner_Rev_4255\DMS_InstDirScanner\obj\Debug\DMS_I
 D:\DMS_Controlled\DMS_InstDirScanner_Rev_4255\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.exe
 D:\DMS_Controlled\DMS_InstDirScanner_Rev_4255\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.xml
 D:\DMS_Controlled\DMS_InstDirScanner_Rev_4255\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.pdb
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\bin\Debug\Logging.config
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\bin\Debug\DMS_InstDirScanner.exe.config
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\bin\Debug\DMS_InstDirScanner.exe
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\bin\Debug\DMS_InstDirScanner.pdb
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\bin\Debug\DMS_InstDirScanner.xml
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\bin\Debug\log4net.xml
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\obj\Debug\ResolveAssemblyReference.cache
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.Resources.resources
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.vbproj.GenerateResource.Cache
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.exe
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.xml
+D:\DMS_Controlled\DMS_InstDirScanner\DMS_InstDirScanner\obj\Debug\DMS_InstDirScanner.pdb

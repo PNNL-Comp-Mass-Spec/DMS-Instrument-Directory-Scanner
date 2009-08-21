@@ -6,11 +6,14 @@
 '
 ' Last modified 01/16/2008
 '						- 05/20/2009 (DAC) - Modified for use of new status file format
+'						- 08/11/2009 (DAC) - Added additional properties and methods for status reporting
+'						- 08/20/2009 (DAC) - Added duration in minutes to output
 '*********************************************************************************************************
 
 Imports System.IO
 Imports System.Xml
 Imports MessageLogger
+Imports System.Collections.Generic
 
 Public Class clsStatusFile
 	Implements IStatusFile
@@ -31,6 +34,9 @@ Public Class clsStatusFile
 
 	'Manager start time
 	Private m_MgrStartTime As Date
+
+	'Task start time
+	Private m_TaskStartTime As Date
 
 	'CPU utilization
 	Private m_CpuUtilization As Integer = 0
@@ -68,21 +74,17 @@ Public Class clsStatusFile
 	'Number of spectrum files created
 	Private m_SpectrumCount As Integer = 0
 
+	'Message broker connection string
 	Private m_MessageQueueURI As String
 
+	'Broker topic for status reporting
 	Private m_MessageQueueTopic As String
 
+	'Flag to indicate if status should be logged to broker in addition to a file
 	Private m_LogToMsgQueue As Boolean
 #End Region
 
 #Region "Properties"
-
-	Public ReadOnly Property StartTime() As Date Implements IStatusFile.StartTime
-		Get
-			Return m_MgrStartTime
-		End Get
-	End Property
-
 	Public Property FileNamePath() As String Implements IStatusFile.FileNamePath
 		Get
 			Return m_FileNamePath
@@ -125,6 +127,15 @@ Public Class clsStatusFile
 		End Get
 		Set(ByVal Value As String)
 			m_Tool = Value
+		End Set
+	End Property
+
+	Public Property TaskStartTime() As Date Implements IStatusFile.TaskStartTime
+		Get
+			Return m_TaskStartTime
+		End Get
+		Set(ByVal value As Date)
+			m_TaskStartTime = value
 		End Set
 	End Property
 
@@ -338,14 +349,17 @@ Public Class clsStatusFile
 			XWriter.WriteElementString("FreeMemoryMB", "0")
 			'TODO: Figure out how to retrieve recent error messages
 			XWriter.WriteStartElement("RecentErrorMessages")
-			XWriter.WriteElementString("ErrMsg", "MysteryError")
+			For Each ErrMsg As String In clsStatusData.ErrorQueue
+				XWriter.WriteElementString("ErrMsg", ErrMsg)
+			Next
 			XWriter.WriteEndElement()	'Error messages
 			XWriter.WriteEndElement()	'Manager section
 
 			XWriter.WriteStartElement("Task")
 			XWriter.WriteElementString("Tool", m_Tool)
 			XWriter.WriteElementString("Status", ConvertTaskStatusToString(m_TaskStatus))
-			XWriter.WriteElementString("Duration", m_Duration.ToString("##0.00"))
+			XWriter.WriteElementString("Duration", m_Duration.ToString("##0.0"))
+			XWriter.WriteElementString("DurationMinutes", (60.0F * m_Duration).ToString("##0.0"))
 			XWriter.WriteElementString("Progress", m_Progress.ToString("##0.00"))
 			XWriter.WriteElementString("CurrentOperation", m_CurrentOperation)
 			XWriter.WriteStartElement("TaskDetails")
@@ -354,7 +368,7 @@ Public Class clsStatusFile
 			XWriter.WriteElementString("Step", m_JobStep.ToString())
 			XWriter.WriteElementString("Dataset", m_Dataset)
 			'TODO: Figure out how to get the most recent message
-			XWriter.WriteElementString("MostRecentLogMessage", "Some log message")
+			XWriter.WriteElementString("MostRecentLogMessage", clsStatusData.MostRecentLogMessage)
 			XWriter.WriteElementString("MostRecentJobInfo", m_MostRecentJobInfo)
 			XWriter.WriteElementString("SpectrumCount", m_SpectrumCount.ToString())
 			XWriter.WriteEndElement()	'Task details section
@@ -481,12 +495,12 @@ Public Class clsStatusFile
 		Else
 			m_MgrStatus = IStatusFile.EnumMgrStatus.STOPPED
 		End If
-		m_Duration = 0.0
 		m_Progress = 0
 		m_SpectrumCount = 0
 		m_Dataset = ""
 		m_JobNumber = 0
 		m_Tool = ""
+		m_Duration = 0
 		m_TaskStatus = IStatusFile.EnumTaskStatus.NO_TASK
 		m_TaskStatusDetail = IStatusFile.EnumTaskStatusDetail.NO_TASK
 		Me.WriteStatusFile()
@@ -505,18 +519,56 @@ Public Class clsStatusFile
 		Else
 			m_MgrStatus = IStatusFile.EnumMgrStatus.DISABLED_MC
 		End If
-		m_Duration = 0.0
 		m_Progress = 0
 		m_SpectrumCount = 0
 		m_Dataset = ""
 		m_JobNumber = 0
 		m_Tool = ""
+		m_Duration = 0
 		m_TaskStatus = IStatusFile.EnumTaskStatus.NO_TASK
 		m_TaskStatusDetail = IStatusFile.EnumTaskStatusDetail.NO_TASK
 		Me.WriteStatusFile()
 
 	End Sub
 
+	''' <summary>
+	''' Initializes the status from a file, if file exists
+	''' </summary>
+	''' <remarks></remarks>
+	Public Sub InitStatusFromFile() Implements IStatusFile.InitStatusFromFile
+
+		Dim XmlStr As String
+		Dim Doc As XmlDocument
+
+		''Clear error queue
+		'm_ErrorQueue.Clear()
+
+		'Verify status file exists
+		If Not File.Exists(m_FileNamePath) Then Exit Sub
+
+		'Get data from status file
+		Try
+			XmlStr = My.Computer.FileSystem.ReadAllText(m_FileNamePath)
+			'Convert to an XML document
+			Doc = New XmlDocument()
+			Doc.LoadXml(XmlStr)
+
+			'Get the most recent log message
+			clsStatusData.MostRecentLogMessage = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentLogMessage").InnerText
+
+			'Get the most recent job info
+			m_MostRecentJobInfo = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentJobInfo").InnerText
+
+			'Get the error messsages
+			For Each Xn As XmlNode In Doc.SelectNodes("//Manager/RecentErrorMessages/ErrMsg")
+				clsStatusData.AddErrorMessage(Xn.InnerText)
+			Next
+		Catch ex As Exception
+			clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception reading status file", ex)
+			Exit Sub
+		End Try
+
+	End Sub
 #End Region
 
 End Class

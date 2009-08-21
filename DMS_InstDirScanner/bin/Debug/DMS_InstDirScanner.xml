@@ -6,7 +6,20 @@ DMS_InstDirScanner
 </name>
 </assembly>
 <members>
-<member name="M:DMS_InstDirScanner.clsStatusFile.#ctor(System.String)">
+<member name="P:DMS_InstDirScanner.My.Resources.Resources.ResourceManager">
+	<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member><member name="P:DMS_InstDirScanner.My.Resources.Resources.Culture">
+	<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member><member name="T:DMS_InstDirScanner.My.Resources.Resources">
+	<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.#ctor(System.String)">
 	<summary>
  Constructor
  </summary>
@@ -76,6 +89,11 @@ DMS_InstDirScanner
  Updates status file to show manager disabled
  </summary>
 	<param name="Local">TRUE if manager disabled locally, otherwise FALSE</param>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.InitStatusFromFile">
+	<summary>
+ Initializes the status from a file, if file exists
+ </summary>
 	<remarks></remarks>
 </member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.#ctor">
 	<summary>
@@ -189,19 +207,6 @@ DMS_InstDirScanner
  Do a directory scan
  </summary>
 	<remarks></remarks>
-</member><member name="P:DMS_InstDirScanner.My.Resources.Resources.ResourceManager">
-	<summary>
-  Returns the cached ResourceManager instance used by this class.
-</summary>
-</member><member name="P:DMS_InstDirScanner.My.Resources.Resources.Culture">
-	<summary>
-  Overrides the current thread's CurrentUICulture property for all
-  resource lookups using this strongly typed resource class.
-</summary>
-</member><member name="T:DMS_InstDirScanner.My.Resources.Resources">
-	<summary>
-  A strongly-typed resource class, for looking up localized strings, etc.
-</summary>
 </member><member name="P:DMS_InstDirScanner.clsLogTools.FileLogDebugEnabled">
 	<summary>
  Tells calling program file debug status

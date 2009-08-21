@@ -78,6 +78,7 @@
     <Compile Include="clsLogTools.vb" />
     <Compile Include="clsMainProcess.vb" />
     <Compile Include="clsMgrSettings.vb" />
+    <Compile Include="clsStatusData.vb" />
     <Compile Include="clsStatusFile.vb" />
     <Compile Include="IStatusFile.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />

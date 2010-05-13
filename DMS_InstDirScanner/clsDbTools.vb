@@ -34,11 +34,7 @@ Public Class clsDbTools
 
 		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, "Getting instrument list")
 
-		Dim sqlQuery As String = " SELECT t_storage_path.SP_vol_name_server as vol, t_storage_path.SP_path as path," & _
-		  " T_Instrument_Name.IN_capture_method as method, T_Instrument_Name.IN_name as Instrument" & _
-		  " FROM T_Instrument_Name INNER JOIN t_storage_path ON" & _
-		  " T_Instrument_Name.IN_source_path_ID = t_storage_path.SP_path_ID" & _
-		  " WHERE (T_Instrument_Name.IN_status = 'active')"
+		Dim sqlQuery As String = "SELECT * FROM V_Instrument_Source_Paths"
 
 		' Get a table containing the active instruments
 		Dim Dt As DataTable = GetDataTable(sqlQuery, MgrSettings.GetParam("connectionstring"))

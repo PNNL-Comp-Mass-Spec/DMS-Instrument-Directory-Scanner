@@ -27,11 +27,11 @@ Public Class clsDirectoryTools
 		Dim InstCounter As Integer = 0
 		Dim InstCount As Integer = InstList.Count
 
-		ProgStatus.TaskStartTime = Now
+		ProgStatus.TaskStartTime = System.DateTime.UtcNow()
 
 		For Each Inst As clsInstData In InstList
 			InstCounter += 1
-			ProgStatus.Duration = CSng(DateDiff(DateInterval.Hour, ProgStatus.TaskStartTime, Now()))
+			ProgStatus.Duration = CSng(System.DateTime.UtcNow().Subtract(ProgStatus.TaskStartTime).TotalHours())
 			Progress = 100 * CSng(InstCounter) / CSng(InstCount)
 			ProgStatus.UpdateAndWrite(Progress)
 			OutFile = CreateOutputFile(Inst.InstName, OutFolder)
@@ -175,14 +175,14 @@ Public Class clsDirectoryTools
 	End Function
 
 	Private Overloads Shared Function WriteToOutput(ByRef OutFile As StreamWriter, ByVal Field1 As String, _
-			ByVal Field2 As String) As Boolean
+	  ByVal Field2 As String) As Boolean
 
 		Return WriteToOutput(OutFile, Field1, Field2, String.Empty)
 
 	End Function
 
 	Private Overloads Shared Function WriteToOutput(ByRef OutFile As StreamWriter, ByVal Field1 As String, _
-			 ByVal Field2 As String, ByVal Field3 As String) As Boolean
+	   ByVal Field2 As String, ByVal Field3 As String) As Boolean
 
 		Dim LineOut As String
 

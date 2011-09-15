@@ -6,96 +6,7 @@ DMS_InstDirScanner
 </name>
 </assembly>
 <members>
-<member name="P:DMS_InstDirScanner.My.Resources.Resources.ResourceManager">
-	<summary>
-  Returns the cached ResourceManager instance used by this class.
-</summary>
-</member><member name="P:DMS_InstDirScanner.My.Resources.Resources.Culture">
-	<summary>
-  Overrides the current thread's CurrentUICulture property for all
-  resource lookups using this strongly typed resource class.
-</summary>
-</member><member name="T:DMS_InstDirScanner.My.Resources.Resources">
-	<summary>
-  A strongly-typed resource class, for looking up localized strings, etc.
-</summary>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.#ctor(System.String)">
-	<summary>
- Constructor
- </summary>
-	<param name="FileLocation">Full path to status file</param>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.ConvertMgrStatusToString(DMS_InstDirScanner.IStatusFile.EnumMgrStatus)">
-	<summary>
- Converts the manager status enum to a string value
- </summary>
-	<param name="StatusEnum">An IStatusFile.EnumMgrStatus object</param>
-	<returns>String representation of input object</returns>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.ConvertTaskStatusToString(DMS_InstDirScanner.IStatusFile.EnumTaskStatus)">
-	<summary>
- Converts the task status enum to a string value
- </summary>
-	<param name="StatusEnum">An IStatusFile.EnumTaskStatus object</param>
-	<returns>String representation of input object</returns>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.ConvertTaskDetailStatusToString(DMS_InstDirScanner.IStatusFile.EnumTaskStatusDetail)">
-	<summary>
- Converts the manager status enum to a string value
- </summary>
-	<param name="StatusEnum">An IStatusFile.EnumTaskStatusDetail object</param>
-	<returns></returns>
-	<remarks>String representation of input object</remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.WriteStatusFile">
-	<summary>
- Writes the status file
- </summary>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.LogStatusToMessageQueue(System.String)">
-	<summary>
- Writes the status to the message queue
- </summary>
-	<param name="strStatusXML">A string contiaining the XML to write</param>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(System.Single)">
-	<summary>
- Updates status file
- </summary>
-	<param name="PercentComplete">Job completion percentage</param>
-	<remarks>Overload to update when completion percentage is only change</remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(DMS_InstDirScanner.IStatusFile.EnumTaskStatusDetail,System.Single)">
-	<summary>
- Updates status file
- </summary>
-	<param name="Status">Job status enum</param>
-	<param name="PercentComplete">Job completion percentage</param>
-	<remarks>Overload to update file when status and completion percentage change</remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(DMS_InstDirScanner.IStatusFile.EnumTaskStatusDetail,System.Single,System.Int32)">
-	<summary>
- Updates status file
- </summary>
-	<param name="Status">Job status enum</param>
-	<param name="PercentComplete">Job completion percentage</param>
-	<param name="DTACount">Number of DTA files found for Sequest analysis</param>
-	<remarks>Overload to provide Sequest DTA count</remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateStopped(System.Boolean)">
-	<summary>
- Sets status file to show mahager not running
- </summary>
-	<param name="MgrError">TRUE if manager not running due to error; FALSE otherwise</param>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateDisabled(System.Boolean)">
-	<summary>
- Updates status file to show manager disabled
- </summary>
-	<param name="Local">TRUE if manager disabled locally, otherwise FALSE</param>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.InitStatusFromFile">
-	<summary>
- Initializes the status from a file, if file exists
- </summary>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.#ctor">
+<member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.#ctor">
 	<summary>
  Constructor
  </summary>
@@ -309,6 +220,95 @@ DMS_InstDirScanner
 	<param name="sender"></param>
 	<param name="args"></param>
 	<remarks>Errors and warnings from SQL Server are caught here</remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.#ctor(System.String)">
+	<summary>
+ Constructor
+ </summary>
+	<param name="FileLocation">Full path to status file</param>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.ConvertMgrStatusToString(DMS_InstDirScanner.IStatusFile.EnumMgrStatus)">
+	<summary>
+ Converts the manager status enum to a string value
+ </summary>
+	<param name="StatusEnum">An IStatusFile.EnumMgrStatus object</param>
+	<returns>String representation of input object</returns>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.ConvertTaskStatusToString(DMS_InstDirScanner.IStatusFile.EnumTaskStatus)">
+	<summary>
+ Converts the task status enum to a string value
+ </summary>
+	<param name="StatusEnum">An IStatusFile.EnumTaskStatus object</param>
+	<returns>String representation of input object</returns>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.ConvertTaskDetailStatusToString(DMS_InstDirScanner.IStatusFile.EnumTaskStatusDetail)">
+	<summary>
+ Converts the manager status enum to a string value
+ </summary>
+	<param name="StatusEnum">An IStatusFile.EnumTaskStatusDetail object</param>
+	<returns></returns>
+	<remarks>String representation of input object</remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.WriteStatusFile">
+	<summary>
+ Writes the status file
+ </summary>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.LogStatusToMessageQueue(System.String)">
+	<summary>
+ Writes the status to the message queue
+ </summary>
+	<param name="strStatusXML">A string contiaining the XML to write</param>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(System.Single)">
+	<summary>
+ Updates status file
+ </summary>
+	<param name="PercentComplete">Job completion percentage</param>
+	<remarks>Overload to update when completion percentage is only change</remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(DMS_InstDirScanner.IStatusFile.EnumTaskStatusDetail,System.Single)">
+	<summary>
+ Updates status file
+ </summary>
+	<param name="Status">Job status enum</param>
+	<param name="PercentComplete">Job completion percentage</param>
+	<remarks>Overload to update file when status and completion percentage change</remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(DMS_InstDirScanner.IStatusFile.EnumTaskStatusDetail,System.Single,System.Int32)">
+	<summary>
+ Updates status file
+ </summary>
+	<param name="Status">Job status enum</param>
+	<param name="PercentComplete">Job completion percentage</param>
+	<param name="DTACount">Number of DTA files found for Sequest analysis</param>
+	<remarks>Overload to provide Sequest DTA count</remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateStopped(System.Boolean)">
+	<summary>
+ Sets status file to show mahager not running
+ </summary>
+	<param name="MgrError">TRUE if manager not running due to error; FALSE otherwise</param>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateDisabled(System.Boolean)">
+	<summary>
+ Updates status file to show manager disabled
+ </summary>
+	<param name="Local">TRUE if manager disabled locally, otherwise FALSE</param>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.InitStatusFromFile">
+	<summary>
+ Initializes the status from a file, if file exists
+ </summary>
+	<remarks></remarks>
+</member><member name="P:DMS_InstDirScanner.My.Resources.Resources.ResourceManager">
+	<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member><member name="P:DMS_InstDirScanner.My.Resources.Resources.Culture">
+	<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member><member name="T:DMS_InstDirScanner.My.Resources.Resources">
+	<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
 </member>
 </members>
 </doc>

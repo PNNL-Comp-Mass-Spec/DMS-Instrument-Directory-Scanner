@@ -75,7 +75,7 @@ Public Class clsLogTools
 				MyLogger = m_DbLogger
 			Case LoggerTypes.LogFile
 				MyLogger = m_FileLogger
-				Dim TestFileDate As String = Now.ToString("MM-dd-yyyy")
+				Dim TestFileDate As String = System.DateTime.Now().ToString("MM-dd-yyyy")
 				If TestFileDate <> m_FileDate Then
 					m_FileDate = TestFileDate
 					ChangeLogFileName()
@@ -87,14 +87,14 @@ Public Class clsLogTools
 		End Select
 
 		'Update the status file data
-		clsStatusData.MostRecentLogMessage = Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+		clsStatusData.MostRecentLogMessage = System.DateTime.Now().ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
 			  & "; " & LogLevel.ToString()
 		'Send the log message
 		Select Case LogLevel
 			Case LogLevels.DEBUG
 				If MyLogger.IsDebugEnabled Then MyLogger.Debug(InpMsg)
 			Case LogLevels.ERROR
-				clsStatusData.AddErrorMessage(Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+				clsStatusData.AddErrorMessage(System.DateTime.Now().ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
 					 & "; " & LogLevel.ToString())
 				If MyLogger.IsErrorEnabled Then MyLogger.Error(InpMsg)
 			Case LogLevels.FATAL
@@ -127,7 +127,7 @@ Public Class clsLogTools
 				MyLogger = m_DbLogger
 			Case LoggerTypes.LogFile
 				MyLogger = m_FileLogger
-				Dim TestFileDate As String = Now.ToString("MM-dd-yyyy")
+				Dim TestFileDate As String = System.DateTime.Now().ToString("MM-dd-yyyy")
 				If TestFileDate <> m_FileDate Then
 					m_FileDate = TestFileDate
 					ChangeLogFileName()
@@ -139,14 +139,14 @@ Public Class clsLogTools
 		End Select
 
 		'Update the status file data
-		clsStatusData.MostRecentLogMessage = Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+		clsStatusData.MostRecentLogMessage = System.DateTime.Now().ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
 			 & "; " & LogLevel.ToString()
 		'Send the log message
 		Select Case LogLevel
 			Case LogLevels.DEBUG
 				If MyLogger.IsDebugEnabled Then MyLogger.Debug(InpMsg, Ex)
 			Case LogLevels.ERROR
-				clsStatusData.AddErrorMessage(Now.ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
+				clsStatusData.AddErrorMessage(System.DateTime.Now().ToString("MM/dd/yyyy HH:mm:ss") & "; " & InpMsg _
 					 & "; " & LogLevel.ToString)
 				If MyLogger.IsErrorEnabled Then MyLogger.Error(InpMsg, Ex)
 			Case LogLevels.FATAL

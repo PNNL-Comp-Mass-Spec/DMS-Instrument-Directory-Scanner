@@ -265,7 +265,7 @@ Public Class clsStatusFile
 	''' <remarks></remarks>
 	Public Sub New(ByVal FileLocation As String)
 		m_FileNamePath = FileLocation
-		m_MgrStartTime = Now()
+		m_MgrStartTime = System.DateTime.UtcNow
 		m_Progress = 0
 		m_SpectrumCount = 0
 		m_Dataset = ""
@@ -343,8 +343,8 @@ Public Class clsStatusFile
 			XWriter.WriteStartElement("Manager")
 			XWriter.WriteElementString("MgrName", m_MgrName)
 			XWriter.WriteElementString("MgrStatus", ConvertMgrStatusToString(m_MgrStatus))
-			XWriter.WriteElementString("LastUpdate", Now().ToString)
-			XWriter.WriteElementString("LastStartTime", m_MgrStartTime.ToString())
+			XWriter.WriteElementString("LastUpdate", System.DateTime.Now().ToString)
+			XWriter.WriteElementString("LastStartTime", m_MgrStartTime.ToLocalTime().ToString())
 			XWriter.WriteElementString("CPUUtilization", m_CpuUtilization.ToString())
 			XWriter.WriteElementString("FreeMemoryMB", "0")
 			'TODO: Figure out how to retrieve recent error messages

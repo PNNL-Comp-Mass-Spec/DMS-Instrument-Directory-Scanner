@@ -4,7 +4,7 @@
 ' Copyright 2009, Battelle Memorial Institute
 ' Created 01/01/2009
 '
-' Last modified 01/01/2009
+' Last modified 10/24/2011
 '*********************************************************************************************************
 Imports System.IO
 Imports System.Collections.Generic
@@ -90,10 +90,11 @@ Public Class clsDirectoryTools
 		'If this is a machine on bionet, set up a connection
 		If InstData.CaptureMethod.ToLower = "secfso" Then
 			BionetMachine = True
-			ShareConn = New ShareConnector(InpPath, MgrSettings.GetParam("bionetuser"), DecodePassword(MgrSettings.GetParam("bionetpwd")))
+			Dim strBionetUser As String = MgrSettings.GetParam("bionetuser")			' Typically user ftms (not LCMSOperator)
+			ShareConn = New ShareConnector(InpPath, strBionetUser, DecodePassword(MgrSettings.GetParam("bionetpwd")))
 			Connected = ShareConn.Connect()
 			If Not Connected Then
-				Msg = "Could not connect to " & InpPath
+				Msg = "Could not connect to " & InpPath & " as user " & strBionetUser
 				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, Msg)
 			End If
 		End If

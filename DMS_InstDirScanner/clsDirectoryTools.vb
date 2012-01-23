@@ -102,7 +102,12 @@ Public Class clsDirectoryTools
 		Dim InpDirInfo As New DirectoryInfo(InpPath)
 		Msg = "Reading " & InstData.InstName & ", Folder " & InpPath
 		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, Msg)
-		WriteToOutput(OutFile, "Folder: " & InpPath)
+
+		' List the folder path and current date/time on the first line
+		' Will look like this:
+		' (Folder: \\VOrbiETD04.bionet\ProteomicsData\ at 2012-01-23 2:15 PM)
+		WriteToOutput(OutFile, "Folder: " & InpPath & " at " & System.DateTime.Now().ToString("yyyy-MM-dd hh:mm:ss tt"))
+
 		If Not Directory.Exists(InpPath) Then
 			WriteToOutput(OutFile, "(Folder does not exist)")
 		Else

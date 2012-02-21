@@ -87,20 +87,30 @@ Public Class clsDirectoryTools
 		Dim InpPath As String = Path.Combine(InstData.StorageVolume, InstData.StoragePath)
 		Dim ShareConn As ShareConnector = Nothing
 
+		Dim strUserDescription As String = "as user ??"
+
 		'If this is a machine on bionet, set up a connection
 		If InstData.CaptureMethod.ToLower = "secfso" Then
 			BionetMachine = True
 			Dim strBionetUser As String = MgrSettings.GetParam("bionetuser")			' Typically user ftms (not LCMSOperator)
 			ShareConn = New ShareConnector(InpPath, strBionetUser, DecodePassword(MgrSettings.GetParam("bionetpwd")))
 			Connected = ShareConn.Connect()
+
+			strUserDescription = " as user " & strBionetUser
 			If Not Connected Then
-				Msg = "Could not connect to " & InpPath & " as user " & strBionetUser
+				Msg = "Could not connect to " & InpPath & strUserDescription
 				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, Msg)
+			End If
+		Else
+			strUserDescription = " as user " & Environment.UserName
+			If InpPath.ToLower().Contains(".bionet") Then
+				Msg = "Warning: Connection to a bionet folder should probably use 'secfso'; currently configured to use 'fso'"
+				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.WARN, Msg)
 			End If
 		End If
 
 		Dim InpDirInfo As New DirectoryInfo(InpPath)
-		Msg = "Reading " & InstData.InstName & ", Folder " & InpPath
+		Msg = "Reading " & InstData.InstName & ", Folder " & InpPath & strUserDescription
 		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, Msg)
 
 		' List the folder path and current date/time on the first line

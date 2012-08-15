@@ -220,7 +220,7 @@ DMS_InstDirScanner
 	<param name="sender"></param>
 	<param name="args"></param>
 	<remarks>Errors and warnings from SQL Server are caught here</remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.#ctor(System.String)">
+</member><member name="M:DMS_InstDirScanner.clsStatusFile.#ctor(System.String,System.Int32)">
 	<summary>
  Constructor
  </summary>
@@ -251,12 +251,6 @@ DMS_InstDirScanner
 	<summary>
  Writes the status file
  </summary>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsStatusFile.LogStatusToMessageQueue(System.String)">
-	<summary>
- Writes the status to the message queue
- </summary>
-	<param name="strStatusXML">A string contiaining the XML to write</param>
 	<remarks></remarks>
 </member><member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(System.Single)">
 	<summary>

@@ -52,9 +52,6 @@
     <Reference Include="log4net">
       <HintPath>Lib\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="MessageLogger">
-      <HintPath>Lib\MessageLogger.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -89,6 +86,8 @@
     <Compile Include="clsInstData.vb" />
     <Compile Include="clsLogTools.vb" />
     <Compile Include="clsMainProcess.vb" />
+    <Compile Include="clsMessageQueueLogger.vb" />
+    <Compile Include="clsMessageSender.vb" />
     <Compile Include="clsMgrSettings.vb" />
     <Compile Include="clsStatusData.vb" />
     <Compile Include="clsStatusFile.vb" />

@@ -22,7 +22,7 @@ Public Class clsMainProcess
 #Region "Module variables"
 	Shared m_MainProcess As clsMainProcess
 	Private m_MgrSettings As clsMgrSettings
-	Private m_StatusFile As IStatusFile
+	Shared m_StatusFile As IStatusFile
 #End Region
 
 #Region "Methods"
@@ -45,6 +45,10 @@ Public Class clsMainProcess
 			ErrMsg = "Critical exception starting application"
 			WriteLog(LoggerTypes.LogSystem, LogLevels.FATAL, ErrMsg, Err)
 			Exit Sub
+		Finally
+			If Not m_StatusFile Is Nothing Then
+				m_StatusFile.DisposeMessageQueue()
+			End If
 		End Try
 
 	End Sub
@@ -87,7 +91,7 @@ Public Class clsMainProcess
 		'Setup the status file class
 		Dim FInfo As FileInfo = New FileInfo(Application.ExecutablePath)
 		Dim StatusFileNameLoc As String = Path.Combine(FInfo.DirectoryName, "Status.xml")
-		m_StatusFile = New clsStatusFile(StatusFileNameLoc)
+		m_StatusFile = New clsStatusFile(StatusFileNameLoc, DebugLevel)
 		With m_StatusFile
 			.MessageQueueURI = m_MgrSettings.GetParam("MessageQueueURI")
 			.MessageQueueTopic = m_MgrSettings.GetParam("MessageQueueTopicMgrStatus")

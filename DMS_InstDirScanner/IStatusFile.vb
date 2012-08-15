@@ -97,6 +97,8 @@ Public Interface IStatusFile
 	Sub UpdateDisabled(ByVal Local As Boolean)
 
 	Sub InitStatusFromFile()
+
+	Sub DisposeMessageQueue()
 #End Region
 
 End Interface

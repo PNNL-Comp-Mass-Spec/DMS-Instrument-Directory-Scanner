@@ -12,7 +12,6 @@
 
 Imports System.IO
 Imports System.Xml
-Imports MessageLogger
 Imports System.Collections.Generic
 
 Public Class clsStatusFile
@@ -80,8 +79,16 @@ Public Class clsStatusFile
 	'Broker topic for status reporting
 	Private m_MessageQueueTopic As String
 
+	Private m_DebugLevel As Integer = 1
+
 	'Flag to indicate if status should be logged to broker in addition to a file
-	Private m_LogToMsgQueue As Boolean
+	Private m_LogToMessageQueue As Boolean
+
+	Private m_MessageQueueLogger As clsMessageQueueLogger
+	Private m_MessageQueueClientName As String
+	Private m_MessageSender As clsMessageSender
+	Private m_QueueLogger As clsMessageQueueLogger
+
 #End Region
 
 #Region "Properties"
@@ -249,10 +256,10 @@ Public Class clsStatusFile
 
 	Public Property LogToMsgQueue() As Boolean Implements IStatusFile.LogToMsgQueue
 		Get
-			Return m_LogToMsgQueue
+			Return m_LogToMessageQueue
 		End Get
 		Set(ByVal value As Boolean)
-			m_LogToMsgQueue = value
+			m_LogToMessageQueue = value
 		End Set
 	End Property
 #End Region
@@ -263,7 +270,7 @@ Public Class clsStatusFile
 	''' </summary>
 	''' <param name="FileLocation">Full path to status file</param>
 	''' <remarks></remarks>
-	Public Sub New(ByVal FileLocation As String)
+	Public Sub New(ByVal FileLocation As String, ByVal debugLevel As Integer)
 		m_FileNamePath = FileLocation
 		m_MgrStartTime = System.DateTime.UtcNow
 		m_Progress = 0
@@ -271,6 +278,7 @@ Public Class clsStatusFile
 		m_Dataset = ""
 		m_JobNumber = 0
 		m_Tool = ""
+		m_DebugLevel = debugLevel
 	End Sub
 
 	''' <summary>
@@ -308,6 +316,76 @@ Public Class clsStatusFile
 		Return StatusEnum.ToString("G")
 
 	End Function
+
+
+	'' <summary>
+	'' Writes the status to the message queue
+	'' </summary>
+	'' <param name="strStatusXML">A string contiaining the XML to write</param>
+	'' <remarks></remarks>
+	'Protected Sub LogStatusToMessageQueueOld(ByVal strStatusXML As String)
+
+	'	Dim Success As Boolean
+	'	Static dtLastFailureTime As DateTime = System.DateTime.MinValue
+
+	'	Try
+	'		Dim messageSender As New MessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
+
+	'		' message queue logger sets up local message buffering (so calls to log don't block)
+	'		' and uses message sender (as a delegate) to actually send off the messages
+	'		Dim queueLogger As New MessageQueueLogger()
+	'		AddHandler queueLogger.Sender, New MessageSenderDelegate(AddressOf messageSender.SendMessage)
+
+	'		queueLogger.LogStatusMessage(strStatusXML)
+
+	'		queueLogger.Dispose()
+
+	'		messageSender.Dispose()
+	'	Catch ex As Exception
+	'		'TODO: Figure out how to handle error
+	'		Success = False
+	'	End Try
+	'End Sub
+
+	Protected Sub LogStatusToMessageQueue(ByVal strStatusXML As String)
+
+		Const MINIMUM_LOG_FAILURE_INTERVAL_MINUTES As Single = 10
+		Static dtLastFailureTime As DateTime = System.DateTime.UtcNow.Subtract(New System.TimeSpan(1, 0, 0))
+
+		Try
+			If m_MessageSender Is Nothing Then
+
+				If m_DebugLevel >= 5 Then
+					clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, "Initializing message queue with URI '" & m_MessageQueueURI & "' and Topic '" & m_MessageQueueTopic & "'")
+				End If
+
+				m_MessageSender = New clsMessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
+
+				' message queue logger sets up local message buffering (so calls to log don't block)
+				' and uses message sender (as a delegate) to actually send off the messages
+				m_QueueLogger = New clsMessageQueueLogger()
+				AddHandler m_QueueLogger.Sender, New MessageSenderDelegate(AddressOf m_MessageSender.SendMessage)
+
+				If m_DebugLevel >= 3 Then
+					clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, "Message queue initialized with URI '" & m_MessageQueueURI & "'; posting to Topic '" & m_MessageQueueTopic & "'")
+				End If
+
+			End If
+
+			If Not m_QueueLogger Is Nothing Then
+				m_QueueLogger.LogStatusMessage(strStatusXML)
+			End If
+
+		Catch ex As Exception
+			If System.DateTime.UtcNow.Subtract(dtLastFailureTime).TotalMinutes >= MINIMUM_LOG_FAILURE_INTERVAL_MINUTES Then
+				dtLastFailureTime = System.DateTime.UtcNow
+				clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Error in clsStatusFile.LogStatusToMessageQueue (B): " & ex.Message)
+			End If
+
+		End Try
+
+
+	End Sub
 
 	''' <summary>
 	''' Writes the status file
@@ -407,37 +485,11 @@ Public Class clsStatusFile
 		End Try
 
 		'Log to a message queue
-		If m_LogToMsgQueue Then LogStatusToMessageQueue(XMLText)
+		If m_LogToMessageQueue Then
+			' Send the XML text to a message queue
+			LogStatusToMessageQueue(XMLText)
+		End If
 
-	End Sub
-
-	''' <summary>
-	''' Writes the status to the message queue
-	''' </summary>
-	''' <param name="strStatusXML">A string contiaining the XML to write</param>
-	''' <remarks></remarks>
-	Protected Sub LogStatusToMessageQueue(ByVal strStatusXML As String)
-
-		Dim Success As Boolean
-		Static dtLastFailureTime As DateTime = System.DateTime.MinValue
-
-		Try
-			Dim messageSender As New MessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
-
-			' message queue logger sets up local message buffering (so calls to log don't block)
-			' and uses message sender (as a delegate) to actually send off the messages
-			Dim queueLogger As New MessageQueueLogger()
-			AddHandler queueLogger.Sender, New MessageSenderDelegate(AddressOf messageSender.SendMessage)
-
-			queueLogger.LogStatusMessage(strStatusXML)
-
-			queueLogger.Dispose()
-
-			messageSender.Dispose()
-		Catch ex As Exception
-			'TODO: Figure out how to handle error
-			Success = False
-		End Try
 	End Sub
 
 	''' <summary>
@@ -569,6 +621,15 @@ Public Class clsStatusFile
 		End Try
 
 	End Sub
+
+	Public Sub DisposeMessageQueue() Implements IStatusFile.DisposeMessageQueue
+		If Not m_MessageSender Is Nothing Then
+			m_QueueLogger.Dispose()
+			m_MessageSender.Dispose()
+		End If
+
+	End Sub
+
 #End Region
 
 End Class

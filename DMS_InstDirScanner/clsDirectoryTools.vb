@@ -26,6 +26,8 @@ Public Class clsDirectoryTools
 		Dim Progress As Single
 		Dim InstCounter As Integer = 0
 		Dim InstCount As Integer = InstList.Count
+		Dim FolderMissing As Boolean
+		Dim fiSourceFile As System.IO.FileInfo
 
 		ProgStatus.TaskStartTime = System.DateTime.UtcNow
 
@@ -34,52 +36,80 @@ Public Class clsDirectoryTools
 			ProgStatus.Duration = CSng(System.DateTime.UtcNow.Subtract(ProgStatus.TaskStartTime).TotalHours())
 			Progress = 100 * CSng(InstCounter) / CSng(InstCount)
 			ProgStatus.UpdateAndWrite(Progress)
-			OutFile = CreateOutputFile(Inst.InstName, OutFolder)
+
+			fiSourceFile = Nothing
+			OutFile = CreateOutputFile(Inst.InstName, OutFolder, fiSourceFile)
 			If OutFile Is Nothing Then Return False
 
 			'Get the directory info an write it
-			GetDirectoryData(Inst, OutFile, MgrSettings)
+			FolderMissing = False
+			GetDirectoryData(Inst, OutFile, MgrSettings, FolderMissing)
 
 			OutFile.Close()
+
+			If Not FolderMissing Then
+				' Copy the file to the MostRecentValid folder
+				Try
+
+					Dim diTargetDirectory As System.IO.DirectoryInfo
+					diTargetDirectory = New System.IO.DirectoryInfo(System.IO.Path.Combine(OutFolder, "MostRecentValid"))
+
+					If Not diTargetDirectory.Exists Then diTargetDirectory.Create()
+
+					fiSourceFile.CopyTo(System.IO.Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), True)
+
+				Catch ex As Exception
+					clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception copying to MostRecentValid directory", ex)
+				End Try
+			End If
 		Next
 
 		Return True
 
 	End Function
 
-	Private Shared Function CreateOutputFile(ByVal InstName As String, ByVal OutFileDir As String) As StreamWriter
+	Private Shared Function CreateOutputFile(ByVal InstName As String, ByVal OutFileDir As String, ByRef fiStatusFile As System.IO.FileInfo) As StreamWriter
 
-		Dim OutFilePath As String = Path.Combine(OutFileDir, InstName & "_source.txt")
+		Dim diBackupDirectory As System.IO.DirectoryInfo
 		Dim RetFile As StreamWriter
 
 		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning folder for instrument " & InstName)
+		fiStatusFile = New System.IO.FileInfo(System.IO.Path.Combine(OutFileDir, InstName & "_source.txt"))
 
-		'Check for existing file
-		If File.Exists(OutFilePath) Then
+		' Make a backup copy of the existing file
+		If fiStatusFile.Exists Then
 			Try
-				File.Delete(OutFilePath)
+				diBackupDirectory = New System.IO.DirectoryInfo(System.IO.Path.Combine(fiStatusFile.Directory.FullName, "PreviousCopy"))
+				If Not diBackupDirectory.Exists Then diBackupDirectory.Create()
+				fiStatusFile.CopyTo(System.IO.Path.Combine(diBackupDirectory.FullName, fiStatusFile.Name), True)
 			Catch ex As Exception
-				Dim Msg As String = "Exception deleting file " & OutFilePath
-				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, Msg, ex)
+				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception copying to PreviousCopy directory", ex)
+			End Try
+
+			Try
+				' Now delete the old copy
+				fiStatusFile.Delete()
+			Catch ex As Exception
+				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception deleting file " & fiStatusFile.FullName, ex)
 				Return Nothing
 			End Try
 		End If
 
 		'Create the new file
 		Try
-			RetFile = New StreamWriter(New FileStream(OutFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
+			RetFile = New StreamWriter(New FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
+
 			'The file always starts with a blank line
 			RetFile.WriteLine()
 			Return RetFile
 		Catch ex As Exception
-			Dim Msg As String = "Exception creating output file " & OutFilePath
-			clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, Msg, ex)
+			clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception creating output file " & fiStatusFile.FullName, ex)
 			Return Nothing
 		End Try
 
 	End Function
 
-	Private Shared Sub GetDirectoryData(ByVal InstData As clsInstData, ByRef OutFile As StreamWriter, ByVal MgrSettings As clsMgrSettings)
+	Private Shared Sub GetDirectoryData(ByVal InstData As clsInstData, ByRef OutFile As StreamWriter, ByVal MgrSettings As clsMgrSettings, ByRef FolderMissing As Boolean)
 
 		Dim Msg As String
 		Dim BionetMachine As Boolean = False
@@ -88,6 +118,7 @@ Public Class clsDirectoryTools
 		Dim ShareConn As ShareConnector = Nothing
 
 		Dim strUserDescription As String = "as user ??"
+		FolderMissing = False
 
 		'If this is a machine on bionet, set up a connection
 		If InstData.CaptureMethod.ToLower = "secfso" Then
@@ -109,7 +140,8 @@ Public Class clsDirectoryTools
 			End If
 		End If
 
-		Dim InpDirInfo As New DirectoryInfo(InpPath)
+		Dim diInstDataFolder As New DirectoryInfo(InpPath)
+
 		Msg = "Reading " & InstData.InstName & ", Folder " & InpPath & strUserDescription
 		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, Msg)
 
@@ -120,9 +152,10 @@ Public Class clsDirectoryTools
 
 		If Not Directory.Exists(InpPath) Then
 			WriteToOutput(OutFile, "(Folder does not exist)")
+			FolderMissing = True
 		Else
-			Dim Dirs() As DirectoryInfo = InpDirInfo.GetDirectories()
-			Dim Files() As FileInfo = InpDirInfo.GetFiles()
+			Dim Dirs() As DirectoryInfo = diInstDataFolder.GetDirectories()
+			Dim Files() As FileInfo = diInstDataFolder.GetFiles()
 			For Each TempDir As DirectoryInfo In Dirs
 				WriteToOutput(OutFile, "Dir ", TempDir.Name)
 			Next

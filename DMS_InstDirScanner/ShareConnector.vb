@@ -62,17 +62,15 @@ Public Class ShareConnector
 
 	Declare Function WNetCancelConnection2 Lib "mpr.dll" Alias "WNetCancelConnection2A" (ByVal lpName As String, ByVal dwFlags As Integer, ByVal fForce As Integer) As Integer
 
-	Private netR As NETRESOURCE
-	Private user As String
-	Private pwd As String
-	Private sharename As String = ""
+	Private mNetResource As NETRESOURCE
+	Private mUsername As String
+	Private mPassword As String
+	Private mShareName As String = ""
 
 	Public Sub New(ByVal share As String, ByVal userName As String, ByVal userPwd As String)
 
 		'Overloaded version to allow providing share name in constructor
-		If share.EndsWith("\") Then
-			sharename = share.TrimEnd("\"c)
-		End If
+		DefineShareName(share)
 		RealNew(userName, userPwd)
 
 	End Sub
@@ -87,27 +85,23 @@ Public Class ShareConnector
 	Private Sub RealNew(ByVal userName As String, ByVal userPwd As String)
 
 		'Actual constructor called by assorted overloaded versions
-		user = userName
-		pwd = userPwd
-		netR.lpRemoteName = sharename
-		netR.dwType = RESOURCETYPE_DISK
-		netR.dwScope = RESOURCE_GLOBALNET
-		netR.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE
-		netR.dwUsage = RESOURCEUSAGE_CONNECTABLE
+		mUsername = userName
+		mPassword = userPwd
+		mNetResource.lpRemoteName = mShareName
+		mNetResource.dwType = RESOURCETYPE_DISK
+		mNetResource.dwScope = RESOURCE_GLOBALNET
+		mNetResource.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE
+		mNetResource.dwUsage = RESOURCEUSAGE_CONNECTABLE
 
 	End Sub
 
 	Public Property Share() As String
 		Get
-			Return sharename
+			Return mShareName
 		End Get
 		Set(ByVal Value As String)
-			If Value.EndsWith("\") Then
-				sharename = Value.TrimEnd("\"c)
-			Else
-				sharename = Value
-			End If
-			netR.lpRemoteName = sharename
+			DefineShareName(Value)
+			mNetResource.lpRemoteName = mShareName
 		End Set
 	End Property
 
@@ -115,12 +109,8 @@ Public Class ShareConnector
 
 		'Connects to specified share using specified account/password
 		'Overload to allow specification of share name in function call
-		If Share.EndsWith("\") Then
-			sharename = Share.TrimEnd("\"c)
-		Else
-			sharename = Share
-		End If
-		netR.lpRemoteName = sharename
+		DefineShareName(Share)
+		mNetResource.lpRemoteName = mShareName
 		Return RealConnect()
 
 	End Function
@@ -129,7 +119,7 @@ Public Class ShareConnector
 
 		'Connects to specified share using specified account/password
 		'Overload requiring specification of share name prior to function call
-		If netR.lpRemoteName = "" Then
+		If mNetResource.lpRemoteName = "" Then
 			ErrorMessage = "Share name not specified"
 			Return False
 		End If
@@ -137,13 +127,21 @@ Public Class ShareConnector
 
 	End Function
 
+	Private Sub DefineShareName(ByVal share As String)
+		If share.EndsWith("\") Then
+			mShareName = share.TrimEnd("\"c)
+		Else
+			mShareName = share
+		End If
+	End Sub
+
 	Private Function RealConnect() As Boolean
 
 		'Connects to specified share using specified account/password
 		'This is the function that actually does the connection based on the setup from the overloaded functions
 		Dim errorNum As Integer
 
-		errorNum = WNetAddConnection2(netR, pwd, user, 0)
+		errorNum = WNetAddConnection2(mNetResource, mPassword, mUsername, 0)
 		If errorNum = NO_ERROR Then
 			Debug.WriteLine("Connected.")
 			Return True
@@ -156,7 +154,7 @@ Public Class ShareConnector
 	End Function
 
 	Public Function Disconnect() As Boolean
-		Dim errorNum As Integer = WNetCancelConnection2(Me.netR.lpRemoteName, 0, CInt(True))
+		Dim errorNum As Integer = WNetCancelConnection2(Me.mNetResource.lpRemoteName, 0, CInt(True))
 		If errorNum = NO_ERROR Then
 			Debug.WriteLine("Disconnected.")
 			Return True

@@ -12,6 +12,7 @@ Imports System.Collections.Specialized
 Imports System.Data.SqlClient
 Imports DMS_InstDirScanner.MgrSettings
 Imports DMS_InstDirScanner.clsLogTools
+Imports System.Data
 
 Public Class clsDbTools
 

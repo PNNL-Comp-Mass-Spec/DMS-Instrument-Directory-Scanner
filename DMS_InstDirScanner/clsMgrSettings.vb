@@ -14,6 +14,7 @@ Imports System.Collections.Specialized
 Imports System.Xml
 Imports System.Configuration
 Imports DMS_InstDirScanner.clsLogTools
+Imports System.Data
 
 Namespace MgrSettings
 
@@ -364,7 +365,7 @@ Namespace MgrSettings
 		''' <remarks></remarks>
 		Private Function GetConfigFilePath() As String
 
-			Return Application.ExecutablePath & ".config"
+			Return clsMainProcess.GetAppPath() & ".config"
 
 		End Function
 

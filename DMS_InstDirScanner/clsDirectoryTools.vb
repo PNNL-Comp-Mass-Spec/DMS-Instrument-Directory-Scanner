@@ -115,7 +115,7 @@ Public Class clsDirectoryTools
 		Dim BionetMachine As Boolean = False
 		Dim Connected As Boolean
 		Dim InpPath As String = Path.Combine(InstData.StorageVolume, InstData.StoragePath)
-		Dim ShareConn As ShareConnector = Nothing
+		Dim ShareConn As PRISM.Files.ShareConnector = Nothing
 
 		Dim strUserDescription As String = "as user ??"
 		FolderMissing = False
@@ -124,7 +124,7 @@ Public Class clsDirectoryTools
 		If InstData.CaptureMethod.ToLower = "secfso" Then
 			BionetMachine = True
 			Dim strBionetUser As String = MgrSettings.GetParam("bionetuser")			' Typically user ftms (not LCMSOperator)
-			ShareConn = New ShareConnector(InpPath, strBionetUser, DecodePassword(MgrSettings.GetParam("bionetpwd")))
+			ShareConn = New PRISM.Files.ShareConnector(InpPath, strBionetUser, DecodePassword(MgrSettings.GetParam("bionetpwd")))
 			Connected = ShareConn.Connect()
 
 			strUserDescription = " as user " & strBionetUser

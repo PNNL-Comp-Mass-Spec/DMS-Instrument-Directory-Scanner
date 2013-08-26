@@ -118,6 +118,18 @@ DMS_InstDirScanner
  Do a directory scan
  </summary>
 	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsMainProcess.GetAppPath">
+	<summary>
+ Returns the full path to the executing .Exe or .Dll
+ </summary>
+	<returns>File path</returns>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsMainProcess.GetAppVersion">
+	<summary>
+ Returns the .NET assembly version followed by the program date
+ </summary>
+	<returns></returns>
+	<remarks></remarks>
 </member><member name="P:DMS_InstDirScanner.clsLogTools.FileLogDebugEnabled">
 	<summary>
  Tells calling program file debug status

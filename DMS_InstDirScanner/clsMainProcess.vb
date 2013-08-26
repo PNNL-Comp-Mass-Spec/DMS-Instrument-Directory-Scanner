@@ -85,12 +85,11 @@ Public Class clsMainProcess
 		clsLogTools.CreateDbLogger(LogCnStr, ModuleName)
 
 		'Make the initial log entry
-		Dim MyMsg As String = "=== Started Instrument Directory Scanner V" & Application.ProductVersion & " ===== "
+		Dim MyMsg As String = "=== Started Instrument Directory Scanner V" & GetAppVersion() & " ===== "
 		WriteLog(LoggerTypes.LogFile, LogLevels.INFO, MyMsg)
 
 		'Setup the status file class
-		Dim FInfo As FileInfo = New FileInfo(Application.ExecutablePath)
-		Dim StatusFileNameLoc As String = Path.Combine(FInfo.DirectoryName, "Status.xml")
+		Dim StatusFileNameLoc As String = Path.Combine(GetAppFolderPath(), "Status.xml")
 		m_StatusFile = New clsStatusFile(StatusFileNameLoc, DebugLevel)
 		With m_StatusFile
 			.MessageQueueURI = m_MgrSettings.GetParam("MessageQueueURI")
@@ -151,6 +150,30 @@ Public Class clsMainProcess
 		m_StatusFile.UpdateStopped(False)
 
 	End Sub
+
+	Public Shared Function GetAppFolderPath() As String
+		' Could use Application.StartupPath, but .GetExecutingAssembly is better
+		Return System.IO.Path.GetDirectoryName(GetAppPath())
+	End Function
+
+	''' <summary>
+	''' Returns the full path to the executing .Exe or .Dll
+	''' </summary>
+	''' <returns>File path</returns>
+	''' <remarks></remarks>
+	Public Shared Function GetAppPath() As String
+		Return System.Reflection.Assembly.GetExecutingAssembly().Location
+	End Function
+
+	''' <summary>
+	''' Returns the .NET assembly version followed by the program date
+	''' </summary>
+	''' <returns></returns>
+	''' <remarks></remarks>
+	Public Shared Function GetAppVersion() As String
+		Return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()
+	End Function
+
 #End Region
 
 End Class

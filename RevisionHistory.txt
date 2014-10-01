@@ -1,0 +1,16 @@
+Data Import Manager History
+
+Version 1.3.5387; October 1, 2014
+	- Now prepending the bionet user's username with MachineName
+		- For example, resultant string is proto-3\ftms
+
+Version 1.3.5210; April 7, 2014
+	- New version of Prism.dll
+
+Version 1.3.4986; August 26, 2013
+	- Now using the ShareConnector class in Prism.dll
+	- Updated to .NET 4
+
+Version 1.2.4651; September 25, 2012
+	- Now saving a backup copy of each updated file in folder PreviousCopy
+	- Now saving a copy of each newly created file to folder MostRecentValid if the source directory is found

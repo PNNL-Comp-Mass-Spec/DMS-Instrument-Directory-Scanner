@@ -78,8 +78,9 @@ Public Class clsMainProcess
 
 		'Setup the logger
 		Dim LogFileName As String = m_MgrSettings.GetParam("logfilename")
-		Dim DebugLevel As Integer = CInt(m_MgrSettings.GetParam("debuglevel"))
-		clsLogTools.CreateFileLogger(LogFileName, DebugLevel)
+        Dim debugLevel As Integer = m_MgrSettings.GetParam("debuglevel", 1)
+        clsLogTools.CreateFileLogger(LogFileName, debugLevel)
+
 		Dim LogCnStr As String = m_MgrSettings.GetParam("connectionstring")
 		Dim ModuleName As String = m_MgrSettings.GetParam("modulename")
 		clsLogTools.CreateDbLogger(LogCnStr, ModuleName)
@@ -90,7 +91,7 @@ Public Class clsMainProcess
 
 		'Setup the status file class
 		Dim StatusFileNameLoc As String = Path.Combine(GetAppFolderPath(), "Status.xml")
-		m_StatusFile = New clsStatusFile(StatusFileNameLoc, DebugLevel)
+        m_StatusFile = New clsStatusFile(StatusFileNameLoc, debugLevel)
 		With m_StatusFile
 			.MessageQueueURI = m_MgrSettings.GetParam("MessageQueueURI")
 			.MessageQueueTopic = m_MgrSettings.GetParam("MessageQueueTopicMgrStatus")
@@ -124,55 +125,64 @@ Public Class clsMainProcess
 			Exit Sub
 		End If
 
-		'Verify output directory can be found
-		If Not Directory.Exists(m_MgrSettings.GetParam("workdir")) Then
-			WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Output directory not found")
-			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
-			m_StatusFile.UpdateStopped(True)
-			Exit Sub
-		End If
+        Dim workDir = m_MgrSettings.GetParam("workdir", String.Empty)
+        If String.IsNullOrWhiteSpace(workDir) Then
+            LogFatalError("Manager parameter 'workdir' is not defined")
+            Exit Sub
+        End If
 
-		'Get list of instruments from DMS
-		Dim InstList As List(Of clsInstData) = clsDbTools.GetInstrumentList(m_MgrSettings)
-		If InstList Is Nothing Then
-			WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "No instrument list")
-			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
-			m_StatusFile.UpdateStopped(True)
-			Exit Sub
-		End If
+        'Verify output directory can be found
+        If Not Directory.Exists(workDir) Then
+            LogFatalError("Output directory not found: " & workDir)
+            Exit Sub
+        End If
 
-		'Scan the directories
-		clsDirectoryTools.PerformDirectoryScans(InstList, m_MgrSettings.GetParam("workdir"), m_MgrSettings, m_StatusFile)
+        'Get list of instruments from DMS
+        Dim InstList As List(Of clsInstData) = clsDbTools.GetInstrumentList(m_MgrSettings)
+        If InstList Is Nothing Then
+            LogFatalError("No instrument list")
+            Exit Sub
+        End If
 
-		'All finished, so clean up and exit
-		WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning complete")
-		WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
-		m_StatusFile.UpdateStopped(False)
+        'Scan the directories
+        Dim scanner = New clsDirectoryTools()
+        scanner.PerformDirectoryScans(InstList, workDir, m_MgrSettings, m_StatusFile)
 
-	End Sub
+        'All finished, so clean up and exit
+        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning complete")
+        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+        m_StatusFile.UpdateStopped(False)
 
-	Public Shared Function GetAppFolderPath() As String
-		' Could use Application.StartupPath, but .GetExecutingAssembly is better
-		Return System.IO.Path.GetDirectoryName(GetAppPath())
-	End Function
+    End Sub
 
-	''' <summary>
-	''' Returns the full path to the executing .Exe or .Dll
-	''' </summary>
-	''' <returns>File path</returns>
-	''' <remarks></remarks>
-	Public Shared Function GetAppPath() As String
-		Return System.Reflection.Assembly.GetExecutingAssembly().Location
-	End Function
+    Public Shared Function GetAppFolderPath() As String
+        ' Could use Application.StartupPath, but .GetExecutingAssembly is better
+        Return System.IO.Path.GetDirectoryName(GetAppPath())
+    End Function
 
-	''' <summary>
-	''' Returns the .NET assembly version followed by the program date
-	''' </summary>
-	''' <returns></returns>
-	''' <remarks></remarks>
-	Public Shared Function GetAppVersion() As String
-		Return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()
-	End Function
+    ''' <summary>
+    ''' Returns the full path to the executing .Exe or .Dll
+    ''' </summary>
+    ''' <returns>File path</returns>
+    ''' <remarks></remarks>
+    Public Shared Function GetAppPath() As String
+        Return System.Reflection.Assembly.GetExecutingAssembly().Location
+    End Function
+
+    ''' <summary>
+    ''' Returns the .NET assembly version followed by the program date
+    ''' </summary>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Shared Function GetAppVersion() As String
+        Return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()
+    End Function
+
+    Private Sub LogFatalError(ByVal errorMessage As String)
+        WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Output directory not found")
+        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+        m_StatusFile.UpdateStopped(True)
+    End Sub
 
 #End Region
 

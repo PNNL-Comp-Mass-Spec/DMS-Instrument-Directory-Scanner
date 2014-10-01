@@ -79,7 +79,7 @@ Public Class clsStatusFile
 	'Broker topic for status reporting
 	Private m_MessageQueueTopic As String
 
-	Private m_DebugLevel As Integer = 1
+    Private ReadOnly m_DebugLevel As Integer = 1
 
 	'Flag to indicate if status should be logged to broker in addition to a file
 	Private m_LogToMessageQueue As Boolean

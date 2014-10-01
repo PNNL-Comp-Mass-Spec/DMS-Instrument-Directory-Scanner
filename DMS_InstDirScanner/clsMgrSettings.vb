@@ -20,7 +20,9 @@ Namespace MgrSettings
 
 #Region "Interfaces"
 	Public Interface IMgrParams
-		Function GetParam(ByVal ItemKey As String) As String
+        Function GetParam(ByVal ItemKey As String) As String
+        Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As String) As String
+        Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As Integer) As Integer
 		Sub SetParam(ByVal ItemKey As String, ByVal ItemValue As String)
 	End Interface
 #End Region
@@ -257,6 +259,44 @@ Namespace MgrSettings
 
 		End Function
 
+        ''' <summary>
+        ''' Gets a parameter from the parameters string dictionary
+        ''' </summary>
+        ''' <param name="ItemKey">Key name for item</param>
+        ''' <returns>String value associated with specified key</returns>
+        ''' <remarks>Returns Nothing if key isn't found</remarks>
+        Public Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As String) As String Implements IMgrParams.GetParam
+
+            If Not m_ParamDictionary.ContainsKey(ItemKey) Then
+                Return valueIfMissing
+            End If
+
+            Return m_ParamDictionary.Item(ItemKey)
+
+        End Function
+
+        ''' <summary>
+        ''' Gets a parameter from the parameters string dictionary
+        ''' </summary>
+        ''' <param name="ItemKey">Key name for item</param>
+        ''' <returns>String value associated with specified key</returns>
+        ''' <remarks>Returns Nothing if key isn't found</remarks>
+        Public Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As Integer) As Integer Implements IMgrParams.GetParam
+
+            If Not m_ParamDictionary.ContainsKey(ItemKey) Then
+                Return valueIfMissing
+            End If
+
+            Dim strValue = m_ParamDictionary.Item(ItemKey)
+            Dim value As Integer
+            If Integer.TryParse(strValue, value) Then
+                Return value
+            End If
+
+            Return valueIfMissing
+
+        End Function
+
 		''' <summary>
 		''' Gets a parameter from the parameters string dictionary
 		''' </summary>
@@ -267,14 +307,14 @@ Namespace MgrSettings
 
 			Return m_ParamDictionary.Item(ItemKey)
 
-		End Function
+        End Function
 
-		''' <summary>
-		''' Sets a parameter in the parameters string dictionary
-		''' </summary>
-		''' <param name="ItemKey">Key name for the item</param>
-		''' <param name="ItemValue">Value to assign to the key</param>
-		''' <remarks></remarks>
+        ''' <summary>
+        ''' Sets a parameter in the parameters string dictionary
+        ''' </summary>
+        ''' <param name="ItemKey">Key name for the item</param>
+        ''' <param name="ItemValue">Value to assign to the key</param>
+        ''' <remarks></remarks>
 		Public Sub SetParam(ByVal ItemKey As String, ByVal ItemValue As String) Implements IMgrParams.SetParam
 
 			m_ParamDictionary.Item(ItemKey) = ItemValue

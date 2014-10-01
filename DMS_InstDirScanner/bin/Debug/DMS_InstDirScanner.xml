@@ -44,6 +44,20 @@ DMS_InstDirScanner
 	<param name="MgrSettingsDict">String dictionary containing parameters that have been loaded so far</param>
 	<returns>True for success; False for error</returns>
 	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetParam(System.String,System.String)">
+	<summary>
+ Gets a parameter from the parameters string dictionary
+ </summary>
+	<param name="ItemKey">Key name for item</param>
+	<returns>String value associated with specified key</returns>
+	<remarks>Returns Nothing if key isn't found</remarks>
+</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetParam(System.String,System.Int32)">
+	<summary>
+ Gets a parameter from the parameters string dictionary
+ </summary>
+	<param name="ItemKey">Key name for item</param>
+	<returns>String value associated with specified key</returns>
+	<remarks>Returns Nothing if key isn't found</remarks>
 </member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetParam(System.String)">
 	<summary>
  Gets a parameter from the parameters string dictionary

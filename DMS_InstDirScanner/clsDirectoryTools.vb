@@ -15,257 +15,266 @@ Public Class clsDirectoryTools
 
 	'*********************************************************************************************************
 	' Handles all directory access tasks
-	'*********************************************************************************************************
+    '*********************************************************************************************************
 
 #Region "Methods"
-	Public Shared Function PerformDirectoryScans(ByVal InstList As List(Of clsInstData), ByVal OutFolder As String, _
-	  ByVal MgrSettings As clsMgrSettings, ByVal ProgStatus As IStatusFile) As Boolean
 
-		Dim OutFile As StreamWriter
+    Protected mDebugLevel As Integer = 1
 
-		Dim Progress As Single
-		Dim InstCounter As Integer = 0
-		Dim InstCount As Integer = InstList.Count
-		Dim FolderMissing As Boolean
-		Dim fiSourceFile As System.IO.FileInfo
+    Public Function PerformDirectoryScans(
+        ByVal InstList As List(Of clsInstData),
+        ByVal OutFolder As String,
+        ByVal MgrSettings As clsMgrSettings,
+        ByVal ProgStatus As IStatusFile) As Boolean
 
-		ProgStatus.TaskStartTime = System.DateTime.UtcNow
+        Dim swOutFile As StreamWriter
 
-		For Each Inst As clsInstData In InstList
-			InstCounter += 1
-			ProgStatus.Duration = CSng(System.DateTime.UtcNow.Subtract(ProgStatus.TaskStartTime).TotalHours())
-			Progress = 100 * CSng(InstCounter) / CSng(InstCount)
-			ProgStatus.UpdateAndWrite(Progress)
+        Dim Progress As Single
+        Dim InstCounter As Integer = 0
+        Dim InstCount As Integer = InstList.Count
+        Dim FolderMissing As Boolean
+        Dim fiSourceFile As System.IO.FileInfo
 
-			fiSourceFile = Nothing
-			OutFile = CreateOutputFile(Inst.InstName, OutFolder, fiSourceFile)
-			If OutFile Is Nothing Then Return False
+        mDebugLevel = MgrSettings.GetParam("debuglevel", 1)
 
-			'Get the directory info an write it
-			FolderMissing = False
-			GetDirectoryData(Inst, OutFile, MgrSettings, FolderMissing)
+        ProgStatus.TaskStartTime = System.DateTime.UtcNow
 
-			OutFile.Close()
+        For Each Inst As clsInstData In InstList
+            InstCounter += 1
+            ProgStatus.Duration = CSng(System.DateTime.UtcNow.Subtract(ProgStatus.TaskStartTime).TotalHours())
+            Progress = 100 * CSng(InstCounter) / CSng(InstCount)
+            ProgStatus.UpdateAndWrite(Progress)
 
-			If Not FolderMissing Then
-				' Copy the file to the MostRecentValid folder
-				Try
+            fiSourceFile = Nothing
+            swOutFile = CreateOutputFile(Inst.InstName, OutFolder, fiSourceFile)
+            If swOutFile Is Nothing Then Return False
 
-					Dim diTargetDirectory As System.IO.DirectoryInfo
-					diTargetDirectory = New System.IO.DirectoryInfo(System.IO.Path.Combine(OutFolder, "MostRecentValid"))
+            'Get the directory info an write it
+            FolderMissing = False
+            GetDirectoryData(Inst, swOutFile, MgrSettings, FolderMissing)
 
-					If Not diTargetDirectory.Exists Then diTargetDirectory.Create()
+            swOutFile.Close()
 
-					fiSourceFile.CopyTo(System.IO.Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), True)
+            If Not FolderMissing Then
+                ' Copy the file to the MostRecentValid folder
+                Try
 
-				Catch ex As Exception
-					clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception copying to MostRecentValid directory", ex)
-				End Try
-			End If
-		Next
+                    Dim diTargetDirectory As System.IO.DirectoryInfo
+                    diTargetDirectory = New System.IO.DirectoryInfo(System.IO.Path.Combine(OutFolder, "MostRecentValid"))
 
-		Return True
+                    If Not diTargetDirectory.Exists Then diTargetDirectory.Create()
 
-	End Function
+                    fiSourceFile.CopyTo(System.IO.Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), True)
 
-	Private Shared Function CreateOutputFile(ByVal InstName As String, ByVal OutFileDir As String, ByRef fiStatusFile As System.IO.FileInfo) As StreamWriter
+                Catch ex As Exception
+                    clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception copying to MostRecentValid directory", ex)
+                End Try
+            End If
+        Next
 
-		Dim diBackupDirectory As System.IO.DirectoryInfo
-		Dim RetFile As StreamWriter
+        Return True
 
-		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning folder for instrument " & InstName)
-		fiStatusFile = New System.IO.FileInfo(System.IO.Path.Combine(OutFileDir, InstName & "_source.txt"))
+    End Function
 
-		' Make a backup copy of the existing file
-		If fiStatusFile.Exists Then
-			Try
-				diBackupDirectory = New System.IO.DirectoryInfo(System.IO.Path.Combine(fiStatusFile.Directory.FullName, "PreviousCopy"))
-				If Not diBackupDirectory.Exists Then diBackupDirectory.Create()
-				fiStatusFile.CopyTo(System.IO.Path.Combine(diBackupDirectory.FullName, fiStatusFile.Name), True)
-			Catch ex As Exception
-				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception copying to PreviousCopy directory", ex)
-			End Try
+    Private Function CreateOutputFile(ByVal InstName As String, ByVal OutFileDir As String, ByRef fiStatusFile As System.IO.FileInfo) As StreamWriter
 
-			Try
-				' Now delete the old copy
-				fiStatusFile.Delete()
-			Catch ex As Exception
-				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception deleting file " & fiStatusFile.FullName, ex)
-				Return Nothing
-			End Try
-		End If
+        Dim diBackupDirectory As System.IO.DirectoryInfo
+        Dim RetFile As StreamWriter
 
-		'Create the new file
-		Try
-			RetFile = New StreamWriter(New FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
+        clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning folder for instrument " & InstName)
+        fiStatusFile = New System.IO.FileInfo(System.IO.Path.Combine(OutFileDir, InstName & "_source.txt"))
 
-			'The file always starts with a blank line
-			RetFile.WriteLine()
-			Return RetFile
-		Catch ex As Exception
-			clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception creating output file " & fiStatusFile.FullName, ex)
-			Return Nothing
-		End Try
+        ' Make a backup copy of the existing file
+        If fiStatusFile.Exists Then
+            Try
+                diBackupDirectory = New System.IO.DirectoryInfo(System.IO.Path.Combine(fiStatusFile.Directory.FullName, "PreviousCopy"))
+                If Not diBackupDirectory.Exists Then diBackupDirectory.Create()
+                fiStatusFile.CopyTo(System.IO.Path.Combine(diBackupDirectory.FullName, fiStatusFile.Name), True)
+            Catch ex As Exception
+                clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception copying to PreviousCopy directory", ex)
+            End Try
 
-	End Function
+            Try
+                ' Now delete the old copy
+                fiStatusFile.Delete()
+            Catch ex As Exception
+                clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception deleting file " & fiStatusFile.FullName, ex)
+                Return Nothing
+            End Try
+        End If
 
-	Private Shared Sub GetDirectoryData(ByVal InstData As clsInstData, ByRef OutFile As StreamWriter, ByVal MgrSettings As clsMgrSettings, ByRef FolderMissing As Boolean)
+        'Create the new file
+        Try
+            RetFile = New StreamWriter(New FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
 
-		Dim Msg As String
-		Dim BionetMachine As Boolean = False
-		Dim Connected As Boolean
-		Dim InpPath As String = Path.Combine(InstData.StorageVolume, InstData.StoragePath)
-		Dim ShareConn As PRISM.Files.ShareConnector = Nothing
+            'The file always starts with a blank line
+            RetFile.WriteLine()
+            Return RetFile
+        Catch ex As Exception
+            clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Exception creating output file " & fiStatusFile.FullName, ex)
+            Return Nothing
+        End Try
 
-		Dim strUserDescription As String = "as user ??"
-		FolderMissing = False
+    End Function
 
-		'If this is a machine on bionet, set up a connection
-		If InstData.CaptureMethod.ToLower = "secfso" Then
-			BionetMachine = True
-			Dim strBionetUser As String = MgrSettings.GetParam("bionetuser")			' Typically user ftms (not LCMSOperator)
-			ShareConn = New PRISM.Files.ShareConnector(InpPath, strBionetUser, DecodePassword(MgrSettings.GetParam("bionetpwd")))
-			Connected = ShareConn.Connect()
+    Private Sub GetDirectoryData(
+        ByVal intrumentData As clsInstData,
+        ByVal swOutFile As StreamWriter,
+        ByVal mgrSettings As clsMgrSettings,
+        ByRef folderMissing As Boolean)
 
-			strUserDescription = " as user " & strBionetUser
-			If Not Connected Then
-				Msg = "Could not connect to " & InpPath & strUserDescription
-				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, Msg)
-			End If
-		Else
-			strUserDescription = " as user " & Environment.UserName
-			If InpPath.ToLower().Contains(".bionet") Then
-				Msg = "Warning: Connection to a bionet folder should probably use 'secfso'; currently configured to use 'fso'"
-				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.WARN, Msg)
-			End If
-		End If
+        Dim Msg As String
+        Dim Connected As Boolean
+        Dim InpPath As String = Path.Combine(intrumentData.StorageVolume, intrumentData.StoragePath)
+        Dim ShareConn As PRISM.Files.ShareConnector = Nothing
 
-		Dim diInstDataFolder As New DirectoryInfo(InpPath)
+        Dim strUserDescription As String = "as user ??"
+        folderMissing = False
 
-		Msg = "Reading " & InstData.InstName & ", Folder " & InpPath & strUserDescription
-		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, Msg)
+        'If this is a machine on bionet, set up a connection
+        If intrumentData.CaptureMethod.ToLower = "secfso" Then
+            Dim strBionetUser As String = mgrSettings.GetParam("bionetuser")            ' Typically user ftms (not LCMSOperator)
 
-		' List the folder path and current date/time on the first line
-		' Will look like this:
-		' (Folder: \\VOrbiETD04.bionet\ProteomicsData\ at 2012-01-23 2:15 PM)
-		WriteToOutput(OutFile, "Folder: " & InpPath & " at " & System.DateTime.Now().ToString("yyyy-MM-dd hh:mm:ss tt"))
+            If Not strBionetUser.Contains("\"c) Then
+                ' Prepend this computer's name to the username
+                strBionetUser = System.Environment.MachineName & "\" & strBionetUser
+            End If
 
-		If Not Directory.Exists(InpPath) Then
-			WriteToOutput(OutFile, "(Folder does not exist)")
-			FolderMissing = True
-		Else
-			Dim Dirs() As DirectoryInfo = diInstDataFolder.GetDirectories()
-			Dim Files() As FileInfo = diInstDataFolder.GetFiles()
-			For Each TempDir As DirectoryInfo In Dirs
-				WriteToOutput(OutFile, "Dir ", TempDir.Name)
-			Next
-			For Each TempFile As FileInfo In Files
-				Dim FileSizeStr As String = FileSizeToText(TempFile.Length)
-				WriteToOutput(OutFile, "File ", TempFile.Name, FileSizeStr)
-			Next
-		End If
+            ShareConn = New PRISM.Files.ShareConnector(InpPath, strBionetUser, DecodePassword(mgrSettings.GetParam("bionetpwd")))
+            Connected = ShareConn.Connect()
 
-		'If this was a bionet machine, disconnect
-		If Connected Then
-			If ShareConn.Disconnect() Then
-				Connected = False
-			Else
-				Msg = "Could not disconnect from " & InpPath
-				clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "msg")
-			End If
-		End If
+            strUserDescription = " as user " & strBionetUser
+            If Not Connected Then
+                Msg = "Could not connect to " & InpPath & strUserDescription + "; error code " + ShareConn.ErrorMessage
+                clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, Msg)
+            ElseIf mDebugLevel >= 5 Then
+                Msg = " ... connected to " & InpPath & strUserDescription
+                clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.INFO, Msg)
+            End If
+        Else
+            strUserDescription = " as user " & Environment.UserName
+            If InpPath.ToLower().Contains(".bionet") Then
+                Msg = "Warning: Connection to a bionet folder should probably use 'secfso'; currently configured to use 'fso' for " & InpPath
+                clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.WARN, Msg)
+            End If
+        End If
 
-	End Sub
+        Dim diInstDataFolder As New DirectoryInfo(InpPath)
 
-	Private Shared Function FileSizeToText(ByVal InpFileSizeBytes As Long) As String
+        Msg = "Reading " & intrumentData.InstName & ", Folder " & InpPath & strUserDescription
+        clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, Msg)
 
-		Dim FileSize As Single
-		Dim FileSizeIterator As Integer
-		Dim FileSizeStr As String
-		Dim RoundSpec As String
+        ' List the folder path and current date/time on the first line
+        ' Will look like this:
+        ' (Folder: \\VOrbiETD04.bionet\ProteomicsData\ at 2012-01-23 2:15 PM)
+        WriteToOutput(swOutFile, "Folder: " & InpPath & " at " & System.DateTime.Now().ToString("yyyy-MM-dd hh:mm:ss tt"))
 
-		FileSize = CSng(InpFileSizeBytes)
+        If Not Directory.Exists(InpPath) Then
+            WriteToOutput(swOutFile, "(Folder does not exist)")
+            folderMissing = True
+        Else
+            Dim Dirs() As DirectoryInfo = diInstDataFolder.GetDirectories()
+            Dim Files() As FileInfo = diInstDataFolder.GetFiles()
+            For Each TempDir As DirectoryInfo In Dirs
+                WriteToOutput(swOutFile, "Dir ", TempDir.Name)
+            Next
+            For Each TempFile As FileInfo In Files
+                Dim FileSizeStr As String = FileSizeToText(TempFile.Length)
+                WriteToOutput(swOutFile, "File ", TempFile.Name, FileSizeStr)
+            Next
+        End If
 
-		FileSizeIterator = 0
-		Do While FileSize > 1024 And FileSizeIterator < 3
-			FileSize /= 1024
-			FileSizeIterator += 1
-		Loop
+        'If this was a bionet machine, disconnect
+        If Connected Then
+            If ShareConn.Disconnect() Then
+                Connected = False
+            Else
+                Msg = "Could not disconnect from " & InpPath
+                clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "msg")
+            End If
+        End If
 
-		If FileSize < 10 Then
-			RoundSpec = "0.0"
-		Else
-			RoundSpec = "0"
-		End If
+    End Sub
 
-		FileSizeStr = FileSize.ToString(RoundSpec)
+    Private Function FileSizeToText(ByVal InpFileSizeBytes As Long) As String
 
-		Select Case FileSizeIterator
-			Case 0
-				FileSizeStr &= " bytes"
-			Case 1
-				FileSizeStr &= " KB"
-			Case 2
-				FileSizeStr &= " MB"
-			Case 3
-				FileSizeStr &= " GB"
-			Case Else
-				FileSizeStr &= " ???"
-		End Select
+        Dim FileSize As Single
+        Dim FileSizeIterator As Integer
+        Dim FileSizeStr As String
+        Dim RoundSpec As String
 
-		Return FileSizeStr
+        FileSize = CSng(InpFileSizeBytes)
 
-	End Function
+        FileSizeIterator = 0
+        Do While FileSize > 1024 And FileSizeIterator < 3
+            FileSize /= 1024
+            FileSizeIterator += 1
+        Loop
 
-	Private Overloads Shared Function WriteToOutput(ByRef OutFile As StreamWriter, ByVal Field1 As String) As Boolean
+        If FileSize < 10 Then
+            RoundSpec = "0.0"
+        Else
+            RoundSpec = "0"
+        End If
 
-		Return WriteToOutput(OutFile, Field1, String.Empty, String.Empty)
+        FileSizeStr = FileSize.ToString(RoundSpec)
 
-	End Function
+        Select Case FileSizeIterator
+            Case 0
+                FileSizeStr &= " bytes"
+            Case 1
+                FileSizeStr &= " KB"
+            Case 2
+                FileSizeStr &= " MB"
+            Case 3
+                FileSizeStr &= " GB"
+            Case Else
+                FileSizeStr &= " ???"
+        End Select
 
-	Private Overloads Shared Function WriteToOutput(ByRef OutFile As StreamWriter, ByVal Field1 As String, _
-	  ByVal Field2 As String) As Boolean
+        Return FileSizeStr
 
-		Return WriteToOutput(OutFile, Field1, Field2, String.Empty)
+    End Function
 
-	End Function
+    Private Function WriteToOutput(
+        ByRef swOutFile As StreamWriter,
+        ByVal field1 As String,
+        Optional ByVal field2 As String = "",
+        Optional ByVal field3 As String = "") As Boolean
 
-	Private Overloads Shared Function WriteToOutput(ByRef OutFile As StreamWriter, ByVal Field1 As String, _
-	   ByVal Field2 As String, ByVal Field3 As String) As Boolean
+        Dim LineOut As String
 
-		Dim LineOut As String
+        LineOut = field1 & ControlChars.Tab & field2 & ControlChars.Tab & field3
+        clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, "Write to output (" & LineOut & ")")
+        swOutFile.WriteLine(LineOut)
+        Return True
 
-		LineOut = Field1 & ControlChars.Tab & Field2 & ControlChars.Tab & Field3
-		clsLogTools.WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, "Write to output (" & LineOut & ")")
-		OutFile.WriteLine(LineOut)
-		Return True
+    End Function
 
-	End Function
+    Private Function DecodePassword(ByVal EnPwd As String) As String
+        'Decrypts password received from ini file
+        ' Password was created by alternately subtracting or adding 1 to the ASCII value of each character
 
-	Private Shared Function DecodePassword(ByVal EnPwd As String) As String
-		'Decrypts password received from ini file
-		' Password was created by alternately subtracting or adding 1 to the ASCII value of each character
+        Dim CharCode As Byte
+        Dim TempStr As String
+        Dim Indx As Integer
 
-		Dim CharCode As Byte
-		Dim TempStr As String
-		Dim Indx As Integer
+        TempStr = ""
 
-		TempStr = ""
+        Indx = 1
+        Do While Indx <= Len(EnPwd)
+            CharCode = CByte(Asc(Mid(EnPwd, Indx, 1)))
+            If Indx Mod 2 = 0 Then
+                CharCode = CharCode - CByte(1)
+            Else
+                CharCode = CharCode + CByte(1)
+            End If
+            TempStr = TempStr & Chr(CharCode)
+            Indx = Indx + 1
+        Loop
 
-		Indx = 1
-		Do While Indx <= Len(EnPwd)
-			CharCode = CByte(Asc(Mid(EnPwd, Indx, 1)))
-			If Indx Mod 2 = 0 Then
-				CharCode = CharCode - CByte(1)
-			Else
-				CharCode = CharCode + CByte(1)
-			End If
-			TempStr = TempStr & Chr(CharCode)
-			Indx = Indx + 1
-		Loop
-
-		Return TempStr
-	End Function
+        Return TempStr
+    End Function
 
 #End Region
 

@@ -227,6 +227,15 @@ DMS_InstDirScanner
 	<param name="LayoutStr">Name of parameter</param>
 	<returns></returns>
 	<remarks>log4net.Layout.IRawLayout</remarks>
+</member><member name="M:DMS_InstDirScanner.clsDirectoryTools.GetDirectoryData(DMS_InstDirScanner.clsInstData,System.IO.StreamWriter,DMS_InstDirScanner.MgrSettings.clsMgrSettings)">
+	<summary>
+ Query the files and folders on the instrument's shared data folder
+ </summary>
+	<param name="intrumentData"></param>
+	<param name="swOutFile"></param>
+	<param name="mgrSettings"></param>
+	<returns>True on success, false if the target folder is not found</returns>
+	<remarks></remarks>
 </member><member name="M:DMS_InstDirScanner.clsDbTools.GetInstrumentList(DMS_InstDirScanner.MgrSettings.clsMgrSettings)">
 	<summary>
  Gets a list of instruments and data paths from DMS

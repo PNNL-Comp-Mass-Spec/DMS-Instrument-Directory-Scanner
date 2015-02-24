@@ -12,7 +12,6 @@
 
 Imports System.IO
 Imports System.Xml
-Imports System.Collections.Generic
 
 Public Class clsStatusFile
 	Implements IStatusFile
@@ -84,9 +83,7 @@ Public Class clsStatusFile
 	'Flag to indicate if status should be logged to broker in addition to a file
 	Private m_LogToMessageQueue As Boolean
 
-	Private m_MessageQueueLogger As clsMessageQueueLogger
-	Private m_MessageQueueClientName As String
-	Private m_MessageSender As clsMessageSender
+    Private m_MessageSender As clsMessageSender
 	Private m_QueueLogger As clsMessageQueueLogger
 
 #End Region
@@ -272,7 +269,7 @@ Public Class clsStatusFile
 	''' <remarks></remarks>
 	Public Sub New(ByVal FileLocation As String, ByVal debugLevel As Integer)
 		m_FileNamePath = FileLocation
-		m_MgrStartTime = System.DateTime.UtcNow
+        m_MgrStartTime = DateTime.UtcNow
 		m_Progress = 0
 		m_SpectrumCount = 0
 		m_Dataset = ""
@@ -326,171 +323,163 @@ Public Class clsStatusFile
 	'Protected Sub LogStatusToMessageQueueOld(ByVal strStatusXML As String)
 
 	'	Dim Success As Boolean
-	'	Static dtLastFailureTime As DateTime = System.DateTime.MinValue
+    '	Static dtLastFailureTime As DateTime = DateTime.MinValue
 
-	'	Try
-	'		Dim messageSender As New MessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
+    '	Try
+    '		Dim messageSender As New MessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
 
-	'		' message queue logger sets up local message buffering (so calls to log don't block)
-	'		' and uses message sender (as a delegate) to actually send off the messages
-	'		Dim queueLogger As New MessageQueueLogger()
-	'		AddHandler queueLogger.Sender, New MessageSenderDelegate(AddressOf messageSender.SendMessage)
+    '		' message queue logger sets up local message buffering (so calls to log don't block)
+    '		' and uses message sender (as a delegate) to actually send off the messages
+    '		Dim queueLogger As New MessageQueueLogger()
+    '		AddHandler queueLogger.Sender, New MessageSenderDelegate(AddressOf messageSender.SendMessage)
 
-	'		queueLogger.LogStatusMessage(strStatusXML)
+    '		queueLogger.LogStatusMessage(strStatusXML)
 
-	'		queueLogger.Dispose()
+    '		queueLogger.Dispose()
 
-	'		messageSender.Dispose()
-	'	Catch ex As Exception
-	'		'TODO: Figure out how to handle error
-	'		Success = False
-	'	End Try
-	'End Sub
+    '		messageSender.Dispose()
+    '	Catch ex As Exception
+    '		'TODO: Figure out how to handle error
+    '		Success = False
+    '	End Try
+    'End Sub
 
-	Protected Sub LogStatusToMessageQueue(ByVal strStatusXML As String)
+    Protected Sub LogStatusToMessageQueue(ByVal strStatusXML As String)
 
-		Const MINIMUM_LOG_FAILURE_INTERVAL_MINUTES As Single = 10
-		Static dtLastFailureTime As DateTime = System.DateTime.UtcNow.Subtract(New System.TimeSpan(1, 0, 0))
+        Const MINIMUM_LOG_FAILURE_INTERVAL_MINUTES As Single = 10
+        Static dtLastFailureTime As DateTime = DateTime.UtcNow.Subtract(New TimeSpan(1, 0, 0))
 
-		Try
-			If m_MessageSender Is Nothing Then
+        Try
+            If m_MessageSender Is Nothing Then
 
-				If m_DebugLevel >= 5 Then
-					clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, "Initializing message queue with URI '" & m_MessageQueueURI & "' and Topic '" & m_MessageQueueTopic & "'")
-				End If
+                If m_DebugLevel >= 5 Then
+                    clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, "Initializing message queue with URI '" & m_MessageQueueURI & "' and Topic '" & m_MessageQueueTopic & "'")
+                End If
 
-				m_MessageSender = New clsMessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
+                m_MessageSender = New clsMessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
 
-				' message queue logger sets up local message buffering (so calls to log don't block)
-				' and uses message sender (as a delegate) to actually send off the messages
-				m_QueueLogger = New clsMessageQueueLogger()
-				AddHandler m_QueueLogger.Sender, New MessageSenderDelegate(AddressOf m_MessageSender.SendMessage)
+                ' message queue logger sets up local message buffering (so calls to log don't block)
+                ' and uses message sender (as a delegate) to actually send off the messages
+                m_QueueLogger = New clsMessageQueueLogger()
+                AddHandler m_QueueLogger.Sender, New MessageSenderDelegate(AddressOf m_MessageSender.SendMessage)
 
-				If m_DebugLevel >= 3 Then
-					clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, "Message queue initialized with URI '" & m_MessageQueueURI & "'; posting to Topic '" & m_MessageQueueTopic & "'")
-				End If
+                If m_DebugLevel >= 3 Then
+                    clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, "Message queue initialized with URI '" & m_MessageQueueURI & "'; posting to Topic '" & m_MessageQueueTopic & "'")
+                End If
 
-			End If
+            End If
 
-			If Not m_QueueLogger Is Nothing Then
-				m_QueueLogger.LogStatusMessage(strStatusXML)
-			End If
+            If Not m_QueueLogger Is Nothing Then
+                m_QueueLogger.LogStatusMessage(strStatusXML)
+            End If
 
-		Catch ex As Exception
-			If System.DateTime.UtcNow.Subtract(dtLastFailureTime).TotalMinutes >= MINIMUM_LOG_FAILURE_INTERVAL_MINUTES Then
-				dtLastFailureTime = System.DateTime.UtcNow
-				clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Error in clsStatusFile.LogStatusToMessageQueue (B): " & ex.Message)
-			End If
+        Catch ex As Exception
+            If DateTime.UtcNow.Subtract(dtLastFailureTime).TotalMinutes >= MINIMUM_LOG_FAILURE_INTERVAL_MINUTES Then
+                dtLastFailureTime = DateTime.UtcNow
+                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Error in clsStatusFile.LogStatusToMessageQueue (B): " & ex.Message)
+            End If
 
-		End Try
+        End Try
 
 
-	End Sub
+    End Sub
 
-	''' <summary>
-	''' Writes the status file
-	''' </summary>
-	''' <remarks></remarks>
-	Public Sub WriteStatusFile() Implements IStatusFile.WriteStatusFile
+    ''' <summary>
+    ''' Writes the status file
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Sub WriteStatusFile() Implements IStatusFile.WriteStatusFile
 
-		'Writes a status file for external monitor to read
+        'Writes a status file for external monitor to read
 
-		Dim XDocument As System.Xml.XmlDocument
-		Dim XWriter As XmlTextWriter
+        Dim XMLText As String = String.Empty
 
-		Dim MemStream As MemoryStream
-		Dim MemStreamReader As StreamReader
+        'Set up the XML writer
+        Try
 
-		Dim XMLText As String = String.Empty
+            'Create a memory stream to write the document in
+            Using memStream = New MemoryStream
+                Using xWriter = New XmlTextWriter(memStream, Text.Encoding.UTF8)
 
-		'Set up the XML writer
-		Try
-			XDocument = New System.Xml.XmlDocument
+                    xWriter.Formatting = Formatting.Indented
+                    xWriter.Indentation = 2
 
-			'Create a memory stream to write the document in
-			MemStream = New MemoryStream
-			XWriter = New XmlTextWriter(MemStream, System.Text.Encoding.UTF8)
+                    'Write the file
+                    xWriter.WriteStartDocument(True)
+                    'Root level element
+                    xWriter.WriteStartElement("Root")
+                    xWriter.WriteStartElement("Manager")
+                    xWriter.WriteElementString("MgrName", m_MgrName)
+                    xWriter.WriteElementString("MgrStatus", ConvertMgrStatusToString(m_MgrStatus))
+                    xWriter.WriteElementString("LastUpdate", DateTime.Now().ToString)
+                    xWriter.WriteElementString("LastStartTime", m_MgrStartTime.ToLocalTime().ToString())
+                    xWriter.WriteElementString("CPUUtilization", m_CpuUtilization.ToString())
+                    xWriter.WriteElementString("FreeMemoryMB", "0")
 
-			XWriter.Formatting = Formatting.Indented
-			XWriter.Indentation = 2
+                    xWriter.WriteStartElement("RecentErrorMessages")
+                    For Each ErrMsg As String In clsStatusData.ErrorQueue
+                        xWriter.WriteElementString("ErrMsg", ErrMsg)
+                    Next
+                    xWriter.WriteEndElement()   'Error messages
+                    xWriter.WriteEndElement()   'Manager section
 
-			'Write the file
-			XWriter.WriteStartDocument(True)
-			'Root level element
-			XWriter.WriteStartElement("Root")
-			XWriter.WriteStartElement("Manager")
-			XWriter.WriteElementString("MgrName", m_MgrName)
-			XWriter.WriteElementString("MgrStatus", ConvertMgrStatusToString(m_MgrStatus))
-			XWriter.WriteElementString("LastUpdate", System.DateTime.Now().ToString)
-			XWriter.WriteElementString("LastStartTime", m_MgrStartTime.ToLocalTime().ToString())
-			XWriter.WriteElementString("CPUUtilization", m_CpuUtilization.ToString())
-			XWriter.WriteElementString("FreeMemoryMB", "0")
-			'TODO: Figure out how to retrieve recent error messages
-			XWriter.WriteStartElement("RecentErrorMessages")
-			For Each ErrMsg As String In clsStatusData.ErrorQueue
-				XWriter.WriteElementString("ErrMsg", ErrMsg)
-			Next
-			XWriter.WriteEndElement()	'Error messages
-			XWriter.WriteEndElement()	'Manager section
+                    xWriter.WriteStartElement("Task")
+                    xWriter.WriteElementString("Tool", m_Tool)
+                    xWriter.WriteElementString("Status", ConvertTaskStatusToString(m_TaskStatus))
+                    xWriter.WriteElementString("Duration", m_Duration.ToString("##0.0"))
+                    xWriter.WriteElementString("DurationMinutes", (60.0F * m_Duration).ToString("##0.0"))
+                    xWriter.WriteElementString("Progress", m_Progress.ToString("##0.00"))
+                    xWriter.WriteElementString("CurrentOperation", m_CurrentOperation)
+                    xWriter.WriteStartElement("TaskDetails")
+                    xWriter.WriteElementString("Status", ConvertTaskDetailStatusToString(m_TaskStatusDetail))
+                    xWriter.WriteElementString("Job", m_JobNumber.ToString())
+                    xWriter.WriteElementString("Step", m_JobStep.ToString())
+                    xWriter.WriteElementString("Dataset", m_Dataset)
 
-			XWriter.WriteStartElement("Task")
-			XWriter.WriteElementString("Tool", m_Tool)
-			XWriter.WriteElementString("Status", ConvertTaskStatusToString(m_TaskStatus))
-			XWriter.WriteElementString("Duration", m_Duration.ToString("##0.0"))
-			XWriter.WriteElementString("DurationMinutes", (60.0F * m_Duration).ToString("##0.0"))
-			XWriter.WriteElementString("Progress", m_Progress.ToString("##0.00"))
-			XWriter.WriteElementString("CurrentOperation", m_CurrentOperation)
-			XWriter.WriteStartElement("TaskDetails")
-			XWriter.WriteElementString("Status", ConvertTaskDetailStatusToString(m_TaskStatusDetail))
-			XWriter.WriteElementString("Job", m_JobNumber.ToString())
-			XWriter.WriteElementString("Step", m_JobStep.ToString())
-			XWriter.WriteElementString("Dataset", m_Dataset)
-			'TODO: Figure out how to get the most recent message
-			XWriter.WriteElementString("MostRecentLogMessage", clsStatusData.MostRecentLogMessage)
-			XWriter.WriteElementString("MostRecentJobInfo", m_MostRecentJobInfo)
-			XWriter.WriteElementString("SpectrumCount", m_SpectrumCount.ToString())
-			XWriter.WriteEndElement()	'Task details section
-			XWriter.WriteEndElement()	'Task section
-			XWriter.WriteEndElement()	'Root section
+                    xWriter.WriteElementString("MostRecentLogMessage", clsStatusData.MostRecentLogMessage)
+                    xWriter.WriteElementString("MostRecentJobInfo", m_MostRecentJobInfo)
+                    xWriter.WriteElementString("SpectrumCount", m_SpectrumCount.ToString())
+                    xWriter.WriteEndElement()   'Task details section
+                    xWriter.WriteEndElement()   'Task section
+                    xWriter.WriteEndElement()   'Root section
 
-			'Close the document, but don't close the writer yet
-			XWriter.WriteEndDocument()
-			XWriter.Flush()
+                    'Close the document, but don't close the writer yet
+                    xWriter.WriteEndDocument()
+                    xWriter.Flush()
 
-			'Use a streamreader to copy the XML text to a string variable
-			MemStream.Seek(0, SeekOrigin.Begin)
-			MemStreamReader = New System.IO.StreamReader(MemStream)
-			XMLText = MemStreamReader.ReadToEnd
+                    'Use a streamreader to copy the XML text to a string variable
+                    memStream.Seek(0, SeekOrigin.Begin)
+                    Using MemStreamReader = New StreamReader(memStream)
+                        XMLText = MemStreamReader.ReadToEnd
 
-			MemStreamReader.Close()
-			MemStream.Close()
+                    End Using
+                End Using
 
-			'Since the document is now in a string, we can close the XWriter
-			XWriter.Close()
-			XWriter = Nothing
-			GC.Collect()
-			GC.WaitForPendingFinalizers()
+            End Using
 
-			'Write the output file
-			Dim OutFile As StreamWriter
-			Try
-				OutFile = New StreamWriter(New FileStream(m_FileNamePath, FileMode.Create, FileAccess.Write, FileShare.Read))
-				OutFile.WriteLine(XMLText)
-				OutFile.Close()
-			Catch ex As Exception
-				'TODO: Figure out appropriate action
-			End Try
-		Catch
-			'TODO: Figure out appropriate action
-		End Try
+            GC.Collect()
+            GC.WaitForPendingFinalizers()
 
-		'Log to a message queue
-		If m_LogToMessageQueue Then
-			' Send the XML text to a message queue
-			LogStatusToMessageQueue(XMLText)
-		End If
+            'Write the output file
+            Dim OutFile As StreamWriter
+            Try
+                OutFile = New StreamWriter(New FileStream(m_FileNamePath, FileMode.Create, FileAccess.Write, FileShare.Read))
+                OutFile.WriteLine(XMLText)
+                OutFile.Close()
+            Catch ex As Exception
+                'TODO: Figure out appropriate action
+            End Try
+        Catch
+            'TODO: Figure out appropriate action
+        End Try
 
-	End Sub
+        'Log to a message queue
+        If m_LogToMessageQueue Then
+            ' Send the XML text to a message queue
+            LogStatusToMessageQueue(XMLText)
+        End If
+
+    End Sub
 
 	''' <summary>
 	''' Updates status file

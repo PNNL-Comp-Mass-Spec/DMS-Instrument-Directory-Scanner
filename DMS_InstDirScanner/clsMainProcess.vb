@@ -157,7 +157,7 @@ Public Class clsMainProcess
 
     Public Shared Function GetAppFolderPath() As String
         ' Could use Application.StartupPath, but .GetExecutingAssembly is better
-        Return System.IO.Path.GetDirectoryName(GetAppPath())
+        Return Path.GetDirectoryName(GetAppPath())
     End Function
 
     ''' <summary>
@@ -166,7 +166,7 @@ Public Class clsMainProcess
     ''' <returns>File path</returns>
     ''' <remarks></remarks>
     Public Shared Function GetAppPath() As String
-        Return System.Reflection.Assembly.GetExecutingAssembly().Location
+        Return Reflection.Assembly.GetExecutingAssembly().Location
     End Function
 
     ''' <summary>
@@ -175,11 +175,11 @@ Public Class clsMainProcess
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Shared Function GetAppVersion() As String
-        Return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()
+        Return Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()
     End Function
 
     Private Sub LogFatalError(ByVal errorMessage As String)
-        WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Output directory not found")
+        WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, errorMessage)
         WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
         m_StatusFile.UpdateStopped(True)
     End Sub

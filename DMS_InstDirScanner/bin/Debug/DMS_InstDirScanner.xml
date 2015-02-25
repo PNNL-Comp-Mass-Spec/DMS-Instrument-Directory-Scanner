@@ -23,7 +23,7 @@ DMS_InstDirScanner
  </summary>
 	<returns>String dictionary containing initial settings if suceessful; NOTHING on error</returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.CheckInitialSettings(System.Collections.Specialized.StringDictionary@)">
+</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.CheckInitialSettings(System.Collections.Specialized.StringDictionary)">
 	<summary>
  Tests initial settings retrieved from config file
  </summary>
@@ -104,12 +104,6 @@ DMS_InstDirScanner
  </summary>
 	<param name="InpObj"></param>
 	<returns>String equivalent of object; empty string if object is dbNull</returns>
-	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.WriteErrorMsg(System.String)">
-	<summary>
- Writes an error message to application log or manager local log
- </summary>
-	<param name="ErrMsg">Message to write</param>
 	<remarks></remarks>
 </member><member name="M:DMS_InstDirScanner.clsMainProcess.Main">
 	<summary>
@@ -235,6 +229,12 @@ DMS_InstDirScanner
 	<param name="swOutFile"></param>
 	<param name="mgrSettings"></param>
 	<returns>True on success, false if the target folder is not found</returns>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsDirectoryTools.LogCriticalError(System.String)">
+	<summary>
+ Logs an error message to the local log file, unless it is currently between midnight and 1 am
+ </summary>
+	<param name="errorMessage"></param>
 	<remarks></remarks>
 </member><member name="M:DMS_InstDirScanner.clsDbTools.GetInstrumentList(DMS_InstDirScanner.MgrSettings.clsMgrSettings)">
 	<summary>

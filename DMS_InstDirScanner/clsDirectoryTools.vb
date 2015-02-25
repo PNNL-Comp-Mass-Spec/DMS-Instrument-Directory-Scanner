@@ -9,6 +9,7 @@
 Imports System.IO
 Imports System.Collections.Generic
 Imports DMS_InstDirScanner.MgrSettings
+Imports System.Runtime.InteropServices
 
 Public Class clsDirectoryTools
 
@@ -30,49 +31,55 @@ Public Class clsDirectoryTools
         Dim InstCounter As Integer = 0
         Dim InstCount As Integer = InstList.Count
 
-        Dim fiSourceFile As FileInfo
-
         mDebugLevel = MgrSettings.GetParam("debuglevel", 1)
 
         ProgStatus.TaskStartTime = DateTime.UtcNow
 
-        For Each Inst As clsInstData In InstList
-            InstCounter += 1
-            ProgStatus.Duration = CSng(DateTime.UtcNow.Subtract(ProgStatus.TaskStartTime).TotalHours())
-            Progress = 100 * CSng(InstCounter) / CSng(InstCount)
-            ProgStatus.UpdateAndWrite(Progress)
+        For Each instrument As clsInstData In InstList
+            Try
 
-            fiSourceFile = Nothing
-            Dim swOutFile = CreateOutputFile(Inst.InstName, OutFolder, fiSourceFile)
-            If swOutFile Is Nothing Then Return False
+                InstCounter += 1
+                ProgStatus.Duration = CSng(DateTime.UtcNow.Subtract(ProgStatus.TaskStartTime).TotalHours())
+                Progress = 100 * CSng(InstCounter) / CSng(InstCount)
+                ProgStatus.UpdateAndWrite(Progress)
 
-            'Get the directory info an write it
-            Dim folderExists = GetDirectoryData(Inst, swOutFile, MgrSettings)
+                Dim fiSourceFile As FileInfo = Nothing
+                Dim swOutFile = CreateOutputFile(instrument.InstName, OutFolder, fiSourceFile)
+                If swOutFile Is Nothing Then Return False
 
-            swOutFile.Close()
+                'Get the directory info an write it
+                Dim folderExists = GetDirectoryData(instrument, swOutFile, MgrSettings)
 
-            If folderExists Then
-                ' Copy the file to the MostRecentValid folder
-                Try
+                swOutFile.Close()
 
-                    Dim diTargetDirectory As DirectoryInfo
-                    diTargetDirectory = New DirectoryInfo(Path.Combine(OutFolder, "MostRecentValid"))
+                If folderExists Then
+                    ' Copy the file to the MostRecentValid folder
+                    Try
 
-                    If Not diTargetDirectory.Exists Then diTargetDirectory.Create()
+                        Dim diTargetDirectory As DirectoryInfo
+                        diTargetDirectory = New DirectoryInfo(Path.Combine(OutFolder, "MostRecentValid"))
 
-                    fiSourceFile.CopyTo(Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), True)
+                        If Not diTargetDirectory.Exists Then diTargetDirectory.Create()
 
-                Catch ex As Exception
-                    clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception copying to MostRecentValid directory", ex)
-                End Try
-            End If
+                        fiSourceFile.CopyTo(Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), True)
+
+                    Catch ex As Exception
+                        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception copying to MostRecentValid directory", ex)
+                    End Try
+                End If
+
+            Catch ex As Exception
+                LogCriticalError("Error finding files for " & instrument.InstName & " in PerformDirectoryScans: " & ex.Message)
+            End Try
+
         Next
 
         Return True
 
+
     End Function
 
-    Private Function CreateOutputFile(ByVal InstName As String, ByVal OutFileDir As String, ByRef fiStatusFile As FileInfo) As StreamWriter
+    Private Function CreateOutputFile(ByVal InstName As String, ByVal OutFileDir As String, <Out> ByRef fiStatusFile As FileInfo) As StreamWriter
 
         Dim diBackupDirectory As DirectoryInfo
         Dim RetFile As StreamWriter
@@ -179,8 +186,9 @@ Public Class clsDirectoryTools
             Dim directories = diInstDataFolder.GetDirectories().ToList()
             Dim files = diInstDataFolder.GetFiles().ToList()
             For Each datasetDirectory As DirectoryInfo In directories
-                Dim FileSizeStr As String = FileSizeToText(GetDirectorySize(datasetDirectory))
-                WriteToOutput(swOutFile, "Dir ", datasetDirectory.Name, FileSizeStr)
+                Dim totalSizeBytes As Int64 = 0
+                GetDirectorySize(intrumentData.InstName, datasetDirectory, totalSizeBytes)                
+                WriteToOutput(swOutFile, "Dir ", datasetDirectory.Name, FileSizeToText(totalSizeBytes))
             Next
             For Each datasetFile As FileInfo In files
                 Dim FileSizeStr As String = FileSizeToText(datasetFile.Length)
@@ -240,21 +248,32 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Protected Function GetDirectorySize(ByVal datasetDirectory As DirectoryInfo) As Long
-        Dim files = datasetDirectory.GetFiles("*", SearchOption.AllDirectories).ToList()
+    Protected Sub GetDirectorySize(ByVal instrumentName As String, ByVal datasetDirectory As DirectoryInfo, ByRef totalSizeBytes As Int64)
 
-        Dim totalSizeBytes As Int64 = 0
+        Try
+            Dim files = datasetDirectory.GetFiles("*").ToList()
 
-        For Each currentFile In files
-            totalSizeBytes += currentFile.Length
-        Next
+            For Each currentFile In files
+                totalSizeBytes += currentFile.Length
+            Next
 
-        Return totalSizeBytes
+            ' Do not use SearchOption.AllDirectories in case there are security issues with one or more of the subfolders
+            Dim folders = datasetDirectory.GetDirectories("*").ToList()
+            For Each subDirectory In folders
+                ' Recursively call this function
+                GetDirectorySize(instrumentName, subDirectory, totalSizeBytes)
+            Next
 
-    End Function
+        Catch ex As UnauthorizedAccessException
+            ' Ignore this error
+        Catch ex As Exception
+            LogCriticalError("Error finding files for " & instrumentName & " in PerformDirectoryScans: " & ex.Message)
+        End Try
+
+    End Sub
 
 
-    Private Sub WriteToOutput(ByRef swOutFile As StreamWriter, ByVal field1 As String, Optional ByVal field2 As String = "", Optional ByVal field3 As String = "")
+    Private Sub WriteToOutput(ByVal swOutFile As StreamWriter, ByVal field1 As String, Optional ByVal field2 As String = "", Optional ByVal field3 As String = "")
 
         Dim LineOut As String
 
@@ -289,6 +308,19 @@ Public Class clsDirectoryTools
         Return TempStr
     End Function
 
+    ''' <summary>
+    ''' Logs an error message to the local log file, unless it is currently between midnight and 1 am
+    ''' </summary>
+    ''' <param name="errorMessage"></param>
+    ''' <remarks></remarks>
+    Private Sub LogCriticalError(ByVal errorMessage As String)
+        If System.DateTime.Now.Hour = 0 Then
+            ' Log this error to the database if it is between 12 am and 1 am
+            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, errorMessage)
+        Else
+            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, errorMessage)
+        End If
+    End Sub
 #End Region
 
 

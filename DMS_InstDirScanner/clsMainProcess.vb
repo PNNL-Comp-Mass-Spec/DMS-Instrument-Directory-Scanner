@@ -40,11 +40,11 @@ Public Class clsMainProcess
 				If Not m_MainProcess.InitMgr Then Exit Sub
 			End If
 			m_MainProcess.DoDirectoryScan()
-		Catch Err As Exception
-			'Report any exceptions not handled at a lower level to the system application log
-			ErrMsg = "Critical exception starting application"
-			WriteLog(LoggerTypes.LogSystem, LogLevels.FATAL, ErrMsg, Err)
-			Exit Sub
+        Catch ex As Exception
+            'Report any exceptions not handled at a lower level to the system application log
+            ErrMsg = "Critical exception starting application"
+            WriteLog(LoggerTypes.LogDb, LogLevels.FATAL, ErrMsg, ex)
+            Exit Sub
 		Finally
 			If Not m_StatusFile Is Nothing Then
 				m_StatusFile.DisposeMessageQueue()
@@ -112,46 +112,52 @@ Public Class clsMainProcess
 	''' <remarks></remarks>
 	Private Sub DoDirectoryScan()
 
-		'Check to see if manager is active
-		If Not CBool(m_MgrSettings.GetParam("mgractive")) Then
-			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled in manager control DB")
-			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
-			m_StatusFile.UpdateDisabled(False)
-			Exit Sub
-		ElseIf Not CBool(m_MgrSettings.GetParam("mgractive_local")) Then
-			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled locally")
-			WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
-			m_StatusFile.UpdateDisabled(True)
-			Exit Sub
-		End If
+        Try
 
-        Dim workDir = m_MgrSettings.GetParam("workdir", String.Empty)
-        If String.IsNullOrWhiteSpace(workDir) Then
-            LogFatalError("Manager parameter 'workdir' is not defined")
-            Exit Sub
-        End If
+            'Check to see if manager is active
+            If Not CBool(m_MgrSettings.GetParam("mgractive")) Then
+                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled in manager control DB")
+                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+                m_StatusFile.UpdateDisabled(False)
+                Exit Sub
+            ElseIf Not CBool(m_MgrSettings.GetParam("mgractive_local")) Then
+                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled locally")
+                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+                m_StatusFile.UpdateDisabled(True)
+                Exit Sub
+            End If
 
-        'Verify output directory can be found
-        If Not Directory.Exists(workDir) Then
-            LogFatalError("Output directory not found: " & workDir)
-            Exit Sub
-        End If
+            Dim workDir = m_MgrSettings.GetParam("workdir", String.Empty)
+            If String.IsNullOrWhiteSpace(workDir) Then
+                LogFatalError("Manager parameter 'workdir' is not defined")
+                Exit Sub
+            End If
 
-        'Get list of instruments from DMS
-        Dim InstList As List(Of clsInstData) = clsDbTools.GetInstrumentList(m_MgrSettings)
-        If InstList Is Nothing Then
-            LogFatalError("No instrument list")
-            Exit Sub
-        End If
+            'Verify output directory can be found
+            If Not Directory.Exists(workDir) Then
+                LogFatalError("Output directory not found: " & workDir)
+                Exit Sub
+            End If
 
-        'Scan the directories
-        Dim scanner = New clsDirectoryTools()
-        scanner.PerformDirectoryScans(InstList, workDir, m_MgrSettings, m_StatusFile)
+            'Get list of instruments from DMS
+            Dim InstList As List(Of clsInstData) = clsDbTools.GetInstrumentList(m_MgrSettings)
+            If InstList Is Nothing Then
+                LogFatalError("No instrument list")
+                Exit Sub
+            End If
 
-        'All finished, so clean up and exit
-        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning complete")
-        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
-        m_StatusFile.UpdateStopped(False)
+            'Scan the directories
+            Dim scanner = New clsDirectoryTools()
+            scanner.PerformDirectoryScans(InstList, workDir, m_MgrSettings, m_StatusFile)
+
+            'All finished, so clean up and exit
+            WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning complete")
+            WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+            m_StatusFile.UpdateStopped(False)
+
+        Catch ex As Exception
+            WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Error in DoDirectoryScan: " & ex.Message)
+        End Try
 
     End Sub
 

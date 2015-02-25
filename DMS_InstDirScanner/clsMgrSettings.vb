@@ -9,10 +9,8 @@
 '*********************************************************************************************************
 
 Imports System.Data.SqlClient
-Imports System.IO
 Imports System.Collections.Specialized
 Imports System.Xml
-Imports System.Configuration
 Imports DMS_InstDirScanner.clsLogTools
 Imports System.Data
 
@@ -40,7 +38,6 @@ Namespace MgrSettings
 #Region "Module variables"
 		Private m_ParamDictionary As StringDictionary
 		Private m_ErrMsg As String = ""
-		Private m_MCParamsLoaded As Boolean = False
 #End Region
 
 #Region "Properties"
@@ -88,9 +85,9 @@ Namespace MgrSettings
 				Return False
 			End If
 
-			'Determine if manager is deactivated locally
+            'Determine if manager is deactivated locally
 			If Not CBool(m_ParamDictionary("MgrActive_Local")) Then
-				WriteLog(LoggerTypes.LogSystem, LogLevels.WARN, "Manager deactivated locally")
+                WriteLog(LoggerTypes.LogFile, LogLevels.WARN, "Manager deactivated locally")
 				m_ErrMsg = "Manager deactivated locally"
 				Return False
 			End If
@@ -139,28 +136,28 @@ Namespace MgrSettings
 		''' <param name="InpDict"></param>
 		''' <returns></returns>
 		''' <remarks></remarks>
-		Private Function CheckInitialSettings(ByRef InpDict As StringDictionary) As Boolean
+        Private Function CheckInitialSettings(ByVal InpDict As StringDictionary) As Boolean
 
-			Dim MyMsg As String
+            Dim MyMsg As String
 
-			'Verify manager settings dictionary exists
-			If InpDict Is Nothing Then
-				MyMsg = "clsMgrSettings.CheckInitialSettings(); Manager parameter string dictionary not found"
-				WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
-				Return False
-			End If
+            'Verify manager settings dictionary exists
+            If InpDict Is Nothing Then
+                MyMsg = "clsMgrSettings.CheckInitialSettings(); Manager parameter string dictionary not found"
+                WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
+                Return False
+            End If
 
-			'Verify intact config file was found
-			If CBool(InpDict("UsingDefaults")) Then
-				MyMsg = "clsMgrSettings.CheckInitialSettings(); Config file problem, default settings being used"
-				WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
-				Return False
-			End If
+            'Verify intact config file was found
+            If CBool(InpDict("UsingDefaults")) Then
+                MyMsg = "clsMgrSettings.CheckInitialSettings(); Config file problem, default settings being used"
+                WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
+                Return False
+            End If
 
-			'No problems found
-			Return True
+            'No problems found
+            Return True
 
-		End Function
+        End Function
 
 		''' <summary>
 		''' Gets remaining manager config settings from config database; 
@@ -190,8 +187,10 @@ Namespace MgrSettings
 			Dim ParamKey As String
 			Dim ParamVal As String
 
-			Dim SqlStr As String = "SELECT ParameterName, ParameterValue FROM V_MgrParams WHERE ManagerName = '" & _
-			  m_ParamDictionary("MgrName") & "'"
+            Dim SqlStr As String =
+                " SELECT ParameterName, ParameterValue " &
+                " FROM V_MgrParams " &
+                " WHERE ManagerName = '" & m_ParamDictionary("MgrName") & "'"
 
 			'Get a table containing data for job
 			Dim Dt As DataTable = Nothing
@@ -212,7 +211,7 @@ Namespace MgrSettings
 					RetryCount -= 1S
 					MyMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Exception getting manager settings from database: " & ex.Message
 					MyMsg &= ", RetryCount = " & RetryCount.ToString
-					WriteErrorMsg(MyMsg)
+                    WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
 					System.Threading.Thread.Sleep(5000)				'Delay for 5 second before trying again
 				End Try
 			End While
@@ -220,7 +219,7 @@ Namespace MgrSettings
 			'If loop exited due to errors, return false
 			If RetryCount < 1 Then
 				MyMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database"
-				WriteErrorMsg(MyMsg)
+                WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
 				Dt.Dispose()
 				Return False
 			End If
@@ -230,7 +229,7 @@ Namespace MgrSettings
 				'Wrong number of rows returned
 				MyMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Invalid row count retrieving manager settings: RowCount = "
 				MyMsg &= Dt.Rows.Count.ToString
-				WriteErrorMsg(MyMsg)
+                WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
 				Dt.Dispose()
 				Return False
 			End If
@@ -251,7 +250,7 @@ Namespace MgrSettings
 				Return True
 			Catch ex As System.Exception
 				MyMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Exception filling string dictionary from table: " & ex.Message
-				WriteErrorMsg(MyMsg)
+                WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, MyMsg)
 				Return False
 			Finally
 				Dt.Dispose()
@@ -426,20 +425,6 @@ Namespace MgrSettings
 
 		End Function
 
-		''' <summary>
-		''' Writes an error message to application log or manager local log
-		''' </summary>
-		''' <param name="ErrMsg">Message to write</param>
-		''' <remarks></remarks>
-		Private Sub WriteErrorMsg(ByVal ErrMsg As String)
-
-			If m_MCParamsLoaded Then
-				WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, ErrMsg)
-			Else
-				WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, ErrMsg)
-			End If
-
-		End Sub
 #End Region
 
 	End Class

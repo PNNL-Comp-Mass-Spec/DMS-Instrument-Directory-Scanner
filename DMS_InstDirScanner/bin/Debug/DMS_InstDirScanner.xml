@@ -110,11 +110,6 @@ DMS_InstDirScanner
  Starts program execution
  </summary>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsMainProcess.#ctor">
-	<summary>
- Constructor
- </summary>
-	<remarks>Doesn't do anything at present</remarks>
 </member><member name="M:DMS_InstDirScanner.clsMainProcess.InitMgr">
 	<summary>
  Initializes the manager settings and classes

@@ -1,5 +1,8 @@
 Instrument Directory Scanner History
 
+Version 1.3.5577; April 9, 2015
+	- Now checking for IOException errors while determining directory sizes and only logging one warning per instrument
+
 Version 1.3.5387; October 1, 2014
 	- Now prepending the bionet user's username with MachineName
 		- For example, resultant string is proto-3\ftms

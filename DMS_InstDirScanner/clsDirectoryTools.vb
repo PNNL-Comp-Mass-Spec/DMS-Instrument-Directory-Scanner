@@ -4,8 +4,8 @@
 ' Copyright 2009, Battelle Memorial Institute
 ' Created 01/01/2009
 '
-' Last modified 10/24/2011
 '*********************************************************************************************************
+
 Imports System.IO
 Imports System.Collections.Generic
 Imports DMS_InstDirScanner.MgrSettings
@@ -20,35 +20,38 @@ Public Class clsDirectoryTools
 #Region "Methods"
 
     Protected mDebugLevel As Integer = 1
+    Protected mMostRecentIOErrorInstrument As String = String.Empty
 
     Public Function PerformDirectoryScans(
-        ByVal InstList As List(Of clsInstData),
-        ByVal OutFolder As String,
-        ByVal MgrSettings As clsMgrSettings,
-        ByVal ProgStatus As IStatusFile) As Boolean
+        ByVal instList As List(Of clsInstData),
+        ByVal outFolderPath As String,
+        ByVal mgrSettings As clsMgrSettings,
+        ByVal progStatus As IStatusFile) As Boolean
 
-        Dim Progress As Single
-        Dim InstCounter As Integer = 0
-        Dim InstCount As Integer = InstList.Count
+        Dim progress As Single
+        Dim instCounter As Integer = 0
+        Dim instCount As Integer = instList.Count
 
-        mDebugLevel = MgrSettings.GetParam("debuglevel", 1)
+        mDebugLevel = mgrSettings.GetParam("debuglevel", 1)
 
-        ProgStatus.TaskStartTime = DateTime.UtcNow
+        progStatus.TaskStartTime = DateTime.UtcNow
 
-        For Each instrument As clsInstData In InstList
+        For Each instrument As clsInstData In instList
             Try
 
-                InstCounter += 1
-                ProgStatus.Duration = CSng(DateTime.UtcNow.Subtract(ProgStatus.TaskStartTime).TotalHours())
-                Progress = 100 * CSng(InstCounter) / CSng(InstCount)
-                ProgStatus.UpdateAndWrite(Progress)
+                instCounter += 1
+                progStatus.Duration = CSng(DateTime.UtcNow.Subtract(progStatus.TaskStartTime).TotalHours())
+                progress = 100 * CSng(instCounter) / CSng(instCount)
+                progStatus.UpdateAndWrite(progress)
+
+                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, "Scanning folder for instrument " & instrument.InstName)
 
                 Dim fiSourceFile As FileInfo = Nothing
-                Dim swOutFile = CreateOutputFile(instrument.InstName, OutFolder, fiSourceFile)
+                Dim swOutFile = CreateOutputFile(instrument.InstName, outFolderPath, fiSourceFile)
                 If swOutFile Is Nothing Then Return False
 
                 'Get the directory info an write it
-                Dim folderExists = GetDirectoryData(instrument, swOutFile, MgrSettings)
+                Dim folderExists = GetDirectoryData(instrument, swOutFile, mgrSettings)
 
                 swOutFile.Close()
 
@@ -57,7 +60,7 @@ Public Class clsDirectoryTools
                     Try
 
                         Dim diTargetDirectory As DirectoryInfo
-                        diTargetDirectory = New DirectoryInfo(Path.Combine(OutFolder, "MostRecentValid"))
+                        diTargetDirectory = New DirectoryInfo(Path.Combine(outFolderPath, "MostRecentValid"))
 
                         If Not diTargetDirectory.Exists Then diTargetDirectory.Create()
 
@@ -84,7 +87,6 @@ Public Class clsDirectoryTools
         Dim diBackupDirectory As DirectoryInfo
         Dim RetFile As StreamWriter
 
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, "Scanning folder for instrument " & InstName)
         fiStatusFile = New FileInfo(Path.Combine(OutFileDir, InstName & "_source.txt"))
 
         ' Make a backup copy of the existing file
@@ -186,8 +188,7 @@ Public Class clsDirectoryTools
             Dim directories = diInstDataFolder.GetDirectories().ToList()
             Dim files = diInstDataFolder.GetFiles().ToList()
             For Each datasetDirectory As DirectoryInfo In directories
-                Dim totalSizeBytes As Int64 = 0
-                GetDirectorySize(intrumentData.InstName, datasetDirectory, totalSizeBytes)                
+                Dim totalSizeBytes As Int64 = GetDirectorySize(intrumentData.InstName, datasetDirectory)
                 WriteToOutput(swOutFile, "Dir ", datasetDirectory.Name, FileSizeToText(totalSizeBytes))
             Next
             For Each datasetFile As FileInfo In files
@@ -248,7 +249,9 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Protected Sub GetDirectorySize(ByVal instrumentName As String, ByVal datasetDirectory As DirectoryInfo, ByRef totalSizeBytes As Int64)
+    Protected Function GetDirectorySize(ByVal instrumentName As String, ByVal datasetDirectory As DirectoryInfo) As Int64
+
+        Dim totalSizeBytes As Int64 = 0
 
         Try
             Dim files = datasetDirectory.GetFiles("*").ToList()
@@ -261,16 +264,20 @@ Public Class clsDirectoryTools
             Dim folders = datasetDirectory.GetDirectories("*").ToList()
             For Each subDirectory In folders
                 ' Recursively call this function
-                GetDirectorySize(instrumentName, subDirectory, totalSizeBytes)
+                totalSizeBytes += GetDirectorySize(instrumentName, subDirectory)
             Next
 
         Catch ex As UnauthorizedAccessException
             ' Ignore this error
+        Catch ex As IOException
+            LogIOError(instrumentName, "IOException determining directory size for " & instrumentName & ", folder " & datasetDirectory.Name & "; ignoring additional errors for this instrument")
         Catch ex As Exception
-            LogCriticalError("Error finding files for " & instrumentName & " in PerformDirectoryScans: " & ex.Message)
+            LogCriticalError("Error determining directory size for " & instrumentName & ", folder " & datasetDirectory.Name & ": " & ex.Message)
         End Try
 
-    End Sub
+        Return totalSizeBytes
+
+    End Function
 
 
     Private Sub WriteToOutput(ByVal swOutFile As StreamWriter, ByVal field1 As String, Optional ByVal field2 As String = "", Optional ByVal field3 As String = "")
@@ -314,13 +321,25 @@ Public Class clsDirectoryTools
     ''' <param name="errorMessage"></param>
     ''' <remarks></remarks>
     Private Sub LogCriticalError(ByVal errorMessage As String)
-        If System.DateTime.Now.Hour = 0 Then
+        If DateTime.Now.Hour = 0 Then
             ' Log this error to the database if it is between 12 am and 1 am
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, errorMessage)
         Else
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, errorMessage)
         End If
     End Sub
+
+    Private Sub LogIOError(ByVal instrumentName As String, ByVal errorMessage As String)
+        If Not String.IsNullOrEmpty(mMostRecentIOErrorInstrument) AndAlso mMostRecentIOErrorInstrument = instrumentName Then
+            Return
+        End If
+
+        mMostRecentIOErrorInstrument = String.Copy(instrumentName)
+
+        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.WARN, errorMessage)
+
+    End Sub
+
 #End Region
 
 

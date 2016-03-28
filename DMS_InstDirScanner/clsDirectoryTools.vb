@@ -8,7 +8,6 @@
 
 Imports System.IO
 Imports System.Collections.Generic
-Imports DMS_InstDirScanner.MgrSettings
 Imports System.Runtime.InteropServices
 
 Public Class clsDirectoryTools
@@ -19,8 +18,19 @@ Public Class clsDirectoryTools
 
 #Region "Methods"
 
-    Protected mDebugLevel As Integer = 1
-    Protected mMostRecentIOErrorInstrument As String = String.Empty
+    Private mDebugLevel As Integer = 1
+    Private mMostRecentIOErrorInstrument As String
+
+    Private ReadOnly mFileTools As PRISM.Files.clsFileTools
+
+    ''' <summary>
+    ''' Constructor
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Sub New()
+        mMostRecentIOErrorInstrument = String.Empty
+        mFileTools = New PRISM.Files.clsFileTools()
+    End Sub
 
     Public Function PerformDirectoryScans(
         ByVal instList As List(Of clsInstData),
@@ -29,7 +39,7 @@ Public Class clsDirectoryTools
         ByVal progStatus As IStatusFile) As Boolean
 
         Dim progress As Single
-        Dim instCounter As Integer = 0
+        Dim instCounter = 0
         Dim instCount As Integer = instList.Count
 
         mDebugLevel = mgrSettings.GetParam("debuglevel", 1)
@@ -50,7 +60,7 @@ Public Class clsDirectoryTools
                 Dim swOutFile = CreateOutputFile(instrument.InstName, outFolderPath, fiSourceFile)
                 If swOutFile Is Nothing Then Return False
 
-                'Get the directory info an write it
+                ' Get the directory info an write it
                 Dim folderExists = GetDirectoryData(instrument, swOutFile, mgrSettings)
 
                 swOutFile.Close()
@@ -82,12 +92,12 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Private Function CreateOutputFile(ByVal InstName As String, ByVal OutFileDir As String, <Out> ByRef fiStatusFile As FileInfo) As StreamWriter
+    Private Function CreateOutputFile(ByVal instName As String, ByVal outFileDir As String, <Out> ByRef fiStatusFile As FileInfo) As StreamWriter
 
         Dim diBackupDirectory As DirectoryInfo
-        Dim RetFile As StreamWriter
+        Dim retFile As StreamWriter
 
-        fiStatusFile = New FileInfo(Path.Combine(OutFileDir, InstName & "_source.txt"))
+        fiStatusFile = New FileInfo(Path.Combine(outFileDir, instName & "_source.txt"))
 
         ' Make a backup copy of the existing file
         If fiStatusFile.Exists Then
@@ -96,29 +106,43 @@ Public Class clsDirectoryTools
                 If Not diBackupDirectory.Exists Then diBackupDirectory.Create()
                 fiStatusFile.CopyTo(Path.Combine(diBackupDirectory.FullName, fiStatusFile.Name), True)
             Catch ex As Exception
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception copying to PreviousCopy directory", ex)
+                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception copying " + fiStatusFile.Name + "to PreviousCopy directory", ex)
             End Try
 
-            Try
-                ' Now delete the old copy
-                fiStatusFile.Delete()
-            Catch ex As Exception
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception deleting file " & fiStatusFile.FullName, ex)
+            Dim backupErrorMessage As String = String.Empty
+            If Not (mFileTools.DeleteFileWithRetry(fiStatusFile, backupErrorMessage)) Then
+                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, backupErrorMessage)
                 Return Nothing
-            End Try
+            End If
+
         End If
 
-        'Create the new file
-        Try
-            RetFile = New StreamWriter(New FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
+        ' Create the new file; try up to 3 times
 
-            'The file always starts with a blank line
-            RetFile.WriteLine()
-            Return RetFile
-        Catch ex As Exception
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, "Exception creating output file " & fiStatusFile.FullName, ex)
-            Return Nothing
-        End Try
+        Dim retriesRemaining = 3
+        Dim errorMessage As String = String.Empty
+
+        While retriesRemaining >= 0
+            retriesRemaining -= 1
+
+            Try
+                retFile = New StreamWriter(New FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
+
+                ' The file always starts with a blank line
+                retFile.WriteLine()
+                Return retFile
+
+            Catch ex As Exception
+                errorMessage = ex.Message
+                ' Delay for 1 second before trying again
+                Threading.Thread.Sleep(1000)
+            End Try
+
+        End While
+
+        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, "Exception creating output file " & fiStatusFile.FullName & ": " & errorMessage)
+
+        Return Nothing
 
     End Function
 
@@ -140,7 +164,7 @@ Public Class clsDirectoryTools
         Dim InpPath As String = Path.Combine(intrumentData.StorageVolume, intrumentData.StoragePath)
         Dim ShareConn As PRISM.Files.ShareConnector = Nothing
 
-        Dim strUserDescription As String = "as user ??"
+        Dim strUserDescription = "as user ??"
 
         'If this is a machine on bionet, set up a connection
         If intrumentData.CaptureMethod.ToLower = "secfso" Then
@@ -249,7 +273,7 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Protected Function GetDirectorySize(ByVal instrumentName As String, ByVal datasetDirectory As DirectoryInfo) As Int64
+    Private Function GetDirectorySize(ByVal instrumentName As String, ByVal datasetDirectory As DirectoryInfo) As Int64
 
         Dim totalSizeBytes As Int64 = 0
 

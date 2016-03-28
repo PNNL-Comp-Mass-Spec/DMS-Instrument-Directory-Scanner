@@ -6,79 +6,79 @@ DMS_InstDirScanner
 </name>
 </assembly>
 <members>
-<member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.#ctor">
+<member name="M:DMS_InstDirScanner.clsMgrSettings.#ctor">
 	<summary>
  Constructor
  </summary>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.LoadSettings">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.LoadSettings">
 	<summary>
  Loads manager settings from config file and database
  </summary>
 	<returns>True if successful; False on error</returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.LoadMgrSettingsFromFile">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.LoadMgrSettingsFromFile">
 	<summary>
  Loads the initial settings from application config file
  </summary>
 	<returns>String dictionary containing initial settings if suceessful; NOTHING on error</returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.CheckInitialSettings(System.Collections.Specialized.StringDictionary)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.CheckInitialSettings(System.Collections.Specialized.StringDictionary)">
 	<summary>
  Tests initial settings retrieved from config file
  </summary>
 	<param name="InpDict"></param>
 	<returns></returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.LoadMgrSettingsFromDB">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.LoadMgrSettingsFromDB">
 	<summary>
  Gets remaining manager config settings from config database; 
  Overload to use module-level string dictionary when calling from external method
  </summary>
 	<returns>True for success; False for error</returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.LoadMgrSettingsFromDB(System.Collections.Specialized.StringDictionary@)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.LoadMgrSettingsFromDB(System.Collections.Specialized.StringDictionary@)">
 	<summary>
  Gets remaining manager config settings from config database
  </summary>
 	<param name="MgrSettingsDict">String dictionary containing parameters that have been loaded so far</param>
 	<returns>True for success; False for error</returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetParam(System.String,System.String)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.GetParam(System.String,System.String)">
 	<summary>
  Gets a parameter from the parameters string dictionary
  </summary>
 	<param name="ItemKey">Key name for item</param>
 	<returns>String value associated with specified key</returns>
 	<remarks>Returns Nothing if key isn't found</remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetParam(System.String,System.Int32)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.GetParam(System.String,System.Int32)">
 	<summary>
  Gets a parameter from the parameters string dictionary
  </summary>
 	<param name="ItemKey">Key name for item</param>
 	<returns>String value associated with specified key</returns>
 	<remarks>Returns Nothing if key isn't found</remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetParam(System.String)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.GetParam(System.String)">
 	<summary>
  Gets a parameter from the parameters string dictionary
  </summary>
 	<param name="ItemKey">Key name for item</param>
 	<returns>String value associated with specified key</returns>
 	<remarks>Returns Nothing if key isn't found</remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.SetParam(System.String,System.String)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.SetParam(System.String,System.String)">
 	<summary>
  Sets a parameter in the parameters string dictionary
  </summary>
 	<param name="ItemKey">Key name for the item</param>
 	<param name="ItemValue">Value to assign to the key</param>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetAllKeys">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.GetAllKeys">
 	<summary>
  Gets a collection representing all keys in the parameters string dictionary
  </summary>
 	<returns></returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.WriteConfigSetting(System.String,System.String)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.WriteConfigSetting(System.String,System.String)">
 	<summary>
  Writes specfied value to an application config file.
  </summary>
@@ -86,19 +86,19 @@ DMS_InstDirScanner
 	<param name="Value">New value for parameter</param>
 	<returns>TRUE for success; FALSE for error (ErrMsg property contains reason)</returns>
 	<remarks>This bit of lunacy is needed because MS doesn't supply a means to write to an app config file</remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.LoadConfigDocument">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.LoadConfigDocument">
 	<summary>
  Loads an app config file for changing parameters
  </summary>
 	<returns>App config file as an XML document if successful; NOTHING on failure</returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.GetConfigFilePath">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.GetConfigFilePath">
 	<summary>
  Specifies the full name and path for the application config file
  </summary>
 	<returns>String containing full name and path</returns>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.MgrSettings.clsMgrSettings.DbCStr(System.Object)">
+</member><member name="M:DMS_InstDirScanner.clsMgrSettings.DbCStr(System.Object)">
 	<summary>
  Converts a database output object that could be dbNull to a string
  </summary>
@@ -213,10 +213,15 @@ DMS_InstDirScanner
 	<summary>
  Creates a layout object for a Db appender parameter
  </summary>
-	<param name="LayoutStr">Name of parameter</param>
+	<param name="layoutStr">Name of parameter</param>
 	<returns></returns>
 	<remarks>log4net.Layout.IRawLayout</remarks>
-</member><member name="M:DMS_InstDirScanner.clsDirectoryTools.GetDirectoryData(DMS_InstDirScanner.clsInstData,System.IO.StreamWriter,DMS_InstDirScanner.MgrSettings.clsMgrSettings)">
+</member><member name="M:DMS_InstDirScanner.clsDirectoryTools.#ctor">
+	<summary>
+ Constructor
+ </summary>
+	<remarks></remarks>
+</member><member name="M:DMS_InstDirScanner.clsDirectoryTools.GetDirectoryData(DMS_InstDirScanner.clsInstData,System.IO.StreamWriter,DMS_InstDirScanner.clsMgrSettings)">
 	<summary>
  Query the files and folders on the instrument's shared data folder
  </summary>
@@ -231,7 +236,7 @@ DMS_InstDirScanner
  </summary>
 	<param name="errorMessage"></param>
 	<remarks></remarks>
-</member><member name="M:DMS_InstDirScanner.clsDbTools.GetInstrumentList(DMS_InstDirScanner.MgrSettings.clsMgrSettings)">
+</member><member name="M:DMS_InstDirScanner.clsDbTools.GetInstrumentList(DMS_InstDirScanner.clsMgrSettings)">
 	<summary>
  Gets a list of instruments and data paths from DMS
  </summary>

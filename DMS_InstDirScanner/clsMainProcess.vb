@@ -9,7 +9,6 @@
 '*********************************************************************************************************
 
 Imports System.IO
-Imports DMS_InstDirScanner.MgrSettings
 Imports DMS_InstDirScanner.clsLogTools
 
 Public Class clsMainProcess

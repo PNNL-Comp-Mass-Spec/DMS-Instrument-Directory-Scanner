@@ -42,7 +42,7 @@ Public Class clsLogTools
     Private Shared ReadOnly m_SysLogger As ILog = LogManager.GetLogger("SysLogger")
     Private Shared m_FileDate As String
     Private Shared m_BaseFileName As String
-    Private Shared m_FileAppender As log4net.Appender.FileAppender
+    Private Shared m_FileAppender As FileAppender
 #End Region
 
 #Region "Properties"
@@ -174,9 +174,9 @@ Public Class clsLogTools
             Return
         End If
 
-        For Each SelectedAppender As Appender.IAppender In AppendList
+        For Each SelectedAppender As IAppender In AppendList
             'Convert the IAppender object to a RollingFileAppender
-            Dim AppenderToChange As Appender.FileAppender = TryCast(SelectedAppender, Appender.FileAppender)
+            Dim AppenderToChange = TryCast(SelectedAppender, FileAppender)
             If AppenderToChange Is Nothing Then
                 WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, "Unable to convert appender")
                 Return
@@ -200,9 +200,9 @@ Public Class clsLogTools
         If LoggerList.GetLength(0) < 1 Then Return Nothing
 
         'Create a List of appenders matching the criteria for each logger
-        Dim RetList As New List(Of Appender.IAppender)
+        Dim RetList As New List(Of IAppender)
         For Each TestLogger As ILog In LoggerList
-            For Each TestAppender As Appender.IAppender In TestLogger.Logger.Repository.GetAppenders()
+            For Each TestAppender As IAppender In TestLogger.Logger.Repository.GetAppenders()
                 If TestAppender.Name = AppendName Then RetList.Add(TestAppender)
             Next
         Next
@@ -231,7 +231,7 @@ Public Class clsLogTools
         End If
 
         'Convert input integer into the associated enum
-        Dim Lvl As LogLevels = DirectCast([Enum].Parse(LogLevelEnumType, InpLevel.ToString), LogLevels)
+        Dim Lvl = DirectCast([Enum].Parse(LogLevelEnumType, InpLevel.ToString), LogLevels)
         SetFileLogLevel(Lvl)
 
     End Sub
@@ -243,7 +243,7 @@ Public Class clsLogTools
     ''' <remarks></remarks>
     Public Shared Sub SetFileLogLevel(ByVal InpLevel As LogLevels)
 
-        Dim LogRepo As Repository.Hierarchy.Logger = DirectCast(m_FileLogger.Logger, Repository.Hierarchy.Logger)
+        Dim LogRepo = DirectCast(m_FileLogger.Logger, Repository.Hierarchy.Logger)
 
         Select Case InpLevel
             Case LogLevels.DEBUG
@@ -265,15 +265,15 @@ Public Class clsLogTools
     ''' <param name="LogfileName">Base of log file to be used</param>
     ''' <returns>A configured file appender</returns>
     ''' <remarks></remarks>
-    Private Shared Function CreateFileAppender(ByVal LogfileName As String) As log4net.Appender.FileAppender
-        Dim ReturnAppender As New log4net.Appender.FileAppender()
+    Private Shared Function CreateFileAppender(ByVal LogfileName As String) As FileAppender
+        Dim ReturnAppender As New FileAppender()
 
         ReturnAppender.Name = "FileAppender"
         m_FileDate = DateTime.Now.ToString("MM-dd-yyyy")
         m_BaseFileName = LogfileName
         ReturnAppender.File = (m_BaseFileName & "_") + m_FileDate & ".txt"
         ReturnAppender.AppendToFile = True
-        Dim Layout As New log4net.Layout.PatternLayout()
+        Dim Layout As New Layout.PatternLayout()
         Layout.ConversionPattern = "%date{MM/dd/yyyy HH:mm:ss}, %message, %level,%newline"
         Layout.ActivateOptions()
         ReturnAppender.Layout = Layout
@@ -289,7 +289,7 @@ Public Class clsLogTools
     ''' <param name="LogLevel">Debug level for file logger</param>
     ''' <remarks></remarks>
     Public Shared Sub CreateFileLogger(ByVal LogFileName As String, ByVal LogLevel As Integer)
-        Dim curLogger As log4net.Repository.Hierarchy.Logger = DirectCast(m_FileLogger.Logger, log4net.Repository.Hierarchy.Logger)
+        Dim curLogger = DirectCast(m_FileLogger.Logger, Repository.Hierarchy.Logger)
         m_FileAppender = CreateFileAppender(LogFileName)
         curLogger.AddAppender(m_FileAppender)
         SetFileLogLevel(LogLevel)
@@ -302,8 +302,8 @@ Public Class clsLogTools
     ''' <param name="ModuleName">Module name used by logger</param>
     ''' <remarks></remarks>
     Public Shared Sub CreateDbLogger(ByVal ConnStr As String, ByVal ModuleName As String)
-        Dim CurLogger As log4net.Repository.Hierarchy.Logger = DirectCast(m_DbLogger.Logger, log4net.Repository.Hierarchy.Logger)
-        CurLogger.Level = log4net.Core.Level.Info
+        Dim CurLogger = DirectCast(m_DbLogger.Logger, Repository.Hierarchy.Logger)
+        CurLogger.Level = Core.Level.Info
         CurLogger.AddAppender(CreateDbAppender(ConnStr, ModuleName))
         CurLogger.AddAppender(m_FileAppender)
     End Sub
@@ -315,9 +315,9 @@ Public Class clsLogTools
     ''' <param name="ModuleName">Module name used by logger</param>
     ''' <returns>ADONet database appender</returns>
     ''' <remarks></remarks>
-    Private Shared Function CreateDbAppender(ByVal ConnStr As String, ByVal ModuleName As String) As log4net.Appender.AdoNetAppender
+    Private Shared Function CreateDbAppender(ByVal ConnStr As String, ByVal ModuleName As String) As AdoNetAppender
 
-        Dim ReturnAppender As New log4net.Appender.AdoNetAppender()
+        Dim ReturnAppender As New AdoNetAppender()
 
         ReturnAppender.Name = "DbAppender"
 
@@ -328,7 +328,7 @@ Public Class clsLogTools
         ReturnAppender.CommandText = "PostLogEntry"
 
         'Type parameter
-        Dim TypeParam As New log4net.Appender.AdoNetAppenderParameter()
+        Dim TypeParam As New AdoNetAppenderParameter()
         TypeParam.ParameterName = "@type"
         TypeParam.DbType = DbType.String
         TypeParam.Size = 50
@@ -336,7 +336,7 @@ Public Class clsLogTools
         ReturnAppender.AddParameter(TypeParam)
 
         'Message parameter
-        Dim MsgParam As New log4net.Appender.AdoNetAppenderParameter()
+        Dim MsgParam As New AdoNetAppenderParameter()
         MsgParam.ParameterName = "@message"
         MsgParam.DbType = DbType.String
         MsgParam.Size = 4000
@@ -344,7 +344,7 @@ Public Class clsLogTools
         ReturnAppender.AddParameter(MsgParam)
 
         'PostedBy parameter
-        Dim PostByParam As New log4net.Appender.AdoNetAppenderParameter()
+        Dim PostByParam As New AdoNetAppenderParameter()
         PostByParam.ParameterName = "@postedBy"
         PostByParam.DbType = DbType.String
         PostByParam.Size = 128
@@ -359,16 +359,16 @@ Public Class clsLogTools
     ''' <summary>
     ''' Creates a layout object for a Db appender parameter
     ''' </summary>
-    ''' <param name="LayoutStr">Name of parameter</param>
+    ''' <param name="layoutStr">Name of parameter</param>
     ''' <returns></returns>
     ''' <remarks>log4net.Layout.IRawLayout</remarks>
-    Private Shared Function CreateLayout(ByVal LayoutStr As String) As log4net.Layout.IRawLayout
+    Private Shared Function CreateLayout(ByVal layoutStr As String) As Layout.IRawLayout
 
-        Dim LayoutConvert As New log4net.Layout.RawLayoutConverter()
-        Dim ReturnLayout As New log4net.Layout.PatternLayout()
-        ReturnLayout.ConversionPattern = LayoutStr
-        ReturnLayout.ActivateOptions()
-        Return DirectCast(LayoutConvert.ConvertFrom(ReturnLayout), log4net.Layout.IRawLayout)
+        Dim layoutConvert As New Layout.RawLayoutConverter()
+        Dim returnLayout As New Layout.PatternLayout()
+        returnLayout.ConversionPattern = layoutStr
+        returnLayout.ActivateOptions()
+        Return DirectCast(layoutConvert.ConvertFrom(returnLayout), Layout.IRawLayout)
 
     End Function
 #End Region

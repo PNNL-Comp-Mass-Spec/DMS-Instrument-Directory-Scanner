@@ -17,7 +17,7 @@ Public Class clsStatusData
 
 #Region "Module variables"
 	Private Shared m_MostRecentLogMessage As String
-	Private Shared m_ErrorQueue As Queue(Of String) = New Queue(Of String)
+    Private Shared ReadOnly m_ErrorQueue As Queue(Of String) = New Queue(Of String)
 #End Region
 
 #Region "Properties"
@@ -47,14 +47,13 @@ Public Class clsStatusData
 		'Add the most recent error message
 		m_ErrorQueue.Enqueue(ErrMsg)
 
-		'If there are > 4 entries in the queue, then delete the oldest ones
-		Dim DumStr As String
-		If m_ErrorQueue.Count > 4 Then
-			While m_ErrorQueue.Count > 4
-				DumStr = m_ErrorQueue.Dequeue
-			End While
-			m_ErrorQueue.TrimExcess()
-		End If
+        'If there are > 4 entries in the queue, then delete the oldest ones
+        If m_ErrorQueue.Count > 4 Then
+            While m_ErrorQueue.Count > 4
+                m_ErrorQueue.Dequeue()
+            End While
+            m_ErrorQueue.TrimExcess()
+        End If
 
 	End Sub
 

@@ -82,8 +82,8 @@ Public Class clsMgrSettings
         End If
 
         'Determine if manager is deactivated locally
-        If Not CBool(m_ParamDictionary("MgrActive_Local")) Then
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.WARN, "Manager deactivated locally")
+        If Not CBool(m_MgrParams("MgrActive_Local")) Then
+            LogWarning("Manager deactivated locally")
             m_ErrMsg = "Manager deactivated locally"
             Return False
         End If
@@ -137,16 +137,26 @@ Public Class clsMgrSettings
         Dim MyMsg As String
 
         'Verify manager settings dictionary exists
-        If InpDict Is Nothing Then
-            MyMsg = "clsMgrSettings.CheckInitialSettings(); Manager parameter string dictionary not found"
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, MyMsg)
+        If mgrParams Is Nothing Then
+            LogError("clsMgrSettings.CheckInitialSettings(); Manager parameters dictionary is null")
             Return False
         End If
 
         'Verify intact config file was found
-        If CBool(InpDict("UsingDefaults")) Then
-            MyMsg = "clsMgrSettings.CheckInitialSettings(); Config file problem, default settings being used"
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, MyMsg)
+        Dim strUsingDefaults = ""
+        If Not mgrParams.TryGetValue("UsingDefaults", strUsingDefaults) Then
+            LogError("clsMgrSettings.CheckInitialSettings(); Manager parameter 'UsingDefaults' is not defined")
+            Return False
+        End If
+
+        Dim usingDefaults As Boolean
+        If Not Boolean.TryParse(strUsingDefaults, usingDefaults) Then
+            LogError("clsMgrSettings.CheckInitialSettings(); Manager parameter 'UsingDefaults' must be True or False, not " & strUsingDefaults)
+            Return False
+        End If
+
+        If usingDefaults Then
+            LogError("clsMgrSettings.CheckInitialSettings(); Config file problem: default settings being used (UsingDefaults is true)")
             Return False
         End If
 
@@ -234,14 +244,21 @@ Public Class clsMgrSettings
 
             Return True
         Catch ex As Exception
-            Dim logMessage = "clsMgrSettings.LoadMgrSettingsFromDB; Exception filling string dictionary from table: " & ex.Message
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, logMessage)
+            LogError("clsMgrSettings.LoadMgrSettingsFromDB; Exception filling string dictionary from table: " & ex.Message)
             Return False
-        Finally
-            dt.Dispose()
         End Try
 
     End Function
+
+    Private Sub LogError(message As String)
+        PRISM.ConsoleMsgUtils.ShowError(message)
+        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, message)
+    End Sub
+
+    Private Sub LogWarning(message As String)
+        PRISM.ConsoleMsgUtils.ShowWarning(message)
+        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.WARN, message)
+    End Sub
 
     ''' <summary>
     ''' Gets a parameter from the parameters string dictionary
@@ -407,6 +424,14 @@ Public Class clsMgrSettings
         End If
 
     End Function
+
+    Private Sub DBToolsErrorHandler(message As String, ex As Exception)
+        LogError(message)
+    End Sub
+
+    Private Sub DBToolsWarningHandler(message As String)
+        LogWarning(message)
+    End Sub
 
 #End Region
 

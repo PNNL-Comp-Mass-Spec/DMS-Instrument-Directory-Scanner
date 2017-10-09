@@ -15,13 +15,14 @@ Public Class clsDirectoryTools
 	'*********************************************************************************************************
 	' Handles all directory access tasks
     '*********************************************************************************************************
+    Inherits PRISM.clsEventNotifier
 
 #Region "Methods"
 
     Private mDebugLevel As Integer = 1
     Private mMostRecentIOErrorInstrument As String
 
-    Private ReadOnly mFileTools As PRISM.Files.clsFileTools
+    Private ReadOnly mFileTools As PRISM.clsFileTools
 
     ''' <summary>
     ''' Constructor
@@ -29,7 +30,7 @@ Public Class clsDirectoryTools
     ''' <remarks></remarks>
     Public Sub New()
         mMostRecentIOErrorInstrument = String.Empty
-        mFileTools = New PRISM.Files.clsFileTools()
+        mFileTools = New PRISM.clsFileTools()
     End Sub
 
     Public Function PerformDirectoryScans(
@@ -54,7 +55,7 @@ Public Class clsDirectoryTools
                 progress = 100 * CSng(instCounter) / CSng(instCount)
                 progStatus.UpdateAndWrite(progress)
 
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, "Scanning folder for instrument " & instrument.InstName)
+                OnStatusEvent("Scanning folder for instrument " & instrument.InstName)
 
                 Dim fiSourceFile As FileInfo = Nothing
                 Dim swOutFile = CreateOutputFile(instrument.InstName, outFolderPath, fiSourceFile)
@@ -77,7 +78,7 @@ Public Class clsDirectoryTools
                         fiSourceFile.CopyTo(Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), True)
 
                     Catch ex As Exception
-                        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception copying to MostRecentValid directory", ex)
+                        OnErrorEvent("Exception copying to MostRecentValid directory", ex)
                     End Try
                 End If
 
@@ -106,12 +107,12 @@ Public Class clsDirectoryTools
                 If Not diBackupDirectory.Exists Then diBackupDirectory.Create()
                 fiStatusFile.CopyTo(Path.Combine(diBackupDirectory.FullName, fiStatusFile.Name), True)
             Catch ex As Exception
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, "Exception copying " + fiStatusFile.Name + "to PreviousCopy directory", ex)
+                OnErrorEvent("Exception copying " + fiStatusFile.Name + "to PreviousCopy directory", ex)
             End Try
 
             Dim backupErrorMessage As String = String.Empty
             If Not (mFileTools.DeleteFileWithRetry(fiStatusFile, backupErrorMessage)) Then
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, backupErrorMessage)
+                LogErrorToDatabase(backupErrorMessage)
                 Return Nothing
             End If
 
@@ -140,7 +141,7 @@ Public Class clsDirectoryTools
 
         End While
 
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, "Exception creating output file " & fiStatusFile.FullName & ": " & errorMessage)
+        OnErrorEvent("Exception creating output file " & fiStatusFile.FullName & ": " & errorMessage)
 
         Return Nothing
 
@@ -180,24 +181,20 @@ Public Class clsDirectoryTools
 
             strUserDescription = " as user " & strBionetUser
             If Not Connected Then
-                Msg = "Could not connect to " & InpPath & strUserDescription + "; error code " + ShareConn.ErrorMessage
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, Msg)
+                OnErrorEvent("Could not connect to " & InpPath & strUserDescription + "; error code " + shareConn.ErrorMessage)
             ElseIf mDebugLevel >= 5 Then
-                Msg = " ... connected to " & InpPath & strUserDescription
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, Msg)
+                OnStatusEvent(" ... connected to " & InpPath & strUserDescription)
             End If
         Else
             strUserDescription = " as user " & Environment.UserName
             If InpPath.ToLower().Contains(".bionet") Then
-                Msg = "Warning: Connection to a bionet folder should probably use 'secfso'; currently configured to use 'fso' for " & InpPath
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.WARN, Msg)
+                OnWarningEvent("Warning: Connection to a bionet folder should probably use 'secfso'; currently configured to use 'fso' for " & InpPath)
             End If
         End If
 
         Dim diInstDataFolder As New DirectoryInfo(InpPath)
 
-        Msg = "Reading " & intrumentData.InstName & ", Folder " & InpPath & strUserDescription
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, Msg)
+        OnStatusEvent("Reading " & intrumentData.InstName & ", Folder " & InpPath & strUserDescription)
 
         ' List the folder path and current date/time on the first line
         ' Will look like this:
@@ -224,8 +221,7 @@ Public Class clsDirectoryTools
         'If this was a bionet machine, disconnect
         If Connected Then
             If Not ShareConn.Disconnect() Then
-                Msg = "Could not disconnect from " & InpPath
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, Msg)
+                OnErrorEvent("Could not disconnect from " & InpPath)
             End If
         End If
 
@@ -309,7 +305,6 @@ Public Class clsDirectoryTools
         Dim LineOut As String
 
         LineOut = field1 & ControlChars.Tab & field2 & ControlChars.Tab & field3
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, "Write to output (" & LineOut & ")")
         swOutFile.WriteLine(LineOut)
 
     End Sub
@@ -344,23 +339,28 @@ Public Class clsDirectoryTools
     ''' </summary>
     ''' <param name="errorMessage"></param>
     ''' <remarks></remarks>
-    Private Sub LogCriticalError(ByVal errorMessage As String)
+    Private Sub LogCriticalError(errorMessage As String)
         If DateTime.Now.Hour = 0 Then
             ' Log this error to the database if it is between 12 am and 1 am
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, errorMessage)
+            LogErrorToDatabase(errorMessage)
         Else
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, errorMessage)
+            OnErrorEvent(errorMessage)
         End If
     End Sub
 
-    Private Sub LogIOError(ByVal instrumentName As String, ByVal errorMessage As String)
+    Private Sub LogErrorToDatabase(errorMessage As String)
+        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, errorMessage)
+        OnErrorEvent(errorMessage)
+    End Sub
+
+    Private Sub LogIOError(instrumentName As String, errorMessage As String)
         If Not String.IsNullOrEmpty(mMostRecentIOErrorInstrument) AndAlso mMostRecentIOErrorInstrument = instrumentName Then
             Return
         End If
 
         mMostRecentIOErrorInstrument = String.Copy(instrumentName)
 
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.WARN, errorMessage)
+        OnWarningEvent(errorMessage)
 
     End Sub
 

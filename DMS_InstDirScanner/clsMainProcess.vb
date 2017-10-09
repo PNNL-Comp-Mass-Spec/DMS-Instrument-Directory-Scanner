@@ -38,8 +38,10 @@ Public Class clsMainProcess
             m_MainProcess.DoDirectoryScan()
         Catch ex As Exception
             'Report any exceptions not handled at a lower level to the system application log
-            Const errMsg As String = "Critical exception starting application"
+            Const errMsg = "Critical exception starting application"
+            ConsoleMsgUtils.ShowError(errMsg)
             WriteLog(LoggerTypes.LogDb, LogLevels.FATAL, errMsg, ex)
+            Thread.Sleep(1500)
             Exit Sub
         Finally
             If Not m_StatusFile Is Nothing Then
@@ -105,12 +107,16 @@ Public Class clsMainProcess
 
             'Check to see if manager is active
             If Not CBool(m_MgrSettings.GetParam("mgractive")) Then
-                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled in manager control DB")
+                Dim message = "Program disabled in manager control DB"
+                ConsoleMsgUtils.ShowWarning(message)
+                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
                 WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
                 m_StatusFile.UpdateDisabled(False)
                 Exit Sub
             ElseIf Not CBool(m_MgrSettings.GetParam("mgractive_local")) Then
-                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Program disabled locally")
+                Dim message = "Program disabled locally"
+                ConsoleMsgUtils.ShowWarning(message)
+                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
                 WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
                 m_StatusFile.UpdateDisabled(True)
                 Exit Sub
@@ -140,12 +146,12 @@ Public Class clsMainProcess
             scanner.PerformDirectoryScans(instList, workDir, m_MgrSettings, m_StatusFile)
 
             'All finished, so clean up and exit
-            WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "Scanning complete")
+            LogMessage("Scanning complete")
             WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
             m_StatusFile.UpdateStopped(False)
 
         Catch ex As Exception
-            WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Error in DoDirectoryScan: " & ex.Message)
+            LogError("Error in DoDirectoryScan: " & ex.Message)
         End Try
 
     End Sub
@@ -173,8 +179,6 @@ Public Class clsMainProcess
         Return Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()
     End Function
 
-    Private Sub LogFatalError(ByVal errorMessage As String)
-        WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, errorMessage)
     Private Function GetInstrumentList() As List(Of clsInstData)
 
         LogMessage("Getting instrument list")
@@ -235,10 +239,50 @@ Public Class clsMainProcess
         End Try
 
     End Function
+
+#End Region
+
+#Region "Event handlers"
+
+    Private Sub AttachEvents(objClass As clsEventNotifier)
+        AddHandler objClass.ErrorEvent, AddressOf ErrorHandler
+        AddHandler objClass.StatusEvent, AddressOf MessageHandler
+        AddHandler objClass.WarningEvent, AddressOf WarningHandler
+    End Sub
+
+    Private Sub LogError(message As String)
+        ConsoleMsgUtils.ShowError(message)
+        WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, message)
+    End Sub
+
+    Private Sub LogMessage(message As String)
+        Console.WriteLine(message)
+        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
+    End Sub
+
+    Private Sub LogWarning(message As String)
+        ConsoleMsgUtils.ShowWarning(message)
+        WriteLog(LoggerTypes.LogFile, LogLevels.WARN, message)
+    End Sub
+
+    Private Sub LogFatalError(errorMessage As String)
+        LogError(errorMessage)
         WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
         m_StatusFile.UpdateStopped(True)
     End Sub
 
+    Private Sub ErrorHandler(message As String, ex As Exception)
+        LogError(message)
+    End Sub
+
+    Private Sub MessageHandler(message As String)
+        Console.WriteLine(message)
+        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
+    End Sub
+
+    Private Sub WarningHandler(message As String)
+        LogWarning(message)
+    End Sub
 #End Region
 
 End Class

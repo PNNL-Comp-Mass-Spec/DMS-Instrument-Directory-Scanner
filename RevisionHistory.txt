@@ -1,5 +1,9 @@
 Instrument Directory Scanner History
 
+Version 1.3.6491; October 9, 2017
+	- Update to .NET 4.6.2
+	- Retrieve libraries from NuGet
+
 Version 1.3.5931; March 28, 2016
 	- Retry file deletion and creation steps up to 3 times to account for locked files
 

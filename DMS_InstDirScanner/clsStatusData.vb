@@ -1,19 +1,17 @@
 '*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy 
+' Written by Dave Clark for the US Department of Energy
 ' Pacific Northwest National Laboratory, Richland, WA
 ' Copyright 2009, Battelle Memorial Institute
 ' Created 08/04/2009
 '
-' Last modified 08/04/2009
 '*********************************************************************************************************
-Imports System.Collections.Generic
 
+''' <summary>
+''' Class to hold long-term data for status reporting.
+''' This is a hack to avoid adding an instance of the status file class to the log tools class
+''' </summary>
 Public Class clsStatusData
 
-	'*********************************************************************************************************
-	'Class to hold long-term data for status reporting. This is a hack to avoid adding an instance of the
-	'	status file class to the log tools class
-	'*********************************************************************************************************
 #Region "Module variables"
     Private Shared m_MostRecentLogMessage As String
     Private Shared ReadOnly m_ErrorQueue As Queue(Of String) = New Queue(Of String)

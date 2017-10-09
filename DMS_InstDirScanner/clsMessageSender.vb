@@ -1,8 +1,12 @@
 ﻿Option Strict On
 
 Imports Apache.NMS
+Imports Apache.NMS.ActiveMQ
+Imports Apache.NMS.ActiveMQ.Commands
 
-' sends messages to ActiveMQ message broker using NMS client library
+''' <summary>
+''' Sends messages to ActiveMQ message broker using NMS client library
+''' </summary>
 Class clsMessageSender
     '    Implements IDisposable
 
@@ -17,7 +21,7 @@ Class clsMessageSender
     Private isDisposed As Boolean = False
     Private hasConnection As Boolean = False
 
-    Public Sub New(ByVal brokerUri As String, ByVal topicName As String, ByVal processorName As String)
+    Public Sub New(brokerUri As String, topicName As String, processorName As String)
         Me.topicName = topicName
         Me.brokerUri = brokerUri
         Me.processorName = processorName
@@ -26,7 +30,7 @@ Class clsMessageSender
     ' send the message using NMS connection objects
     ' If connection does not exist, make it..
     ' If connection objects don't work, erase them and make another set
-    Public Sub SendMessage(ByVal message As String)
+    Public Sub SendMessage(message As String)
         If Me.isDisposed Then
             Exit Sub
         End If

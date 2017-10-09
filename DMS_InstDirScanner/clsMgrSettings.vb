@@ -1,35 +1,31 @@
-
 '*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy 
+' Written by Dave Clark for the US Department of Energy
 ' Pacific Northwest National Laboratory, Richland, WA
 ' Copyright 2007, Battelle Memorial Institute
 ' Created 07/27/2009
 '
-' Last modified 07/27/2009
 '*********************************************************************************************************
-Imports System.Collections.Specialized
-Imports System.Data
-Imports System.Data.SqlClient
 Imports System.Xml
 
 #Region "Interfaces"
 Public Interface IMgrParams
-    Function GetParam(ByVal ItemKey As String) As String
-    Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As String) As String
-    Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As Integer) As Integer
-    Sub SetParam(ByVal ItemKey As String, ByVal ItemValue As String)
+    Function GetParam(ItemKey As String) As String
+    Function GetParam(ItemKey As String, valueIfMissing As String) As String
+    Function GetParam(ItemKey As String, valueIfMissing As Integer) As Integer
+    Sub SetParam(ItemKey As String, ItemValue As String)
 End Interface
 #End Region
 
+''' <summary>
+''' Class for loading, storing and accessing manager parameters.
+''' </summary>
+''' <remarks>
+''' Loads initial settings from local config file, then checks to see if remainder of settings should be
+''' loaded or manager set to inactive. If manager active, retrieves remainder of settings from manager
+''' parameters database.
+''' </remarks>
 Public Class clsMgrSettings
     Implements IMgrParams
-
-    '*********************************************************************************************************
-    'Class for loading, storing and accessing manager parameters.
-    '	Loads initial settings from local config file, then checks to see if remainder of settings should be
-    '		loaded or manager set to inactive. If manager active, retrieves remainder of settings from manager
-    '		parameters database.
-    '*********************************************************************************************************
 
 #Region "Module variables"
     Private m_ParamDictionary As StringDictionary
@@ -37,7 +33,7 @@ Public Class clsMgrSettings
 #End Region
 
 #Region "Properties"
-    Public ReadOnly Property ErrMsg() As String
+    Public ReadOnly Property ErrMsg As String
         Get
             Return m_ErrMsg
         End Get
@@ -266,7 +262,7 @@ Public Class clsMgrSettings
     ''' <param name="ItemKey">Key name for item</param>
     ''' <returns>String value associated with specified key</returns>
     ''' <remarks>Returns Nothing if key isn't found</remarks>
-    Public Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As String) As String Implements IMgrParams.GetParam
+    Public Function GetParam(ItemKey As String, valueIfMissing As String) As String Implements IMgrParams.GetParam
 
         If Not m_ParamDictionary.ContainsKey(ItemKey) Then
             Return valueIfMissing
@@ -282,7 +278,7 @@ Public Class clsMgrSettings
     ''' <param name="ItemKey">Key name for item</param>
     ''' <returns>String value associated with specified key</returns>
     ''' <remarks>Returns Nothing if key isn't found</remarks>
-    Public Function GetParam(ByVal ItemKey As String, ByVal valueIfMissing As Integer) As Integer Implements IMgrParams.GetParam
+    Public Function GetParam(ItemKey As String, valueIfMissing As Integer) As Integer Implements IMgrParams.GetParam
 
         If Not m_ParamDictionary.ContainsKey(ItemKey) Then
             Return valueIfMissing
@@ -304,7 +300,7 @@ Public Class clsMgrSettings
     ''' <param name="ItemKey">Key name for item</param>
     ''' <returns>String value associated with specified key</returns>
     ''' <remarks>Returns Nothing if key isn't found</remarks>
-    Public Function GetParam(ByVal ItemKey As String) As String Implements IMgrParams.GetParam
+    Public Function GetParam(ItemKey As String) As String Implements IMgrParams.GetParam
 
         Return m_ParamDictionary.Item(ItemKey)
 
@@ -316,7 +312,7 @@ Public Class clsMgrSettings
     ''' <param name="ItemKey">Key name for the item</param>
     ''' <param name="ItemValue">Value to assign to the key</param>
     ''' <remarks></remarks>
-    Public Sub SetParam(ByVal ItemKey As String, ByVal ItemValue As String) Implements IMgrParams.SetParam
+    Public Sub SetParam(ItemKey As String, ItemValue As String) Implements IMgrParams.SetParam
 
         m_ParamDictionary.Item(ItemKey) = ItemValue
 
@@ -340,7 +336,7 @@ Public Class clsMgrSettings
     ''' <param name="Value">New value for parameter</param>
     ''' <returns>TRUE for success; FALSE for error (ErrMsg property contains reason)</returns>
     ''' <remarks>This bit of lunacy is needed because MS doesn't supply a means to write to an app config file</remarks>
-    Public Function WriteConfigSetting(ByVal Key As String, ByVal Value As String) As Boolean
+    Public Function WriteConfigSetting(Key As String, Value As String) As Boolean
 
         m_ErrMsg = ""
 
@@ -414,7 +410,7 @@ Public Class clsMgrSettings
     ''' <param name="InpObj"></param>
     ''' <returns>String equivalent of object; empty string if object is dbNull</returns>
     ''' <remarks></remarks>
-    Protected Function DbCStr(ByVal InpObj As Object) As String
+    Protected Function DbCStr(InpObj As Object) As String
 
         'If input object is DbNull, returns "", otherwise returns String representation of object
         If InpObj Is DBNull.Value Then

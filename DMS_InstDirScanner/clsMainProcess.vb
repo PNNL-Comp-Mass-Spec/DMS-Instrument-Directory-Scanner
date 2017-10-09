@@ -1,5 +1,5 @@
 ﻿'*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy 
+' Written by Dave Clark for the US Department of Energy
 ' Pacific Northwest National Laboratory, Richland, WA
 ' Copyright 2009, Battelle Memorial Institute
 ' Created 07/27/2009
@@ -9,13 +9,16 @@
 '*********************************************************************************************************
 
 Imports System.IO
+Imports System.Reflection
+Imports System.Threading
 Imports DMS_InstDirScanner.clsLogTools
+Imports PRISM
 
+''' <summary>
+''' Master processing class
+''' </summary>
 Public Class clsMainProcess
 
-	'*********************************************************************************************************
-	' Master processing class
-	'*********************************************************************************************************
 
 #Region "Module variables"
 	Shared m_MainProcess As clsMainProcess
@@ -69,11 +72,11 @@ Public Class clsMainProcess
 		'Setup the logger
         Dim logFileName As String = m_MgrSettings.GetParam("logfilename")
         Dim debugLevel As Integer = m_MgrSettings.GetParam("debuglevel", 1)
-        clsLogTools.CreateFileLogger(logFileName, debugLevel)
+        CreateFileLogger(logFileName, debugLevel)
 
         Dim logCnStr As String = m_MgrSettings.GetParam("connectionstring")
         Dim moduleName As String = m_MgrSettings.GetParam("modulename")
-        clsLogTools.CreateDbLogger(logCnStr, moduleName)
+        CreateDbLogger(logCnStr, moduleName)
 
 		'Make the initial log entry
         Dim myMsg As String = "=== Started Instrument Directory Scanner V" & GetAppVersion() & " ===== "
@@ -167,7 +170,7 @@ Public Class clsMainProcess
     ''' <returns>File path</returns>
     ''' <remarks></remarks>
     Public Shared Function GetAppPath() As String
-        Return Reflection.Assembly.GetExecutingAssembly().Location
+        Return Assembly.GetExecutingAssembly().Location
     End Function
 
     ''' <summary>
@@ -176,7 +179,7 @@ Public Class clsMainProcess
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Shared Function GetAppVersion() As String
-        Return Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()
+        Return Assembly.GetExecutingAssembly().GetName().Version.ToString()
     End Function
 
     Private Function GetInstrumentList() As List(Of clsInstData)

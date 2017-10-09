@@ -1,5 +1,5 @@
 ﻿'*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy 
+' Written by Dave Clark for the US Department of Energy
 ' Pacific Northwest National Laboratory, Richland, WA
 ' Copyright 2009, Battelle Memorial Institute
 ' Created 01/01/2009
@@ -7,14 +7,13 @@
 '*********************************************************************************************************
 
 Imports System.IO
-Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
+Imports System.Threading
 
+''' <summary>
+''' Handles all directory access tasks
+''' </summary>
 Public Class clsDirectoryTools
-
-	'*********************************************************************************************************
-	' Handles all directory access tasks
-    '*********************************************************************************************************
     Inherits PRISM.clsEventNotifier
 
 #Region "Methods"
@@ -34,10 +33,10 @@ Public Class clsDirectoryTools
     End Sub
 
     Public Function PerformDirectoryScans(
-        ByVal instList As List(Of clsInstData),
-        ByVal outFolderPath As String,
-        ByVal mgrSettings As clsMgrSettings,
-        ByVal progStatus As IStatusFile) As Boolean
+        instList As List(Of clsInstData),
+        outFolderPath As String,
+        mgrSettings As clsMgrSettings,
+        progStatus As IStatusFile) As Boolean
 
         Dim progress As Single
         Dim instCounter = 0
@@ -52,7 +51,7 @@ Public Class clsDirectoryTools
 
                 instCounter += 1
                 progStatus.Duration = CSng(DateTime.UtcNow.Subtract(progStatus.TaskStartTime).TotalHours())
-                progress = 100 * CSng(instCounter) / CSng(instCount)
+                progress = 100 * CSng(instCounter) / instCount
                 progStatus.UpdateAndWrite(progress)
 
                 OnStatusEvent("Scanning folder for instrument " & instrument.InstName)
@@ -61,7 +60,7 @@ Public Class clsDirectoryTools
                 Dim swOutFile = CreateOutputFile(instrument.InstName, outFolderPath, fiSourceFile)
                 If swOutFile Is Nothing Then Return False
 
-                ' Get the directory info an write it
+                ' Get the directory info and write it
                 Dim folderExists = GetDirectoryData(instrument, swOutFile, mgrSettings)
 
                 swOutFile.Close()
@@ -93,7 +92,7 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Private Function CreateOutputFile(ByVal instName As String, ByVal outFileDir As String, <Out> ByRef fiStatusFile As FileInfo) As StreamWriter
+    Private Function CreateOutputFile(instName As String, outFileDir As String, <Out> ByRef fiStatusFile As FileInfo) As StreamWriter
 
         Dim diBackupDirectory As DirectoryInfo
         Dim retFile As StreamWriter
@@ -136,7 +135,7 @@ Public Class clsDirectoryTools
             Catch ex As Exception
                 errorMessage = ex.Message
                 ' Delay for 1 second before trying again
-                Threading.Thread.Sleep(1000)
+                Thread.Sleep(1000)
             End Try
 
         End While
@@ -156,9 +155,9 @@ Public Class clsDirectoryTools
     ''' <returns>True on success, false if the target folder is not found</returns>
     ''' <remarks></remarks>
     Private Function GetDirectoryData(
-        ByVal intrumentData As clsInstData,
-        ByVal swOutFile As StreamWriter,
-        ByVal mgrSettings As clsMgrSettings) As Boolean
+      intrumentData As clsInstData,
+      swOutFile As TextWriter,
+      mgrSettings As IMgrParams) As Boolean
 
         Dim Msg As String
         Dim Connected As Boolean
@@ -229,7 +228,7 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Private Function FileSizeToText(ByVal InpFileSizeBytes As Long) As String
+    Private Function FileSizeToText(InpFileSizeBytes As Long) As String
 
         Dim FileSize As Single
         Dim FileSizeIterator As Integer
@@ -269,7 +268,7 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Private Function GetDirectorySize(ByVal instrumentName As String, ByVal datasetDirectory As DirectoryInfo) As Int64
+    Private Function GetDirectorySize(instrumentName As String, datasetDirectory As DirectoryInfo) As Int64
 
         Dim totalSizeBytes As Int64 = 0
 
@@ -300,7 +299,7 @@ Public Class clsDirectoryTools
     End Function
 
 
-    Private Sub WriteToOutput(ByVal swOutFile As StreamWriter, ByVal field1 As String, Optional ByVal field2 As String = "", Optional ByVal field3 As String = "")
+    Private Sub WriteToOutput(swOutFile As TextWriter, field1 As String, Optional ByVal field2 As String = "", Optional ByVal field3 As String = "")
 
         Dim LineOut As String
 
@@ -309,7 +308,7 @@ Public Class clsDirectoryTools
 
     End Sub
 
-    Private Function DecodePassword(ByVal EnPwd As String) As String
+    Private Function DecodePassword(EnPwd As String) As String
         'Decrypts password received from ini file
         ' Password was created by alternately subtracting or adding 1 to the ASCII value of each character
 

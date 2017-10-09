@@ -1,24 +1,24 @@
 ﻿'*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy 
+' Written by Dave Clark for the US Department of Energy
 ' Pacific Northwest National Laboratory, Richland, WA
 ' Copyright 2009, Battelle Memorial Institute
 ' Created 07/27/2009
-'
-' Last modified 07/27/2009
-'						- 08/21/2009 (DAC) - Added additional status parameters
+
 '*********************************************************************************************************
 Imports log4net.Appender
 Imports log4net
-Imports System.Data
+Imports log4net.Config
+Imports log4net.Core
+Imports log4net.Layout
+Imports log4net.Repository.Hierarchy
 
 'This assembly attribute tells Log4Net where to find the config file
-<Assembly: log4net.Config.XmlConfigurator(ConfigFile:="Logging.config", Watch:=True)> 
+<Assembly: XmlConfigurator(ConfigFile:="Logging.config", Watch:=True)>
 
+''' <summary>
+''' Class for handling logging via Log4Net
+''' </summary>
 Public Class clsLogTools
-
-    '*********************************************************************************************************
-    ' Class for handling logging via Log4Net
-    '*********************************************************************************************************
 
 #Region "Enums"
     Public Enum LogLevels
@@ -51,7 +51,7 @@ Public Class clsLogTools
     ''' </summary>
     ''' <returns>TRUE if debug level enabled for file logger; FALSE otherwise</returns>
     ''' <remarks></remarks>
-    Public Shared ReadOnly Property FileLogDebugEnabled() As Boolean
+    Public Shared ReadOnly Property FileLogDebugEnabled As Boolean
         Get
             Return m_FileLogger.IsDebugEnabled
         End Get
@@ -66,7 +66,7 @@ Public Class clsLogTools
     ''' <param name="LogLevel">Level of log reporting</param>
     ''' <param name="InpMsg">Message to be logged</param>
     ''' <remarks></remarks>
-    Public Shared Sub WriteLog(ByVal LoggerType As LoggerTypes, ByVal LogLevel As LogLevels, ByVal InpMsg As String)
+    Public Shared Sub WriteLog(LoggerType As LoggerTypes, LogLevel As LogLevels, InpMsg As String)
 
         Dim MyLogger As ILog
 
@@ -117,8 +117,8 @@ Public Class clsLogTools
     ''' <param name="InpMsg">Message to be logged</param>
     ''' <param name="Ex">Exception to be logged</param>
     ''' <remarks></remarks>
-    Public Shared Sub WriteLog(ByVal LoggerType As LoggerTypes, ByVal LogLevel As LogLevels, ByVal InpMsg As String, _
-     ByVal Ex As Exception)
+    Public Shared Sub WriteLog(LoggerType As LoggerTypes, LogLevel As LogLevels, InpMsg As String,
+     Ex As Exception)
 
         Dim MyLogger As ILog
 
@@ -193,7 +193,7 @@ Public Class clsLogTools
     ''' <param name="AppendName">Name of appender to find</param>
     ''' <returns>List(IAppender) objects if found; NOTHING otherwise</returns>
     ''' <remarks></remarks>
-    Private Shared Function FindAppenders(ByVal AppendName As String) As IEnumerable(Of IAppender)
+    Private Shared Function FindAppenders(AppendName As String) As IEnumerable(Of IAppender)
 
         'Get a list of the current loggers
         Dim LoggerList() As ILog = LogManager.GetCurrentLoggers()
@@ -220,7 +220,7 @@ Public Class clsLogTools
     ''' </summary>
     ''' <param name="InpLevel">Integer corresponding to level (1-5, 5 being most verbose</param>
     ''' <remarks></remarks>
-    Public Shared Sub SetFileLogLevel(ByVal InpLevel As Integer)
+    Public Shared Sub SetFileLogLevel(InpLevel As Integer)
 
         Dim LogLevelEnumType As Type = GetType(LogLevels)
 
@@ -241,9 +241,9 @@ Public Class clsLogTools
     ''' </summary>
     ''' <param name="InpLevel">LogLevels value defining level (Debug is most verbose)</param>
     ''' <remarks></remarks>
-    Public Shared Sub SetFileLogLevel(ByVal InpLevel As LogLevels)
+    Public Shared Sub SetFileLogLevel(InpLevel As LogLevels)
 
-        Dim LogRepo = DirectCast(m_FileLogger.Logger, Repository.Hierarchy.Logger)
+        Dim LogRepo = DirectCast(m_FileLogger.Logger, Logger)
 
         Select Case InpLevel
             Case LogLevels.DEBUG
@@ -265,7 +265,7 @@ Public Class clsLogTools
     ''' <param name="LogfileName">Base of log file to be used</param>
     ''' <returns>A configured file appender</returns>
     ''' <remarks></remarks>
-    Private Shared Function CreateFileAppender(ByVal LogfileName As String) As FileAppender
+    Private Shared Function CreateFileAppender(LogfileName As String) As FileAppender
         Dim ReturnAppender As New FileAppender()
 
         ReturnAppender.Name = "FileAppender"
@@ -273,7 +273,7 @@ Public Class clsLogTools
         m_BaseFileName = LogfileName
         ReturnAppender.File = (m_BaseFileName & "_") + m_FileDate & ".txt"
         ReturnAppender.AppendToFile = True
-        Dim Layout As New Layout.PatternLayout()
+        Dim Layout As New PatternLayout()
         Layout.ConversionPattern = "%date{MM/dd/yyyy HH:mm:ss}, %message, %level,%newline"
         Layout.ActivateOptions()
         ReturnAppender.Layout = Layout
@@ -288,8 +288,8 @@ Public Class clsLogTools
     ''' <param name="LogFileName">Base name for log file</param>
     ''' <param name="LogLevel">Debug level for file logger</param>
     ''' <remarks></remarks>
-    Public Shared Sub CreateFileLogger(ByVal LogFileName As String, ByVal LogLevel As Integer)
-        Dim curLogger = DirectCast(m_FileLogger.Logger, Repository.Hierarchy.Logger)
+    Public Shared Sub CreateFileLogger(LogFileName As String, LogLevel As Integer)
+        Dim curLogger = DirectCast(m_FileLogger.Logger, Logger)
         m_FileAppender = CreateFileAppender(LogFileName)
         curLogger.AddAppender(m_FileAppender)
         SetFileLogLevel(LogLevel)
@@ -301,9 +301,9 @@ Public Class clsLogTools
     ''' <param name="ConnStr">Database connection string</param>
     ''' <param name="ModuleName">Module name used by logger</param>
     ''' <remarks></remarks>
-    Public Shared Sub CreateDbLogger(ByVal ConnStr As String, ByVal ModuleName As String)
-        Dim CurLogger = DirectCast(m_DbLogger.Logger, Repository.Hierarchy.Logger)
-        CurLogger.Level = Core.Level.Info
+    Public Shared Sub CreateDbLogger(ConnStr As String, ModuleName As String)
+        Dim CurLogger = DirectCast(m_DbLogger.Logger, Logger)
+        CurLogger.Level = Level.Info
         CurLogger.AddAppender(CreateDbAppender(ConnStr, ModuleName))
         CurLogger.AddAppender(m_FileAppender)
     End Sub
@@ -315,7 +315,7 @@ Public Class clsLogTools
     ''' <param name="ModuleName">Module name used by logger</param>
     ''' <returns>ADONet database appender</returns>
     ''' <remarks></remarks>
-    Private Shared Function CreateDbAppender(ByVal ConnStr As String, ByVal ModuleName As String) As AdoNetAppender
+    Private Shared Function CreateDbAppender(ConnStr As String, ModuleName As String) As AdoNetAppender
 
         Dim ReturnAppender As New AdoNetAppender()
 
@@ -362,13 +362,13 @@ Public Class clsLogTools
     ''' <param name="layoutStr">Name of parameter</param>
     ''' <returns></returns>
     ''' <remarks>log4net.Layout.IRawLayout</remarks>
-    Private Shared Function CreateLayout(ByVal layoutStr As String) As Layout.IRawLayout
+    Private Shared Function CreateLayout(layoutStr As String) As IRawLayout
 
-        Dim layoutConvert As New Layout.RawLayoutConverter()
-        Dim returnLayout As New Layout.PatternLayout()
+        Dim layoutConvert As New RawLayoutConverter()
+        Dim returnLayout As New PatternLayout()
         returnLayout.ConversionPattern = layoutStr
         returnLayout.ActivateOptions()
-        Return DirectCast(layoutConvert.ConvertFrom(returnLayout), Layout.IRawLayout)
+        Return DirectCast(layoutConvert.ConvertFrom(returnLayout), IRawLayout)
 
     End Function
 #End Region

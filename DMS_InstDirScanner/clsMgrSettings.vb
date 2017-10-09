@@ -28,7 +28,7 @@ Public Class clsMgrSettings
     Implements IMgrParams
 
 #Region "Module variables"
-    Private m_ParamDictionary As StringDictionary
+    Private m_MgrParams As Dictionary(Of String, String)
     Private m_ErrMsg As String = ""
 #End Region
 
@@ -62,18 +62,12 @@ Public Class clsMgrSettings
 
         m_ErrMsg = ""
 
-        'If the param dictionary exists, it needs to be cleared out
-        If m_ParamDictionary IsNot Nothing Then
-            m_ParamDictionary.Clear()
-            m_ParamDictionary = Nothing
-        End If
-
         'Get settings from config file
-        m_ParamDictionary = LoadMgrSettingsFromFile()
+        m_MgrParams = LoadMgrSettingsFromFile()
 
         'Test the settings retrieved from the config file
-        If Not CheckInitialSettings(m_ParamDictionary) Then
-            'Error logging handled by CheckInitialSettings
+        If Not CheckInitialSettings(m_MgrParams) Then
+            'Error logging was already handled by CheckInitialSettings
             Return False
         End If
 
@@ -85,7 +79,7 @@ Public Class clsMgrSettings
         End If
 
         'Get remaining settings from database
-        If Not LoadMgrSettingsFromDB(m_ParamDictionary) Then
+        If Not LoadMgrSettingsFromDB(m_MgrParams) Then
             'Error logging handled by LoadMgrSettingsFromDB
             Return False
         End If
@@ -100,37 +94,35 @@ Public Class clsMgrSettings
     ''' </summary>
     ''' <returns>String dictionary containing initial settings if suceessful; NOTHING on error</returns>
     ''' <remarks></remarks>
-    Private Function LoadMgrSettingsFromFile() As StringDictionary
+    Private Function LoadMgrSettingsFromFile() As Dictionary(Of String, String)
 
         'Load initial settings into string dictionary for return
-        Dim RetDict As New StringDictionary
+        Dim mgrParams As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
 
         My.Settings.Reload()
         'Manager config db connection string
-        RetDict.Add("MgrCnfgDbConnectStr", My.Settings.MgrCnfgDbConnectStr)
+        mgrParams.Add("MgrCnfgDbConnectStr", My.Settings.MgrCnfgDbConnectStr)
 
         'Manager active flag
-        RetDict.Add("MgrActive_Local", My.Settings.MgrActive_Local.ToString)
+        mgrParams.Add("MgrActive_Local", My.Settings.MgrActive_Local.ToString())
 
         'Manager name
-        RetDict.Add("MgrName", My.Settings.MgrName)
+        mgrParams.Add("MgrName", My.Settings.MgrName)
 
         'Default settings in use flag
-        RetDict.Add("UsingDefaults", My.Settings.UsingDefaults.ToString)
+        mgrParams.Add("UsingDefaults", My.Settings.UsingDefaults.ToString())
 
-        Return RetDict
+        Return mgrParams
 
     End Function
 
     ''' <summary>
     ''' Tests initial settings retrieved from config file
     ''' </summary>
-    ''' <param name="InpDict"></param>
+    ''' <param name="mgrParams"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Private Function CheckInitialSettings(ByVal InpDict As StringDictionary) As Boolean
-
-        Dim MyMsg As String
+    Private Function CheckInitialSettings(mgrParams As IReadOnlyDictionary(Of String, String)) As Boolean
 
         'Verify manager settings dictionary exists
         If mgrParams Is Nothing Then
@@ -162,14 +154,14 @@ Public Class clsMgrSettings
     End Function
 
     ''' <summary>
-    ''' Gets remaining manager config settings from config database; 
+    ''' Gets remaining manager config settings from config database;
     ''' Overload to use module-level string dictionary when calling from external method
     ''' </summary>
     ''' <returns>True for success; False for error</returns>
     ''' <remarks></remarks>
     Public Overloads Function LoadMgrSettingsFromDB() As Boolean
 
-        Return LoadMgrSettingsFromDB(m_ParamDictionary)
+        Return LoadMgrSettingsFromDB(m_MgrParams)
 
     End Function
 
@@ -177,10 +169,10 @@ Public Class clsMgrSettings
     ''' <summary>
     ''' Gets remaining manager config settings from config database
     ''' </summary>
-    ''' <param name="MgrSettingsDict">String dictionary containing parameters that have been loaded so far</param>
+    ''' <param name="mgrSettings">String dictionary containing parameters that have been loaded so far</param>
     ''' <returns>True for success; False for error</returns>
     ''' <remarks></remarks>
-    Public Overloads Function LoadMgrSettingsFromDB(ByRef MgrSettingsDict As StringDictionary) As Boolean
+    Public Overloads Function LoadMgrSettingsFromDB(mgrSettings As Dictionary(Of String, String)) As Boolean
 
         'Requests job parameters from database. Input string specifies view to use. Performs retries if necessary.
 
@@ -264,11 +256,11 @@ Public Class clsMgrSettings
     ''' <remarks>Returns Nothing if key isn't found</remarks>
     Public Function GetParam(ItemKey As String, valueIfMissing As String) As String Implements IMgrParams.GetParam
 
-        If Not m_ParamDictionary.ContainsKey(ItemKey) Then
+        If Not m_MgrParams.ContainsKey(ItemKey) Then
             Return valueIfMissing
         End If
 
-        Return m_ParamDictionary.Item(ItemKey)
+        Return m_MgrParams.Item(ItemKey)
 
     End Function
 
@@ -280,11 +272,11 @@ Public Class clsMgrSettings
     ''' <remarks>Returns Nothing if key isn't found</remarks>
     Public Function GetParam(ItemKey As String, valueIfMissing As Integer) As Integer Implements IMgrParams.GetParam
 
-        If Not m_ParamDictionary.ContainsKey(ItemKey) Then
+        If Not m_MgrParams.ContainsKey(ItemKey) Then
             Return valueIfMissing
         End If
 
-        Dim strValue = m_ParamDictionary.Item(ItemKey)
+        Dim strValue = m_MgrParams.Item(ItemKey)
         Dim value As Integer
         If Integer.TryParse(strValue, value) Then
             Return value
@@ -302,7 +294,7 @@ Public Class clsMgrSettings
     ''' <remarks>Returns Nothing if key isn't found</remarks>
     Public Function GetParam(ItemKey As String) As String Implements IMgrParams.GetParam
 
-        Return m_ParamDictionary.Item(ItemKey)
+        Return m_MgrParams.Item(ItemKey)
 
     End Function
 
@@ -314,7 +306,7 @@ Public Class clsMgrSettings
     ''' <remarks></remarks>
     Public Sub SetParam(ItemKey As String, ItemValue As String) Implements IMgrParams.SetParam
 
-        m_ParamDictionary.Item(ItemKey) = ItemValue
+        m_MgrParams.Item(ItemKey) = ItemValue
 
     End Sub
 
@@ -325,7 +317,7 @@ Public Class clsMgrSettings
     ''' <remarks></remarks>
     Public Function GetAllKeys() As ICollection
 
-        Return m_ParamDictionary.Keys
+        Return m_MgrParams.Keys
 
     End Function
 

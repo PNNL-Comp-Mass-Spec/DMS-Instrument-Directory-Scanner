@@ -59,26 +59,25 @@ Class clsMessageSender
             Exit Sub
         End If
         Try
-			Dim connectionFactory As IConnectionFactory = New ActiveMQ.ConnectionFactory(Me.brokerUri)
-			Me.connection = connectionFactory.CreateConnection()
-			Me.connection.RequestTimeout = New System.TimeSpan(0, 0, 15)
-			Me.connection.Start()
+            Dim connectionFactory As IConnectionFactory = New ConnectionFactory(Me.brokerUri)
+            Me.connection = connectionFactory.CreateConnection()
+            Me.connection.RequestTimeout = New TimeSpan(0, 0, 15)
+            Me.connection.Start()
 
             Me.session = connection.CreateSession()
 
-			Me.producer = Me.session.CreateProducer(New ActiveMQ.Commands.ActiveMQTopic(Me.topicName))
-            Me.producer.Persistent = False
+            Me.producer = Me.session.CreateProducer(New ActiveMQTopic(Me.topicName))
             Me.hasConnection = True
             ' temp debug
             '+ e.ToString()
             '            Console.WriteLine("--- New connection made ---" & Environment.NewLine)
         Catch e As Exception
-            ' we couldn't make a viable set of connection objects 
+            ' we couldn't make a viable set of connection objects
             ' - this has "long day" written all over it,
             ' but we don't have to do anything specific at this point (except eat the exception)
 
             '+ e.ToString() // temp debug
-			Console.WriteLine("=== Error creating Activemq connection ===" & Environment.NewLine & e.Message)
+            Console.WriteLine("=== Error creating Activemq connection ===" & Environment.NewLine & e.Message)
         End Try
     End Sub
 

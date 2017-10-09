@@ -19,24 +19,26 @@ Imports PRISM
 ''' </summary>
 Public Class clsMainProcess
 
-
 #Region "Module variables"
-	Shared m_MainProcess As clsMainProcess
-	Private m_MgrSettings As clsMgrSettings
-	Shared m_StatusFile As IStatusFile
+    Shared m_MainProcess As clsMainProcess
+    Private m_MgrSettings As clsMgrSettings
+    Shared m_StatusFile As clsStatusFile
 #End Region
 
 #Region "Methods"
-	''' <summary>
-	''' Starts program execution
-	''' </summary>
-	''' <remarks></remarks>
-	Shared Sub Main()
+    ''' <summary>
+    ''' Starts program execution
+    ''' </summary>
+    ''' <remarks></remarks>
+    Shared Sub Main()
 
         Try
             If IsNothing(m_MainProcess) Then
                 m_MainProcess = New clsMainProcess
-                If Not m_MainProcess.InitMgr Then Exit Sub
+                If Not m_MainProcess.InitMgr() Then
+                    Thread.Sleep(1500)
+                    Exit Sub
+                End If
             End If
             m_MainProcess.DoDirectoryScan()
         Catch ex As Exception
@@ -52,24 +54,24 @@ Public Class clsMainProcess
             End If
         End Try
 
-	End Sub
+    End Sub
 
-	''' <summary>
-	''' Initializes the manager settings and classes
-	''' </summary>
-	''' <returns>True for success; False if error occurs</returns>
-	''' <remarks></remarks>
-	Private Function InitMgr() As Boolean
+    ''' <summary>
+    ''' Initializes the manager settings and classes
+    ''' </summary>
+    ''' <returns>True for success; False if error occurs</returns>
+    ''' <remarks></remarks>
+    Private Function InitMgr() As Boolean
 
-		'Get the manager settings
-		Try
-			m_MgrSettings = New clsMgrSettings()
-		Catch ex As Exception
-			'Failures are logged by clsMgrSettings to application event logs
-			Return False
-		End Try
+        'Get the manager settings
+        Try
+            m_MgrSettings = New clsMgrSettings()
+        Catch ex As Exception
+            'Failures are logged by clsMgrSettings to application event logs
+            Return False
+        End Try
 
-		'Setup the logger
+        'Setup the logger
         Dim logFileName As String = m_MgrSettings.GetParam("logfilename")
         Dim debugLevel As Integer = m_MgrSettings.GetParam("debuglevel", 1)
         CreateFileLogger(logFileName, debugLevel)
@@ -78,33 +80,32 @@ Public Class clsMainProcess
         Dim moduleName As String = m_MgrSettings.GetParam("modulename")
         CreateDbLogger(logCnStr, moduleName)
 
-		'Make the initial log entry
+        'Make the initial log entry
         Dim myMsg As String = "=== Started Instrument Directory Scanner V" & GetAppVersion() & " ===== "
         WriteLog(LoggerTypes.LogFile, LogLevels.INFO, myMsg)
 
-		'Setup the status file class
+        'Setup the status file class
         Dim statusFileNameLoc As String = Path.Combine(GetAppFolderPath(), "Status.xml")
         m_StatusFile = New clsStatusFile(statusFileNameLoc, debugLevel)
+        With m_StatusFile
+            .MessageQueueURI = m_MgrSettings.GetParam("MessageQueueURI")
+            .MessageQueueTopic = m_MgrSettings.GetParam("MessageQueueTopicMgrStatus")
+            .LogToMsgQueue = CBool(m_MgrSettings.GetParam("LogStatusToMessageQueue"))
+            .MgrName = m_MgrSettings.GetParam("MgrName")
+            .MgrStatus = IStatusFile.EnumMgrStatus.Running
+            .WriteStatusFile()
+        End With
 
-		With m_StatusFile
-			.MessageQueueURI = m_MgrSettings.GetParam("MessageQueueURI")
-			.MessageQueueTopic = m_MgrSettings.GetParam("MessageQueueTopicMgrStatus")
-			.LogToMsgQueue = CBool(m_MgrSettings.GetParam("LogStatusToMessageQueue"))
-			.MgrName = m_MgrSettings.GetParam("MgrName")
-			.MgrStatus = IStatusFile.EnumMgrStatus.Running
-			.WriteStatusFile()
-		End With
+        'Everything worked
+        Return True
 
-		'Everything worked
-		Return True
+    End Function
 
-	End Function
-
-	''' <summary>
-	''' Do a directory scan
-	''' </summary>
-	''' <remarks></remarks>
-	Private Sub DoDirectoryScan()
+    ''' <summary>
+    ''' Do a directory scan
+    ''' </summary>
+    ''' <remarks></remarks>
+    Private Sub DoDirectoryScan()
 
         Try
 

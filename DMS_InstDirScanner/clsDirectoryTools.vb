@@ -159,12 +159,11 @@ Public Class clsDirectoryTools
       swOutFile As TextWriter,
       mgrSettings As IMgrParams) As Boolean
 
-        Dim Msg As String
-        Dim Connected As Boolean
+        Dim Connected = False
         Dim InpPath As String = Path.Combine(intrumentData.StorageVolume, intrumentData.StoragePath)
-        Dim ShareConn As PRISM.Files.ShareConnector = Nothing
+        Dim ShareConn As PRISM.ShareConnector = Nothing
 
-        Dim strUserDescription = "as user ??"
+        Dim strUserDescription As String
 
         'If this is a machine on bionet, set up a connection
         If intrumentData.CaptureMethod.ToLower = "secfso" Then
@@ -175,7 +174,7 @@ Public Class clsDirectoryTools
                 strBionetUser = Environment.MachineName & "\" & strBionetUser
             End If
 
-            ShareConn = New PRISM.Files.ShareConnector(InpPath, strBionetUser, DecodePassword(mgrSettings.GetParam("bionetpwd")))
+            ShareConn = New PRISM.ShareConnector(InpPath, strBionetUser, DecodePassword(mgrSettings.GetParam("bionetpwd")))
             Connected = ShareConn.Connect()
 
             strUserDescription = " as user " & strBionetUser

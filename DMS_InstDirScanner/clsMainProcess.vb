@@ -87,6 +87,8 @@ Public Class clsMainProcess
         'Setup the status file class
         Dim statusFileNameLoc As String = Path.Combine(GetAppFolderPath(), "Status.xml")
         m_StatusFile = New clsStatusFile(statusFileNameLoc, debugLevel)
+        AttachEvents(m_StatusFile)
+
         With m_StatusFile
             .MessageQueueURI = m_MgrSettings.GetParam("MessageQueueURI")
             .MessageQueueTopic = m_MgrSettings.GetParam("MessageQueueTopicMgrStatus")
@@ -147,6 +149,8 @@ Public Class clsMainProcess
 
             'Scan the directories
             Dim scanner = New clsDirectoryTools()
+            AttachEvents(scanner)
+
             scanner.PerformDirectoryScans(instList, workDir, m_MgrSettings, m_StatusFile)
 
             'All finished, so clean up and exit

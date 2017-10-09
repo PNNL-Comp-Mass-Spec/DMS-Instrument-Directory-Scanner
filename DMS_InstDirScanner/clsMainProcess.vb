@@ -129,7 +129,7 @@ Public Class clsMainProcess
             End If
 
             'Get list of instruments from DMS
-            Dim instList As List(Of clsInstData) = clsDbTools.GetInstrumentList(m_MgrSettings)
+            Dim instList As List(Of clsInstData) = GetInstrumentList()
             If instList Is Nothing Then
                 LogFatalError("No instrument list")
                 Exit Sub
@@ -175,6 +175,66 @@ Public Class clsMainProcess
 
     Private Sub LogFatalError(ByVal errorMessage As String)
         WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, errorMessage)
+    Private Function GetInstrumentList() As List(Of clsInstData)
+
+        LogMessage("Getting instrument list")
+
+        Dim columns = New List(Of String) From {
+            "vol",
+            "path",
+            "method",
+            "Instrument"
+        }
+
+        Dim sqlQuery = "SELECT " + String.Join(",", columns) + " FROM V_Instrument_Source_Paths"
+
+        Dim connectionString = m_MgrSettings.GetParam("connectionstring")
+        If String.IsNullOrWhiteSpace(connectionString) Then
+            LogError("Connection string is empty; cannot retrieve manager parameters")
+            Return Nothing
+        End If
+
+        Dim dbTools = New clsDBTools(connectionString)
+        AttachEvents(dbTools)
+
+        ' Get a table containing the active instruments
+        Dim lstResults As List(Of List(Of String)) = Nothing
+        Dim success = dbTools.GetQueryResults(sqlQuery, lstResults, "GetInstrumentList")
+
+        ' Verify valid data found
+        If Not success OrElse lstResults Is Nothing Then
+            LogError("Unable to retrieve instrument list")
+            Return Nothing
+        End If
+
+        If lstResults.Count < 1 Then
+            LogError("No instruments found")
+            Return Nothing
+        End If
+
+        Dim colMapping = dbTools.GetColumnMapping(columns)
+
+        ' Create a list of all instrument data
+        Dim instrumentList As New List(Of clsInstData)
+        Try
+            For Each result In lstResults
+                Dim instrumentInfo As New clsInstData With {
+                    .CaptureMethod = dbTools.GetColumnValue(result, colMapping, "method"),
+                    .InstName = dbTools.GetColumnValue(result, colMapping, "Instrument"),
+                    .StoragePath = dbTools.GetColumnValue(result, colMapping, "path"),
+                    .StorageVolume = dbTools.GetColumnValue(result, colMapping, "vol")
+                }
+                instrumentList.Add(instrumentInfo)
+            Next
+            WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, "Retrieved instrument list")
+            Return instrumentList
+
+        Catch ex As Exception
+            LogError("Exception filling instrument list: " & ex.Message)
+            Return Nothing
+        End Try
+
+    End Function
         WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
         m_StatusFile.UpdateStopped(True)
     End Sub

@@ -178,69 +178,60 @@ Public Class clsMgrSettings
 
         'Requests job parameters from database. Input string specifies view to use. Performs retries if necessary.
 
-        Dim retryCount As Short = 3
+        Dim mgrName = m_MgrParams("MgrName")
+
+        Dim columns = New List(Of String) From {
+                "ParameterName",
+                "ParameterValue"
+                }
 
         Dim sqlStr As String =
-                " SELECT ParameterName, ParameterValue " &
+                " SELECT " & String.Join(",", columns) &
                 " FROM V_MgrParams " &
-                " WHERE ManagerName = '" & m_ParamDictionary("MgrName") & "'"
+                " WHERE ManagerName = '" & mgrName & "'"
 
-        'Get a table containing the manager settings
-        Dim dt As DataTable = Nothing
+        Dim connectionString = mgrSettings("MgrCnfgDbConnectStr")
+        If String.IsNullOrWhiteSpace(connectionString) Then
+            LogError("Connection string is empty; cannot retrieve manager parameters")
+            Return False
+        End If
 
-        'Get a datatable holding the parameters for one manager
-        While retryCount > 0
-            Try
-                Using cn = New SqlConnection(MgrSettingsDict("MgrCnfgDbConnectStr"))
-                    Using da = New SqlDataAdapter(sqlStr, cn)
-                        Using ds = New DataSet
-                            da.Fill(ds)
-                            dt = ds.Tables(0)
-                        End Using
-                    End Using
-                End Using
-                Exit While
-            Catch ex As Exception
-                retryCount -= 1S
-                Dim logMessage = "clsMgrSettings.LoadMgrSettingsFromDB; Exception getting manager settings from database " &
-                    "(RetryCount = " & retryCount.ToString() & "): " & ex.Message
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, logMessage)
-                ' Delay for 5 seconds before trying again
-                Threading.Thread.Sleep(5000)
-            End Try
-        End While
+        Dim dbTools = New PRISM.clsDBTools(connectionString)
+        AddHandler dbTools.ErrorEvent, AddressOf DBToolsErrorHandler
+        AddHandler dbTools.WarningEvent, AddressOf DBToolsWarningHandler
 
-        'If loop exited due to errors, return false
-        If retryCount < 1 Then
-            Dim logMessage = "clsMgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database"
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, logMessage)
-            dt.Dispose()
+        ' Get a table holding the parameters for one manager
+
+        Dim lstResults As List(Of List(Of String)) = Nothing
+        Dim success = dbTools.GetQueryResults(sqlStr, lstResults, "LoadMgrSettingsFromDB")
+
+        If Not success Then
+            LogError("Unable to retrieve manager settings from the database for manager " & mgrName)
             Return False
         End If
 
         'Verify at least one row returned
-        If dt.Rows.Count < 1 Then
-            'Wrong number of rows returned
-            Dim logMessage = "clsMgrSettings.LoadMgrSettingsFromDB; Invalid row count retrieving manager settings: " &
-                "RowCount = " & dt.Rows.Count.ToString()
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, logMessage)
-            dt.Dispose()
+        If lstResults.Count < 1 Then
+            LogError("clsMgrSettings.LoadMgrSettingsFromDB; manager settings not found in V_MgrParams for manager " & mgrName)
             Return False
         End If
 
+        Dim colMapping = dbTools.GetColumnMapping(columns)
+
         'Fill a string dictionary with the manager parameters that have been found
-        Dim CurRow As DataRow
         Try
-            For Each CurRow In dt.Rows
-                'Add the column heading and value to the dictionary
-                Dim paramKey = DbCStr(CurRow(dt.Columns("ParameterName")))
-                Dim paramVal = DbCStr(CurRow(dt.Columns("ParameterValue")))
-                If m_ParamDictionary.ContainsKey(paramKey) Then
-                    m_ParamDictionary(paramKey) = paramVal
+            For Each result In lstResults
+
+                Dim paramKey = dbTools.GetColumnValue(result, colMapping, "ParameterName")
+                Dim paramVal = dbTools.GetColumnValue(result, colMapping, "ParameterValue")
+
+                If m_MgrParams.ContainsKey(paramKey) Then
+                    m_MgrParams(paramKey) = paramVal
                 Else
-                    m_ParamDictionary.Add(paramKey, paramVal)
+                    m_MgrParams.Add(paramKey, paramVal)
                 End If
             Next
+
             Return True
         Catch ex As Exception
             Dim logMessage = "clsMgrSettings.LoadMgrSettingsFromDB; Exception filling string dictionary from table: " & ex.Message

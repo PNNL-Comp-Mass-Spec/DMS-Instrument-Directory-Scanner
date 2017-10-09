@@ -10,9 +10,9 @@ Imports Apache.NMS.ActiveMQ.Commands
 Class clsMessageSender
     '    Implements IDisposable
 
-    Private topicName As String = Nothing
-    Private brokerUri As String = Nothing
-    Private processorName As String = Nothing
+    Private ReadOnly topicName As String = Nothing
+    Private ReadOnly brokerUri As String = Nothing
+    Private ReadOnly processorName As String = Nothing
 
     Private connection As IConnection
     Private session As ISession

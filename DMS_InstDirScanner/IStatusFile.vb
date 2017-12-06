@@ -12,7 +12,7 @@
 Public Interface IStatusFile
 
 #Region "Enums"
-    'Status constants
+    ' Status constants
     Enum EnumMgrStatus As Short
         Stopped
         Stopped_Error

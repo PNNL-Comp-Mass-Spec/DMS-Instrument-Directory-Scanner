@@ -19,65 +19,101 @@ Public Class clsStatusFile
     Implements IStatusFile
 
 #Region "Module variables"
-    'Status file name and location
+    ''' <summary>
+    ''' Status file name and location
+    ''' </summary>
     Private m_FileNamePath As String = ""
 
-    'Manager name
+    ''' <summary>
+    ''' Manager name
+    ''' </summary>
     Private m_MgrName As String = ""
 
-    'Status value
+    ''' <summary>
+    ''' Manager status
+    ''' </summary>
     Private m_MgrStatus As IStatusFile.EnumMgrStatus = IStatusFile.EnumMgrStatus.Stopped
 
-    'Manager start time
+    ''' <summary>
+    ''' Manager start time
+    ''' </summary>
     Private m_MgrStartTime As Date
 
-    'Task start time
-
-    'CPU utilization
+    ''' <summary>
+    ''' CPU utilization
+    ''' </summary>
     Private m_CpuUtilization As Integer = 0
 
-    'Analysis Tool
+    ''' <summary>
+    ''' Analysis Tool
+    ''' </summary>
     Private m_Tool As String = ""
 
-    'Task status
+    ''' <summary>
+    ''' Task status
+    ''' </summary>
     Private m_TaskStatus As IStatusFile.EnumTaskStatus = IStatusFile.EnumTaskStatus.No_Task
 
-    'Task duration
+    ''' <summary>
+    ''' Task duration
+    ''' </summary>
     Private m_Duration As Single = 0
 
-    'Progess (in percent)
+    ''' <summary>
+    ''' Progess (in percent)
+    ''' </summary>
     Private m_Progress As Single = 0
 
-    'Current operation (freeform string)
+    ''' <summary>
+    ''' Current operation
+    ''' </summary>
     Private m_CurrentOperation As String = ""
 
-    'Task status detail
+    ''' <summary>
+    ''' Task status detail
+    ''' </summary>
     Private m_TaskStatusDetail As IStatusFile.EnumTaskStatusDetail = IStatusFile.EnumTaskStatusDetail.No_Task
 
-    'Job number
+    ''' <summary>
+    ''' Job number
+    ''' </summary>
     Private m_JobNumber As Integer = 0
 
-    'Job step
+    ''' <summary>
+    ''' Job step
+    ''' </summary>
     Private m_JobStep As Integer = 0
 
-    'Dataset name
+    ''' <summary>
+    ''' Dataset name
+    ''' </summary>
     Private m_Dataset As String = ""
 
-    'Most recent job info
+    ''' <summary>
+    ''' Most recent job info
+    ''' </summary>
     Private m_MostRecentJobInfo As String = ""
 
-    'Number of spectrum files created
+    ''' <summary>
+    ''' Number of spectrum files created
+    ''' </summary>
     Private m_SpectrumCount As Integer = 0
 
-    'Message broker connection string
+    ''' <summary>
+    ''' Message broker connection string
+    ''' </summary>
     Private m_MessageQueueURI As String
 
-    'Broker topic for status reporting
+    ''' <summary>
+    ''' Broker topic for status reporting
+    ''' </summary>
     Private m_MessageQueueTopic As String
 
     Private ReadOnly m_DebugLevel As Integer = 1
 
-    'Flag to indicate if status should be logged to broker in addition to a file
+    ''' <summary>
+    ''' Flag to indicate if status should be logged to broker in addition to a file
+    ''' </summary>
     Private m_LogToMessageQueue As Boolean
 
     Private m_MessageSender As clsMessageSender
@@ -255,10 +291,10 @@ Public Class clsStatusFile
     ''' <summary>
     ''' Constructor
     ''' </summary>
-    ''' <param name="FileLocation">Full path to status file</param>
+    ''' <param name="fileLocation">Full path to status file</param>
     ''' <remarks></remarks>
-    Public Sub New(FileLocation As String, debugLevel As Integer)
-        m_FileNamePath = FileLocation
+    Public Sub New(fileLocation As String, debugLevel As Integer)
+        m_FileNamePath = fileLocation
         m_MgrStartTime = DateTime.UtcNow
         m_Progress = 0
         m_SpectrumCount = 0
@@ -329,7 +365,7 @@ Public Class clsStatusFile
 
     '		messageSender.Dispose()
     '	Catch ex As Exception
-    '		'TODO: Figure out how to handle error
+    '		' TODO: Figure out how to handle error
     '		Success = False
     '	End Try
     'End Sub
@@ -380,23 +416,23 @@ Public Class clsStatusFile
     ''' <remarks></remarks>
     Public Sub WriteStatusFile() Implements IStatusFile.WriteStatusFile
 
-        'Writes a status file for external monitor to read
+        ' Writes a status file for external monitor to read
 
         Dim XMLText As String = String.Empty
 
-        'Set up the XML writer
+        ' Set up the XML writer
         Try
 
-            'Create a memory stream to write the document in
+            ' Create a memory stream to write the document in
             Using memStream = New MemoryStream
                 Using xWriter = New XmlTextWriter(memStream, Encoding.UTF8)
 
                     xWriter.Formatting = Formatting.Indented
                     xWriter.Indentation = 2
 
-                    'Write the file
+                    ' Write the file
                     xWriter.WriteStartDocument(True)
-                    'Root level element
+                    ' Root level element
                     xWriter.WriteStartElement("Root")
                     xWriter.WriteStartElement("Manager")
                     xWriter.WriteElementString("MgrName", m_MgrName)
@@ -410,8 +446,8 @@ Public Class clsStatusFile
                     For Each ErrMsg As String In clsStatusData.ErrorQueue
                         xWriter.WriteElementString("ErrMsg", ErrMsg)
                     Next
-                    xWriter.WriteEndElement()   'Error messages
-                    xWriter.WriteEndElement()   'Manager section
+                    xWriter.WriteEndElement()   ' Error messages
+                    xWriter.WriteEndElement()   ' Manager section
 
                     xWriter.WriteStartElement("Task")
                     xWriter.WriteElementString("Tool", m_Tool)
@@ -429,15 +465,15 @@ Public Class clsStatusFile
                     xWriter.WriteElementString("MostRecentLogMessage", clsStatusData.MostRecentLogMessage)
                     xWriter.WriteElementString("MostRecentJobInfo", m_MostRecentJobInfo)
                     xWriter.WriteElementString("SpectrumCount", m_SpectrumCount.ToString())
-                    xWriter.WriteEndElement()   'Task details section
-                    xWriter.WriteEndElement()   'Task section
-                    xWriter.WriteEndElement()   'Root section
+                    xWriter.WriteEndElement()   ' Task details section
+                    xWriter.WriteEndElement()   ' Task section
+                    xWriter.WriteEndElement()   ' Root section
 
-                    'Close the document, but don't close the writer yet
+                    ' Close the document, but don't close the writer yet
                     xWriter.WriteEndDocument()
                     xWriter.Flush()
 
-                    'Use a streamreader to copy the XML text to a string variable
+                    ' Use a streamreader to copy the XML text to a string variable
                     memStream.Seek(0, SeekOrigin.Begin)
                     Using MemStreamReader = New StreamReader(memStream)
                         XMLText = MemStreamReader.ReadToEnd
@@ -450,20 +486,20 @@ Public Class clsStatusFile
             GC.Collect()
             GC.WaitForPendingFinalizers()
 
-            'Write the output file
+            ' Write the output file
             Dim OutFile As StreamWriter
             Try
                 OutFile = New StreamWriter(New FileStream(m_FileNamePath, FileMode.Create, FileAccess.Write, FileShare.Read))
                 OutFile.WriteLine(XMLText)
                 OutFile.Close()
             Catch ex As Exception
-                'TODO: Figure out appropriate action
+                ' TODO: Figure out appropriate action
             End Try
         Catch
-            'TODO: Figure out appropriate action
+            ' TODO: Figure out appropriate action
         End Try
 
-        'Log to a message queue
+        ' Log to a message queue
         If m_LogToMessageQueue Then
             ' Send the XML text to a message queue
             LogStatusToMessageQueue(XMLText)
@@ -574,23 +610,23 @@ Public Class clsStatusFile
         ''Clear error queue
         'm_ErrorQueue.Clear()
 
-        'Verify status file exists
+        ' Verify status file exists
         If Not File.Exists(m_FileNamePath) Then Exit Sub
 
-        'Get data from status file
+        ' Get data from status file
         Try
             XmlStr = My.Computer.FileSystem.ReadAllText(m_FileNamePath)
-            'Convert to an XML document
+            ' Convert to an XML document
             Doc = New XmlDocument()
             Doc.LoadXml(XmlStr)
 
-            'Get the most recent log message
+            ' Get the most recent log message
             clsStatusData.MostRecentLogMessage = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentLogMessage").InnerText
 
-            'Get the most recent job info
+            ' Get the most recent job info
             m_MostRecentJobInfo = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentJobInfo").InnerText
 
-            'Get the error messsages
+            ' Get the error messsages
             For Each Xn As XmlNode In Doc.SelectNodes("//Manager/RecentErrorMessages/ErrMsg")
                 clsStatusData.AddErrorMessage(Xn.InnerText)
             Next

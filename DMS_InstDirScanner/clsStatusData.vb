@@ -23,9 +23,9 @@ Public Class clsStatusData
             Return m_MostRecentLogMessage
         End Get
         Set
-            'Filter out routine startup and shutdown messages
+            ' Filter out routine startup and shutdown messages
             If Value.Contains("=== Started") Or Value.Contains("===== Closing") Then
-                'Do nothing
+                ' Do nothing
             Else
                 m_MostRecentLogMessage = Value
             End If
@@ -41,10 +41,10 @@ Public Class clsStatusData
 
 #Region "Methods"
     Public Shared Sub AddErrorMessage(ErrMsg As String)
-        'Add the most recent error message
+        ' Add the most recent error message
         m_ErrorQueue.Enqueue(ErrMsg)
 
-        'If there are > 4 entries in the queue, then delete the oldest ones
+        ' If there are > 4 entries in the queue, delete the oldest ones
         If m_ErrorQueue.Count > 4 Then
             While m_ErrorQueue.Count > 4
                 m_ErrorQueue.Dequeue()

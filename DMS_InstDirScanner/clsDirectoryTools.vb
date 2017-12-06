@@ -165,7 +165,7 @@ Public Class clsDirectoryTools
 
         Dim strUserDescription As String
 
-        'If this is a machine on bionet, set up a connection
+        ' If this is a machine on bionet, set up a connection
         If intrumentData.CaptureMethod.ToLower = "secfso" Then
             Dim strBionetUser As String = mgrSettings.GetParam("bionetuser")            ' Typically user ftms (not LCMSOperator)
 
@@ -216,7 +216,7 @@ Public Class clsDirectoryTools
             Next
         End If
 
-        'If this was a bionet machine, disconnect
+        ' If this was a bionet machine, disconnect
         If Connected Then
             If Not ShareConn.Disconnect() Then
                 OnErrorEvent("Could not disconnect from " & InpPath)
@@ -308,7 +308,7 @@ Public Class clsDirectoryTools
     End Sub
 
     Private Function DecodePassword(EnPwd As String) As String
-        'Decrypts password received from ini file
+        ' Decrypts password received from ini file
         ' Password was created by alternately subtracting or adding 1 to the ASCII value of each character
 
         Dim CharCode As Byte

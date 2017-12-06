@@ -42,7 +42,7 @@ Public Class clsMainProcess
             End If
             m_MainProcess.DoDirectoryScan()
         Catch ex As Exception
-            'Report any exceptions not handled at a lower level to the system application log
+            ' Report any exceptions not handled at a lower level to the system application log
             Const errMsg = "Critical exception starting application"
             ConsoleMsgUtils.ShowError(errMsg)
             WriteLog(LoggerTypes.LogDb, LogLevels.FATAL, errMsg, ex)
@@ -63,28 +63,28 @@ Public Class clsMainProcess
     ''' <remarks></remarks>
     Private Function InitMgr() As Boolean
 
-        'Get the manager settings
+        ' Get the manager settings
         Try
             m_MgrSettings = New clsMgrSettings()
         Catch ex As Exception
-            'Failures are logged by clsMgrSettings to application event logs
+            ' Failures are logged by clsMgrSettings to application event logs
             Return False
         End Try
 
-        'Setup the logger
-        Dim logFileName As String = m_MgrSettings.GetParam("logfilename")
+        ' Setup the logger
+        Dim logFileNameBase As String = m_MgrSettings.GetParam("logfilename")
         Dim debugLevel As Integer = m_MgrSettings.GetParam("debuglevel", 1)
-        CreateFileLogger(logFileName, debugLevel)
+        CreateFileLogger(logFileNameBase, debugLevel)
 
         Dim logCnStr As String = m_MgrSettings.GetParam("connectionstring")
         Dim moduleName As String = m_MgrSettings.GetParam("modulename")
         CreateDbLogger(logCnStr, moduleName)
 
-        'Make the initial log entry
+        ' Make the initial log entry
         Dim myMsg As String = "=== Started Instrument Directory Scanner V" & GetAppVersion() & " ===== "
         WriteLog(LoggerTypes.LogFile, LogLevels.INFO, myMsg)
 
-        'Setup the status file class
+        ' Setup the status file class
         Dim statusFileNameLoc As String = Path.Combine(GetAppFolderPath(), "Status.xml")
         m_StatusFile = New clsStatusFile(statusFileNameLoc, debugLevel)
         AttachEvents(m_StatusFile)
@@ -98,7 +98,7 @@ Public Class clsMainProcess
             .WriteStatusFile()
         End With
 
-        'Everything worked
+        ' Everything worked
         Return True
 
     End Function
@@ -111,7 +111,7 @@ Public Class clsMainProcess
 
         Try
 
-            'Check to see if manager is active
+            ' Check to see if manager is active
             If Not CBool(m_MgrSettings.GetParam("mgractive")) Then
                 Dim message = "Program disabled in manager control DB"
                 ConsoleMsgUtils.ShowWarning(message)
@@ -134,26 +134,26 @@ Public Class clsMainProcess
                 Exit Sub
             End If
 
-            'Verify output directory can be found
+            ' Verify output directory can be found
             If Not Directory.Exists(workDir) Then
                 LogFatalError("Output directory not found: " & workDir)
                 Exit Sub
             End If
 
-            'Get list of instruments from DMS
+            ' Get list of instruments from DMS
             Dim instList As List(Of clsInstData) = GetInstrumentList()
             If instList Is Nothing Then
                 LogFatalError("No instrument list")
                 Exit Sub
             End If
 
-            'Scan the directories
+            ' Scan the directories
             Dim scanner = New clsDirectoryTools()
             AttachEvents(scanner)
 
             scanner.PerformDirectoryScans(instList, workDir, m_MgrSettings, m_StatusFile)
 
-            'All finished, so clean up and exit
+            ' All finished, so clean up and exit
             LogMessage("Scanning complete")
             WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
             m_StatusFile.UpdateStopped(False)

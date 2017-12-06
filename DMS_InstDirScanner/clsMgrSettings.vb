@@ -62,29 +62,29 @@ Public Class clsMgrSettings
 
         m_ErrMsg = ""
 
-        'Get settings from config file
+        ' Get settings from config file
         m_MgrParams = LoadMgrSettingsFromFile()
 
-        'Test the settings retrieved from the config file
+        ' Test the settings retrieved from the config file
         If Not CheckInitialSettings(m_MgrParams) Then
-            'Error logging was already handled by CheckInitialSettings
+            ' Error logging was already handled by CheckInitialSettings
             Return False
         End If
 
-        'Determine if manager is deactivated locally
+        ' Determine if manager is deactivated locally
         If Not CBool(m_MgrParams("MgrActive_Local")) Then
             LogWarning("Manager deactivated locally")
             m_ErrMsg = "Manager deactivated locally"
             Return False
         End If
 
-        'Get remaining settings from database
+        ' Get remaining settings from database
         If Not LoadMgrSettingsFromDB(m_MgrParams) Then
-            'Error logging handled by LoadMgrSettingsFromDB
+            ' Error logging handled by LoadMgrSettingsFromDB
             Return False
         End If
 
-        'No problems found
+        ' No problems found
         Return True
 
     End Function
@@ -96,20 +96,20 @@ Public Class clsMgrSettings
     ''' <remarks></remarks>
     Private Function LoadMgrSettingsFromFile() As Dictionary(Of String, String)
 
-        'Load initial settings into string dictionary for return
+        ' Load initial settings into string dictionary for return
         Dim mgrParams As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
 
         My.Settings.Reload()
-        'Manager config db connection string
+        ' Manager config db connection string
         mgrParams.Add("MgrCnfgDbConnectStr", My.Settings.MgrCnfgDbConnectStr)
 
-        'Manager active flag
+        ' Manager active flag
         mgrParams.Add("MgrActive_Local", My.Settings.MgrActive_Local.ToString())
 
-        'Manager name
+        ' Manager name
         mgrParams.Add("MgrName", My.Settings.MgrName)
 
-        'Default settings in use flag
+        ' Default settings in use flag
         mgrParams.Add("UsingDefaults", My.Settings.UsingDefaults.ToString())
 
         Return mgrParams
@@ -124,13 +124,13 @@ Public Class clsMgrSettings
     ''' <remarks></remarks>
     Private Function CheckInitialSettings(mgrParams As IReadOnlyDictionary(Of String, String)) As Boolean
 
-        'Verify manager settings dictionary exists
+        ' Verify manager settings dictionary exists
         If mgrParams Is Nothing Then
             LogError("clsMgrSettings.CheckInitialSettings(); Manager parameters dictionary is null")
             Return False
         End If
 
-        'Verify intact config file was found
+        ' Verify intact config file was found
         Dim strUsingDefaults = ""
         If Not mgrParams.TryGetValue("UsingDefaults", strUsingDefaults) Then
             LogError("clsMgrSettings.CheckInitialSettings(); Manager parameter 'UsingDefaults' is not defined")
@@ -148,7 +148,7 @@ Public Class clsMgrSettings
             Return False
         End If
 
-        'No problems found
+        ' No problems found
         Return True
 
     End Function
@@ -174,7 +174,7 @@ Public Class clsMgrSettings
     ''' <remarks></remarks>
     Public Overloads Function LoadMgrSettingsFromDB(mgrSettings As Dictionary(Of String, String)) As Boolean
 
-        'Requests job parameters from database. Input string specifies view to use. Performs retries if necessary.
+        ' Requests job parameters from database. Input string specifies view to use. Performs retries if necessary.
 
         Dim mgrName = m_MgrParams("MgrName")
 
@@ -208,7 +208,7 @@ Public Class clsMgrSettings
             Return False
         End If
 
-        'Verify at least one row returned
+        ' Verify at least one row returned
         If lstResults.Count < 1 Then
             LogError("clsMgrSettings.LoadMgrSettingsFromDB; manager settings not found in V_MgrParams for manager " & mgrName)
             Return False
@@ -216,7 +216,7 @@ Public Class clsMgrSettings
 
         Dim colMapping = dbTools.GetColumnMapping(columns)
 
-        'Fill a string dictionary with the manager parameters that have been found
+        ' Fill a string dictionary with the manager parameters that have been found
         Try
             For Each result In lstResults
 
@@ -332,14 +332,14 @@ Public Class clsMgrSettings
 
         m_ErrMsg = ""
 
-        'Load the config document
+        ' Load the config document
         Dim MyDoc As XmlDocument = LoadConfigDocument()
         If MyDoc Is Nothing Then
-            'Error message has already been produced by LoadConfigDocument
+            ' Error message has already been produced by LoadConfigDocument
             Return False
         End If
 
-        'Retrieve the settings node
+        ' Retrieve the settings node
         Dim MyNode As XmlNode = MyDoc.SelectSingleNode("//applicationSettings")
 
         If MyNode Is Nothing Then
@@ -348,13 +348,13 @@ Public Class clsMgrSettings
         End If
 
         Try
-            'Select the eleement containing the value for the specified key containing the key
+            ' Select the eleement containing the value for the specified key containing the key
             Dim MyElement = CType(MyNode.SelectSingleNode(String.Format("//setting[@name='{0}']/value", Key)), XmlElement)
             If MyElement IsNot Nothing Then
-                'Set key to specified value
+                ' Set key to specified value
                 MyElement.InnerText = Value
             Else
-                'Key was not found
+                ' Key was not found
                 m_ErrMsg = "clsMgrSettings.WriteConfigSettings; specified key not found: " & Key
                 Return False
             End If
@@ -404,7 +404,7 @@ Public Class clsMgrSettings
     ''' <remarks></remarks>
     Protected Function DbCStr(InpObj As Object) As String
 
-        'If input object is DbNull, returns "", otherwise returns String representation of object
+        ' If input object is DbNull, returns "", otherwise returns String representation of object
         If InpObj Is DBNull.Value Then
             Return ""
         Else

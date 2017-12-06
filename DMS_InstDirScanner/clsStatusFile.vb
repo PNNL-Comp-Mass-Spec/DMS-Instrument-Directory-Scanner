@@ -302,6 +302,9 @@ Public Class clsStatusFile
         m_JobNumber = 0
         m_Tool = ""
         m_DebugLevel = debugLevel
+
+        AddHandler clsLogTools.MessageLogged, AddressOf MessageLoggedHandler
+
     End Sub
 
     ''' <summary>
@@ -340,6 +343,18 @@ Public Class clsStatusFile
 
     End Function
 
+    Private Sub MessageLoggedHandler(message As String, loglevel As clsLogTools.LogLevels)
+
+        Dim timeStamp = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
+
+        ' Update the status file data
+        clsStatusData.MostRecentLogMessage = timeStamp & "; " & message & "; " & loglevel.ToString()
+
+        If loglevel <= clsLogTools.LogLevels.ERROR Then
+            clsStatusData.AddErrorMessage(timeStamp & "; " & message & "; " & loglevel.ToString)
+        End If
+
+    End Sub
 
     '' <summary>
     '' Writes the status to the message queue

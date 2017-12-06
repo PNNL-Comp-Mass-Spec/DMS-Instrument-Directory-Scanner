@@ -73,6 +73,10 @@ Public Class clsMainProcess
 
         ' Setup the logger
         Dim logFileNameBase As String = m_MgrSettings.GetParam("logfilename")
+        If String.IsNullOrWhiteSpace(logFileNameBase) Then
+            logFileNameBase = "InstDirScanner"
+        End If
+
         Dim debugLevel As Integer = m_MgrSettings.GetParam("debuglevel", 1)
         CreateFileLogger(logFileNameBase, debugLevel)
 

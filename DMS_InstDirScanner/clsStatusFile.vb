@@ -357,35 +357,6 @@ Public Class clsStatusFile
 
     End Sub
 
-    '' <summary>
-    '' Writes the status to the message queue
-    '' </summary>
-    '' <param name="strStatusXML">A string contiaining the XML to write</param>
-    '' <remarks></remarks>
-    'Protected Sub LogStatusToMessageQueueOld(ByVal strStatusXML As String)
-
-    '	Dim Success As Boolean
-    '	Static dtLastFailureTime As DateTime = DateTime.MinValue
-
-    '	Try
-    '		Dim messageSender As New MessageSender(m_MessageQueueURI, m_MessageQueueTopic, m_MgrName)
-
-    '		' message queue logger sets up local message buffering (so calls to log don't block)
-    '		' and uses message sender (as a delegate) to actually send off the messages
-    '		Dim queueLogger As New MessageQueueLogger()
-    '		AddHandler queueLogger.Sender, New MessageSenderDelegate(AddressOf messageSender.SendMessage)
-
-    '		queueLogger.LogStatusMessage(strStatusXML)
-
-    '		queueLogger.Dispose()
-
-    '		messageSender.Dispose()
-    '	Catch ex As Exception
-    '		' TODO: Figure out how to handle error
-    '		Success = False
-    '	End Try
-    'End Sub
-
     Protected Sub LogStatusToMessageQueue(strStatusXML As String)
 
         Const MINIMUM_LOG_FAILURE_INTERVAL_MINUTES As Single = 10

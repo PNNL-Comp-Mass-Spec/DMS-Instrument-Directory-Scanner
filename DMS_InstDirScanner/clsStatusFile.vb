@@ -357,10 +357,10 @@ Public Class clsStatusFile
 
     End Sub
 
-    Protected Sub LogStatusToMessageQueue(strStatusXML As String)
+    Protected Sub LogStatusToMessageQueue(statusXML As String)
 
         Const MINIMUM_LOG_FAILURE_INTERVAL_MINUTES As Single = 10
-        Static dtLastFailureTime As DateTime = DateTime.UtcNow.Subtract(New TimeSpan(1, 0, 0))
+        Static lastFailureTime As DateTime = DateTime.UtcNow.Subtract(New TimeSpan(1, 0, 0))
 
         Try
             If m_MessageSender Is Nothing Then
@@ -383,12 +383,12 @@ Public Class clsStatusFile
             End If
 
             If Not m_QueueLogger Is Nothing Then
-                m_QueueLogger.LogStatusMessage(strStatusXML)
+                m_QueueLogger.LogStatusMessage(statusXML)
             End If
 
         Catch ex As Exception
-            If DateTime.UtcNow.Subtract(dtLastFailureTime).TotalMinutes >= MINIMUM_LOG_FAILURE_INTERVAL_MINUTES Then
-                dtLastFailureTime = DateTime.UtcNow
+            If DateTime.UtcNow.Subtract(lastFailureTime).TotalMinutes >= MINIMUM_LOG_FAILURE_INTERVAL_MINUTES Then
+                lastFailureTime = DateTime.UtcNow
                 OnErrorEvent("Error in clsStatusFile.LogStatusToMessageQueue (B): " & ex.Message, ex)
             End If
 

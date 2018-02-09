@@ -39,7 +39,6 @@ Public Class clsDirectoryTools
         mgrSettings As clsMgrSettings,
         progStatus As IStatusFile) As Boolean
 
-        Dim progress As Single
         Dim instCounter = 0
         Dim instCount As Integer = instList.Count
 
@@ -52,7 +51,7 @@ Public Class clsDirectoryTools
 
                 instCounter += 1
                 progStatus.Duration = CSng(DateTime.UtcNow.Subtract(progStatus.TaskStartTime).TotalHours())
-                progress = 100 * CSng(instCounter) / instCount
+                Dim progress = 100 * CSng(instCounter) / instCount
                 progStatus.UpdateAndWrite(progress)
 
                 OnStatusEvent("Scanning folder for instrument " & instrument.InstName)
@@ -90,22 +89,18 @@ Public Class clsDirectoryTools
 
         Return True
 
-
     End Function
 
     Private Function CreateOutputFile(instName As String, outFileDir As String, <Out> ByRef fiStatusFile As FileInfo) As StreamWriter
-
-        Dim diBackupDirectory As DirectoryInfo
-        Dim retFile As StreamWriter
 
         fiStatusFile = New FileInfo(Path.Combine(outFileDir, instName & "_source.txt"))
 
         ' Make a backup copy of the existing file
         If fiStatusFile.Exists Then
             Try
-                diBackupDirectory = New DirectoryInfo(Path.Combine(fiStatusFile.Directory.FullName, "PreviousCopy"))
-                If Not diBackupDirectory.Exists Then diBackupDirectory.Create()
-                fiStatusFile.CopyTo(Path.Combine(diBackupDirectory.FullName, fiStatusFile.Name), True)
+                Dim backupDirectory = New DirectoryInfo(Path.Combine(fiStatusFile.Directory.FullName, "PreviousCopy"))
+                If Not backupDirectory.Exists Then backupDirectory.Create()
+                fiStatusFile.CopyTo(Path.Combine(backupDirectory.FullName, fiStatusFile.Name), True)
             Catch ex As Exception
                 OnErrorEvent("Exception copying " + fiStatusFile.Name + "to PreviousCopy directory", ex)
             End Try
@@ -127,11 +122,11 @@ Public Class clsDirectoryTools
             retriesRemaining -= 1
 
             Try
-                retFile = New StreamWriter(New FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
+                Dim swOutFile = New StreamWriter(New FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
 
                 ' The file always starts with a blank line
-                retFile.WriteLine()
-                Return retFile
+                swOutFile.WriteLine()
+                Return swOutFile
 
             Catch ex As Exception
                 errorMessage = ex.Message
@@ -160,67 +155,67 @@ Public Class clsDirectoryTools
       swOutFile As TextWriter,
       mgrSettings As IMgrParams) As Boolean
 
-        Dim Connected = False
-        Dim InpPath As String = Path.Combine(intrumentData.StorageVolume, intrumentData.StoragePath)
-        Dim ShareConn As PRISM.ShareConnector = Nothing
+        Dim connected = False
+        Dim remoteDirectoryPath As String = Path.Combine(intrumentData.StorageVolume, intrumentData.StoragePath)
+        Dim shareConn As PRISM.ShareConnector = Nothing
 
-        Dim strUserDescription As String
+        Dim userDescription As String
 
         ' If this is a machine on bionet, set up a connection
         If intrumentData.CaptureMethod.ToLower = "secfso" Then
-            Dim strBionetUser As String = mgrSettings.GetParam("bionetuser")            ' Typically user ftms (not LCMSOperator)
+            Dim bionetUser As String = mgrSettings.GetParam("bionetuser")            ' Typically user ftms (not LCMSOperator)
 
-            If Not strBionetUser.Contains("\"c) Then
+            If Not bionetUser.Contains("\"c) Then
                 ' Prepend this computer's name to the username
-                strBionetUser = Environment.MachineName & "\" & strBionetUser
+                bionetUser = Environment.MachineName & "\" & bionetUser
             End If
 
-            ShareConn = New PRISM.ShareConnector(InpPath, strBionetUser, DecodePassword(mgrSettings.GetParam("bionetpwd")))
-            Connected = ShareConn.Connect()
+            shareConn = New PRISM.ShareConnector(remoteDirectoryPath, bionetUser, DecodePassword(mgrSettings.GetParam("bionetpwd")))
+            connected = shareConn.Connect()
 
-            strUserDescription = " as user " & strBionetUser
-            If Not Connected Then
-                OnErrorEvent("Could not connect to " & InpPath & strUserDescription + "; error code " + shareConn.ErrorMessage)
+            userDescription = " as user " & bionetUser
+            If Not connected Then
+                OnErrorEvent("Could not connect to " & remoteDirectoryPath & userDescription + "; error code " + shareConn.ErrorMessage)
             ElseIf mDebugLevel >= 5 Then
-                OnStatusEvent(" ... connected to " & InpPath & strUserDescription)
+                OnStatusEvent(" ... connected to " & remoteDirectoryPath & userDescription)
             End If
         Else
-            strUserDescription = " as user " & Environment.UserName
-            If InpPath.ToLower().Contains(".bionet") Then
-                OnWarningEvent("Warning: Connection to a bionet folder should probably use 'secfso'; currently configured to use 'fso' for " & InpPath)
+            userDescription = " as user " & Environment.UserName
+            If remoteDirectoryPath.ToLower().Contains(".bionet") Then
+                OnWarningEvent("Warning: Connection to a bionet folder should probably use 'secfso'; currently configured to use 'fso' for " & remoteDirectoryPath)
             End If
         End If
 
-        Dim diInstDataFolder As New DirectoryInfo(InpPath)
+        Dim instrumentDataFolder As New DirectoryInfo(remoteDirectoryPath)
 
-        OnStatusEvent("Reading " & intrumentData.InstName & ", Folder " & InpPath & strUserDescription)
+        OnStatusEvent("Reading " & intrumentData.InstName & ", Folder " & remoteDirectoryPath & userDescription)
 
         ' List the folder path and current date/time on the first line
         ' Will look like this:
         ' (Folder: \\VOrbiETD04.bionet\ProteomicsData\ at 2012-01-23 2:15 PM)
-        WriteToOutput(swOutFile, "Folder: " & InpPath & " at " & DateTime.Now().ToString("yyyy-MM-dd hh:mm:ss tt"))
+        WriteToOutput(swOutFile, "Folder: " & remoteDirectoryPath & " at " & DateTime.Now().ToString("yyyy-MM-dd hh:mm:ss tt"))
 
-        Dim folderExists = Directory.Exists(InpPath)
+        Dim folderExists = Directory.Exists(remoteDirectoryPath)
 
         If Not folderExists Then
             WriteToOutput(swOutFile, "(Folder does not exist)")
         Else
-            Dim directories = diInstDataFolder.GetDirectories().ToList()
-            Dim files = diInstDataFolder.GetFiles().ToList()
+            Dim directories = instrumentDataFolder.GetDirectories().ToList()
+            Dim files = instrumentDataFolder.GetFiles().ToList()
             For Each datasetDirectory As DirectoryInfo In directories
                 Dim totalSizeBytes As Int64 = GetDirectorySize(intrumentData.InstName, datasetDirectory)
                 WriteToOutput(swOutFile, "Dir ", datasetDirectory.Name, FileSizeToText(totalSizeBytes))
             Next
             For Each datasetFile As FileInfo In files
-                Dim FileSizeStr As String = FileSizeToText(datasetFile.Length)
-                WriteToOutput(swOutFile, "File ", datasetFile.Name, FileSizeStr)
+                Dim fileSizeText As String = FileSizeToText(datasetFile.Length)
+                WriteToOutput(swOutFile, "File ", datasetFile.Name, fileSizeText)
             Next
         End If
 
         ' If this was a bionet machine, disconnect
-        If Connected Then
-            If Not ShareConn.Disconnect() Then
-                OnErrorEvent("Could not disconnect from " & InpPath)
+        If connected Then
+            If Not shareConn.Disconnect() Then
+                OnErrorEvent("Could not disconnect from " & remoteDirectoryPath)
             End If
         End If
 
@@ -228,43 +223,39 @@ Public Class clsDirectoryTools
 
     End Function
 
-    Private Function FileSizeToText(InpFileSizeBytes As Long) As String
+    Private Function FileSizeToText(fileSizeBytes As Long) As String
 
-        Dim FileSize As Single
-        Dim FileSizeIterator As Integer
-        Dim FileSizeStr As String
-        Dim RoundSpec As String
+        Dim fileSize = CSng(fileSizeBytes)
 
-        FileSize = CSng(InpFileSizeBytes)
-
-        FileSizeIterator = 0
-        Do While FileSize > 1024 And FileSizeIterator < 3
-            FileSize /= 1024
-            FileSizeIterator += 1
+        Dim fileSizeIterator = 0
+        Do While fileSize > 1024 And fileSizeIterator < 3
+            fileSize /= 1024
+            fileSizeIterator += 1
         Loop
 
-        If FileSize < 10 Then
-            RoundSpec = "0.0"
+        Dim formatString As String
+        If fileSize < 10 Then
+            formatString = "0.0"
         Else
-            RoundSpec = "0"
+            formatString = "0"
         End If
 
-        FileSizeStr = FileSize.ToString(RoundSpec)
+        Dim fileSizeText = fileSize.ToString(formatString)
 
-        Select Case FileSizeIterator
+        Select Case fileSizeIterator
             Case 0
-                FileSizeStr &= " bytes"
+                fileSizeText &= " bytes"
             Case 1
-                FileSizeStr &= " KB"
+                fileSizeText &= " KB"
             Case 2
-                FileSizeStr &= " MB"
+                fileSizeText &= " MB"
             Case 3
-                FileSizeStr &= " GB"
+                fileSizeText &= " GB"
             Case Else
-                FileSizeStr &= " ???"
+                fileSizeText &= " ???"
         End Select
 
-        Return FileSizeStr
+        Return fileSizeText
 
     End Function
 
@@ -298,39 +289,32 @@ Public Class clsDirectoryTools
 
     End Function
 
-
     Private Sub WriteToOutput(swOutFile As TextWriter, field1 As String, Optional ByVal field2 As String = "", Optional ByVal field3 As String = "")
 
-        Dim LineOut As String
-
-        LineOut = field1 & ControlChars.Tab & field2 & ControlChars.Tab & field3
-        swOutFile.WriteLine(LineOut)
+        Dim dataLine = field1 & ControlChars.Tab & field2 & ControlChars.Tab & field3
+        swOutFile.WriteLine(dataLine)
 
     End Sub
 
-    Private Function DecodePassword(EnPwd As String) As String
+    Private Function DecodePassword(encodedPassword As String) As String
         ' Decrypts password received from ini file
         ' Password was created by alternately subtracting or adding 1 to the ASCII value of each character
 
-        Dim CharCode As Byte
-        Dim TempStr As String
-        Dim Indx As Integer
+        Dim tempStr = ""
 
-        TempStr = ""
-
-        Indx = 1
-        Do While Indx <= Len(EnPwd)
-            CharCode = CByte(Asc(Mid(EnPwd, Indx, 1)))
-            If Indx Mod 2 = 0 Then
-                CharCode = CharCode - CByte(1)
+        Dim indx = 1
+        Do While Indx <= Len(encodedPassword)
+            Dim charCode = CByte(Asc(Mid(encodedPassword, indx, 1)))
+            If indx Mod 2 = 0 Then
+                charCode = charCode - CByte(1)
             Else
-                CharCode = CharCode + CByte(1)
+                charCode = charCode + CByte(1)
             End If
-            TempStr = TempStr & Chr(CharCode)
-            Indx = Indx + 1
+            tempStr = tempStr & Chr(charCode)
+            indx = Indx + 1
         Loop
 
-        Return TempStr
+        Return tempStr
     End Function
 
     ''' <summary>

@@ -34,7 +34,7 @@ Public Class clsMainProcess
 
         Try
             If IsNothing(m_MainProcess) Then
-                m_MainProcess = New clsMainProcess
+                m_MainProcess = New clsMainProcess()
                 If Not m_MainProcess.InitMgr() Then
                     Thread.Sleep(1500)
                     Exit Sub

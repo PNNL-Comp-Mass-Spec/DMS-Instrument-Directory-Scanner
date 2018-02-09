@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -75,7 +75,6 @@
   <ItemGroup>
     <Compile Include="clsDirectoryTools.vb" />
     <Compile Include="clsInstData.vb" />
-    <Compile Include="clsLogTools.vb" />
     <Compile Include="clsMainProcess.vb" />
     <Compile Include="clsMessageQueueLogger.vb" />
     <Compile Include="clsMessageSender.vb" />
@@ -109,9 +108,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Logging.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -126,11 +122,8 @@
     <PackageReference Include="Apache.NMS.ActiveMQ">
       <Version>1.7.2</Version>
     </PackageReference>
-    <PackageReference Include="log4net">
-      <Version>2.0.8</Version>
-    </PackageReference>
     <PackageReference Include="PRISM-Library">
-      <Version>2.4.49</Version>
+      <Version>2.4.70</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

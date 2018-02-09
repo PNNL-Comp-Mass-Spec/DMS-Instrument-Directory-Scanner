@@ -11,8 +11,8 @@
 Imports System.IO
 Imports System.Reflection
 Imports System.Threading
-Imports DMS_InstDirScanner.clsLogTools
 Imports PRISM
+Imports PRISM.Logging
 
 ''' <summary>
 ''' Master processing class
@@ -44,8 +44,7 @@ Public Class clsMainProcess
         Catch ex As Exception
             ' Report any exceptions not handled at a lower level to the system application log
             Const errMsg = "Critical exception starting application"
-            ConsoleMsgUtils.ShowError(errMsg)
-            WriteLog(LoggerTypes.LogDb, LogLevels.FATAL, errMsg, ex)
+            LogTools.LogError(errMsg, ex, True)
             Thread.Sleep(1500)
             Exit Sub
         Finally
@@ -78,15 +77,17 @@ Public Class clsMainProcess
         End If
 
         Dim debugLevel As Integer = m_MgrSettings.GetParam("debuglevel", 1)
-        CreateFileLogger(logFileNameBase, debugLevel)
+
+        Dim logLevel = CType(debugLevel, BaseLogger.LogLevels)
+        LogTools.CreateFileLogger(logFileNameBase, logLevel)
 
         Dim logCnStr As String = m_MgrSettings.GetParam("connectionstring")
         Dim moduleName As String = m_MgrSettings.GetParam("modulename")
-        CreateDbLogger(logCnStr, moduleName)
+        LogTools.CreateDbLogger(logCnStr, moduleName)
 
         ' Make the initial log entry
         Dim myMsg As String = "=== Started Instrument Directory Scanner V" & GetAppVersion() & " ===== "
-        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, myMsg)
+        LogTools.LogMessage(myMsg)
 
         ' Setup the status file class
         Dim statusFileNameLoc As String = Path.Combine(GetAppFolderPath(), "Status.xml")
@@ -119,15 +120,15 @@ Public Class clsMainProcess
             If Not CBool(m_MgrSettings.GetParam("mgractive")) Then
                 Dim message = "Program disabled in manager control DB"
                 ConsoleMsgUtils.ShowWarning(message)
-                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
-                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+                LogTools.LogMessage(message)
+                LogTools.LogMessage("===== Closing Inst Dir Scanner =====")
                 m_StatusFile.UpdateDisabled(False)
                 Exit Sub
             ElseIf Not CBool(m_MgrSettings.GetParam("mgractive_local")) Then
                 Dim message = "Program disabled locally"
                 ConsoleMsgUtils.ShowWarning(message)
-                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
-                WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+                LogTools.LogMessage(message)
+                LogTools.LogMessage("===== Closing Inst Dir Scanner =====")
                 m_StatusFile.UpdateDisabled(True)
                 Exit Sub
             End If
@@ -159,7 +160,7 @@ Public Class clsMainProcess
 
             ' All finished, so clean up and exit
             LogMessage("Scanning complete")
-            WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+            LogTools.LogMessage("===== Closing Inst Dir Scanner =====")
             m_StatusFile.UpdateStopped(False)
 
         Catch ex As Exception
@@ -242,7 +243,7 @@ Public Class clsMainProcess
                 }
                 instrumentList.Add(instrumentInfo)
             Next
-            WriteLog(LoggerTypes.LogFile, LogLevels.DEBUG, "Retrieved instrument list")
+            LogTools.LogDebug("Retrieved instrument list")
             Return instrumentList
 
         Catch ex As Exception
@@ -263,23 +264,20 @@ Public Class clsMainProcess
     End Sub
 
     Private Sub LogError(message As String)
-        ConsoleMsgUtils.ShowError(message)
-        WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, message)
+        LogTools.LogError(message)
     End Sub
 
     Private Sub LogMessage(message As String)
-        Console.WriteLine(message)
-        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
+        LogTools.LogMessage(message)
     End Sub
 
     Private Sub LogWarning(message As String)
-        ConsoleMsgUtils.ShowWarning(message)
-        WriteLog(LoggerTypes.LogFile, LogLevels.WARN, message)
+        LogTools.LogWarning(message)
     End Sub
 
     Private Sub LogFatalError(errorMessage As String)
         LogError(errorMessage)
-        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, "===== Closing Inst Dir Scanner =====")
+        LogTools.LogMessage("===== Closing Inst Dir Scanner =====")
         m_StatusFile.UpdateStopped(True)
     End Sub
 
@@ -288,8 +286,7 @@ Public Class clsMainProcess
     End Sub
 
     Private Sub MessageHandler(message As String)
-        Console.WriteLine(message)
-        WriteLog(LoggerTypes.LogFile, LogLevels.INFO, message)
+        LogTools.LogMessage(message)
     End Sub
 
     Private Sub WarningHandler(message As String)

@@ -10,6 +10,7 @@ Imports System.IO
 Imports System.Text
 Imports System.Xml
 Imports PRISM
+Imports PRISM.Logging
 
 ''' <summary>
 ''' Provides tools for creating and updating an analysis status file
@@ -303,7 +304,7 @@ Public Class clsStatusFile
         m_Tool = ""
         m_DebugLevel = debugLevel
 
-        AddHandler clsLogTools.MessageLogged, AddressOf MessageLoggedHandler
+        AddHandler LogTools.MessageLogged, AddressOf MessageLoggedHandler
 
     End Sub
 
@@ -343,14 +344,14 @@ Public Class clsStatusFile
 
     End Function
 
-    Private Sub MessageLoggedHandler(message As String, loglevel As clsLogTools.LogLevels)
+    Private Sub MessageLoggedHandler(message As String, loglevel As BaseLogger.LogLevels)
 
         Dim timeStamp = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
 
         ' Update the status file data
         clsStatusData.MostRecentLogMessage = timeStamp & "; " & message & "; " & loglevel.ToString()
 
-        If loglevel <= clsLogTools.LogLevels.ERROR Then
+        If loglevel <= BaseLogger.LogLevels.ERROR Then
             clsStatusData.AddErrorMessage(timeStamp & "; " & message & "; " & loglevel.ToString)
         End If
 
@@ -661,7 +662,7 @@ Public Class clsStatusFile
     End Sub
 
     Public Sub LogDebug(message As String)
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.DEBUG, message)
+        LogTools.LogDebug(message)
     End Sub
 
 #End Region

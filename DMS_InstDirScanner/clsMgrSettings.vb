@@ -6,6 +6,7 @@
 '
 '*********************************************************************************************************
 Imports System.Xml
+Imports PRISM.Logging
 
 #Region "Interfaces"
 Public Interface IMgrParams
@@ -239,13 +240,11 @@ Public Class clsMgrSettings
     End Function
 
     Private Sub LogError(message As String)
-        PRISM.ConsoleMsgUtils.ShowError(message)
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogSystem, clsLogTools.LogLevels.ERROR, message)
+        LogTools.LogError(message)
     End Sub
 
     Private Sub LogWarning(message As String)
-        PRISM.ConsoleMsgUtils.ShowWarning(message)
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.WARN, message)
+        LogTools.LogWarning(message)
     End Sub
 
     ''' <summary>

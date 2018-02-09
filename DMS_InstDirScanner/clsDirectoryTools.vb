@@ -9,6 +9,7 @@
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports PRISM.Logging
 
 ''' <summary>
 ''' Handles all directory access tasks
@@ -347,7 +348,7 @@ Public Class clsDirectoryTools
     End Sub
 
     Private Sub LogErrorToDatabase(errorMessage As String)
-        clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, errorMessage)
+        LogTools.LogError(errorMessage, Nothing, True)
         OnErrorEvent(errorMessage)
     End Sub
 

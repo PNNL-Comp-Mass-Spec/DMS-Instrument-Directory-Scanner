@@ -10,7 +10,10 @@
 
 Imports System.IO
 Imports System.Reflection
+Imports System.Text
+Imports System.Text.RegularExpressions
 Imports System.Threading
+Imports DMS_InstDirScanner.My
 Imports PRISM
 Imports PRISM.Logging
 
@@ -19,13 +22,38 @@ Imports PRISM.Logging
 ''' </summary>
 Public Class clsMainProcess
 
+#Region "Constants"
+
+    Private Const DEFAULT_BASE_LOGFILE_NAME = "Logs\InstDirScanner"
+
+    Private Const MGR_PARAM_DEFAULT_DMS_CONN_STRING = "MgrCnfgDbConnectStr"
+
+#End Region
+
 #Region "Module variables"
     Shared m_MainProcess As clsMainProcess
+
+    Private ReadOnly m_MgrExeName As String
+
+    Private ReadOnly m_MgrDirectoryPath As String
+
     Private m_MgrSettings As clsMgrSettings
+
     Shared m_StatusFile As clsStatusFile
+
 #End Region
 
 #Region "Methods"
+
+    ''' <summary>
+    ''' Constructor
+    ''' </summary>
+    Public Sub New()
+        Dim exeInfo = New FileInfo(FileProcessor.ProcessFilesOrFoldersBase.GetAppPath())
+        m_MgrExeName = exeInfo.Name
+        m_MgrDirectoryPath = exeInfo.DirectoryName
+    End Sub
+
     ''' <summary>
     ''' Starts program execution
     ''' </summary>
@@ -62,6 +90,32 @@ Public Class clsMainProcess
     ''' <remarks></remarks>
     Private Function InitMgr() As Boolean
 
+        Dim hostName = Net.Dns.GetHostName()
+
+        ' Define the default logging info
+        ' This will get updated below
+        LogTools.CreateFileLogger(DEFAULT_BASE_LOGFILE_NAME, BaseLogger.LogLevels.DEBUG)
+
+        ' Create a database logger connected to DMS5
+        ' Once the initial parameters have been successfully read,
+        ' we update the dbLogger to use the connection string read from the Manager Control DB
+        Dim defaultDmsConnectionString As String
+
+        ' Open DMS_InstDirScanner.exe.config to look for setting DefaultDMSConnString, so we know which server to log to by default
+        Dim dmsConnectionStringFromConfig = GetXmlConfigDefaultConnectionString()
+
+        If String.IsNullOrWhiteSpace(dmsConnectionStringFromConfig) Then
+            ' Use the hard-coded default that points to Proteinseqs
+            defaultDmsConnectionString = MySettings.Default.MgrCnfgDbConnectStr
+        Else
+            ' Use the connection string from DMS_InstDirScanner.exe.config
+            defaultDmsConnectionString = dmsConnectionStringFromConfig
+        End If
+
+        ConsoleMsgUtils.ShowDebug("Instantiate a DbLogger using " + defaultDmsConnectionString)
+
+        LogTools.CreateDbLogger(defaultDmsConnectionString, "CaptureTaskMan: " + hostName)
+
         ' Get the manager settings
         Try
             m_MgrSettings = New clsMgrSettings()
@@ -71,10 +125,7 @@ Public Class clsMainProcess
         End Try
 
         ' Setup the logger
-        Dim logFileNameBase As String = m_MgrSettings.GetParam("logfilename")
-        If String.IsNullOrWhiteSpace(logFileNameBase) Then
-            logFileNameBase = "InstDirScanner"
-        End If
+        Dim logFileNameBase As String = m_MgrSettings.GetParam("logfilename", "InstDirScanner")
 
         Dim debugLevel As Integer = m_MgrSettings.GetParam("debuglevel", 1)
 
@@ -164,7 +215,7 @@ Public Class clsMainProcess
             m_StatusFile.UpdateStopped(False)
 
         Catch ex As Exception
-            LogError("Error in DoDirectoryScan: " & ex.Message)
+            LogError("Error in DoDirectoryScan", ex)
         End Try
 
     End Sub
@@ -247,12 +298,71 @@ Public Class clsMainProcess
             Return instrumentList
 
         Catch ex As Exception
-            LogError("Exception filling instrument list: " & ex.Message)
+            LogError("Exception filling instrument list", ex)
             Return Nothing
         End Try
 
     End Function
 
+    ''' <summary>
+    ''' Extract the value DefaultDMSConnString from DMS_InstDirScanner.exe.config
+    ''' </summary>
+    ''' <returns></returns>
+    Private Function GetXmlConfigDefaultConnectionString() As String
+        Return GetXmlConfigFileSetting(MGR_PARAM_DEFAULT_DMS_CONN_STRING)
+    End Function
+
+    ''' <summary>
+    ''' Extract the value for the given setting from DMS_InstDirScanner.exe.config
+    ''' </summary>
+    ''' <returns>Setting value if found, otherwise an empty string</returns>
+    ''' <remarks>Uses a simple text reader in case the file has malformed XML</remarks>
+    Private Function GetXmlConfigFileSetting(settingName As String) As String
+
+        If String.IsNullOrWhiteSpace(settingName) Then
+            Throw New ArgumentException("Setting name cannot be blank", NameOf(settingName))
+        End If
+
+        Try
+            Dim configFilePath = Path.Combine(m_MgrDirectoryPath, m_MgrExeName + ".config")
+            Dim configfile = New FileInfo(configFilePath)
+            If Not configfile.Exists Then
+                LogError("File not found: " + configFilePath)
+                Return String.Empty
+            End If
+
+            Dim configXml = New StringBuilder()
+
+            ' Open DMS_InstDirScanner.exe.config using a simple text reader in case the file has malformed XML
+            ConsoleMsgUtils.ShowDebug(String.Format("Extracting setting {0} from {1}", settingName, configfile.FullName))
+
+            Using reader = New StreamReader(New FileStream(configfile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+
+                While Not reader.EndOfStream
+                    Dim dataLine = reader.ReadLine
+                    If String.IsNullOrWhiteSpace(dataLine) Then
+                        Continue While
+                    End If
+
+                    configXml.Append(dataLine)
+                End While
+            End Using
+
+            Dim matcher = New Regex((settingName + ".+?<value>(?<ConnString>.+?)</value>"), RegexOptions.IgnoreCase)
+            Dim match = matcher.Match(configXml.ToString)
+            If match.Success Then
+                Return match.Groups("ConnString").Value
+            End If
+
+            LogError(settingName + " setting not found in " + configFilePath)
+            Return String.Empty
+
+        Catch ex As Exception
+            LogError("Exception reading setting " + settingName + " in DMS_InstDirScanner.exe.config", ex)
+            Return String.Empty
+        End Try
+
+    End Function
 #End Region
 
 #Region "Event handlers"
@@ -263,8 +373,8 @@ Public Class clsMainProcess
         AddHandler objClass.WarningEvent, AddressOf WarningHandler
     End Sub
 
-    Private Sub LogError(message As String)
-        LogTools.LogError(message)
+    Private Sub LogError(message As String, Optional ex As Exception = Nothing)
+        LogTools.LogError(message, ex)
     End Sub
 
     Private Sub LogMessage(message As String)

@@ -26,4 +26,8 @@ Public Class clsInstData
     Public Property InstName As String
 
 #End Region
+
+    Public Overrides Function ToString() As String
+        Return InstName + ": " + StorageVolume + StoragePath
+    End Function
 End Class

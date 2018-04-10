@@ -43,6 +43,20 @@ namespace DMS_InstDirScanner
 
         #endregion
 
+        #region "Properties"
+
+        /// <summary>
+        /// When true, ignore Bionet instruments
+        /// </summary>
+        public bool NoBionet { get; set; }
+
+        /// <summary>
+        /// When true, preview the stats but don't change any instrument stat files
+        /// </summary>
+        public bool PreviewMode { get; set; }
+
+        #endregion
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -224,7 +238,7 @@ namespace DMS_InstDirScanner
                 }
 
                 // Scan the directories
-                var scanner = new clsDirectoryTools();
+                var scanner = new clsDirectoryTools(NoBionet, PreviewMode);
                 AttachEvents(scanner);
 
                 scanner.PerformDirectoryScans(instList, workDir, m_MgrSettings, m_StatusFile);

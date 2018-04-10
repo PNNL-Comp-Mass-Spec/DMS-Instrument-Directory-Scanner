@@ -24,19 +24,36 @@ namespace DMS_InstDirScanner
         #region "Member variables"
 
         int mDebugLevel = 1;
+
         string mMostRecentIOErrorInstrument;
-        private readonly clsFileTools mFileTools;
 
         #endregion
+
+        /// <summary>
+        /// Instance of clsFileTools
+        /// </summary>
+        private clsFileTools FileTools { get; }
+
+        /// <summary>
+        /// When true, ignore Bionet instruments
+        /// </summary>
+        public bool NoBionet { get; }
+
+        /// <summary>
+        /// When true, preview the stats but don't change any instrument stat files
+        /// </summary>
+        public bool PreviewMode { get; }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <remarks></remarks>
-        public clsDirectoryTools()
+        public clsDirectoryTools(bool noBionet, bool previewMode)
         {
             mMostRecentIOErrorInstrument = string.Empty;
-            mFileTools = new clsFileTools();
+            FileTools = new clsFileTools();
+            NoBionet = noBionet;
+            PreviewMode = previewMode;
         }
 
         public bool PerformDirectoryScans(List<clsInstData> instList, string outDirectoryPath, clsMgrSettings mgrSettings, clsStatusFile progStatus)
@@ -56,37 +73,52 @@ namespace DMS_InstDirScanner
                     var progress = 100 * instCounter / (float)instCount;
                     progStatus.UpdateAndWrite(progress);
 
+                    Console.WriteLine();
                     OnStatusEvent("Scanning directory for instrument " + instrument.InstName);
 
-                    var swOutFile = CreateOutputFile(instrument.InstName, outDirectoryPath, out var fiSourceFile);
-                    if (swOutFile == null)
+                    var success = CreateOutputFile(instrument.InstName, outDirectoryPath, out var fiSourceFile, out var statusFileWriter);
+                    if (!success)
                     {
                         return false;
                     }
 
-                    var directoryExists = GetDirectoryData(instrument, swOutFile, mgrSettings);
+                    var directoryExists = GetDirectoryData(instrument, statusFileWriter, mgrSettings);
 
-                    swOutFile.Close();
+                    statusFileWriter?.Close();
 
-                    if (directoryExists)
+                    if (!directoryExists)
+                        continue;
+
+                    // Copy the file to the MostRecentValid directory
+                    try
                     {
-                        // Copy the file to the MostRecentValid directory
-                        try
-                        {
-                            var diTargetDirectory = new DirectoryInfo(Path.Combine(outDirectoryPath, "MostRecentValid"));
+                        var diTargetDirectory = new DirectoryInfo(Path.Combine(outDirectoryPath, "MostRecentValid"));
 
-                            if (!diTargetDirectory.Exists)
+                        if (!diTargetDirectory.Exists)
+                        {
+                            if (PreviewMode)
+                            {
+                                OnDebugEvent("Preview: create directory " + diTargetDirectory.FullName);
+                            }
+                            else
                             {
                                 diTargetDirectory.Create();
                             }
+                        }
 
+                        if (PreviewMode)
+                        {
+                            OnDebugEvent("Preview: copy " + fiSourceFile.FullName + " to " + diTargetDirectory.FullName);
+                        }
+                        else
+                        {
                             fiSourceFile.CopyTo(Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), true);
                         }
-                        catch (Exception ex)
-                        {
-                            OnErrorEvent("Exception copying to MostRecentValid directory", ex);
-                        }
 
+                    }
+                    catch (Exception ex)
+                    {
+                        OnErrorEvent("Exception copying to MostRecentValid directory", ex);
                     }
 
                 }
@@ -100,7 +132,7 @@ namespace DMS_InstDirScanner
             return true;
         }
 
-        private StreamWriter CreateOutputFile(string instName, string outFileDir, out FileInfo fiStatusFile)
+        private bool CreateOutputFile(string instName, string outFileDir, out FileInfo fiStatusFile, out StreamWriter statusFileWriter)
         {
             fiStatusFile = new FileInfo(Path.Combine(outFileDir, instName + "_source.txt"));
 
@@ -112,22 +144,48 @@ namespace DMS_InstDirScanner
                     var backupDirectory = new DirectoryInfo(Path.Combine(fiStatusFile.Directory.FullName, "PreviousCopy"));
                     if (!backupDirectory.Exists)
                     {
-                        backupDirectory.Create();
+                        if (PreviewMode)
+                        {
+                            OnDebugEvent("Preview: create directory " + backupDirectory.FullName);
+                        }
+                        else
+                        {
+                            backupDirectory.Create();
+                        }
                     }
 
-                    fiStatusFile.CopyTo(Path.Combine(backupDirectory.FullName, fiStatusFile.Name), true);
+                    if (PreviewMode)
+                    {
+                        OnDebugEvent("Preview: copy " + fiStatusFile.FullName + " to " + backupDirectory.FullName);
+                    }
+                    else
+                    {
+                        fiStatusFile.CopyTo(Path.Combine(backupDirectory.FullName, fiStatusFile.Name), true);
+                    }
+
                 }
                 catch (Exception ex)
                 {
                     OnErrorEvent("Exception copying " + fiStatusFile.Name + "to PreviousCopy directory", ex);
                 }
 
-                if (!mFileTools.DeleteFileWithRetry(fiStatusFile, out var backupErrorMessage))
+                if (!PreviewMode)
                 {
-                    LogErrorToDatabase(backupErrorMessage);
-                    return null;
+                    if (!FileTools.DeleteFileWithRetry(fiStatusFile, out var backupErrorMessage))
+                    {
+                        LogErrorToDatabase(backupErrorMessage);
+                        statusFileWriter = null;
+                        return false;
+                    }
                 }
 
+            }
+
+            if (PreviewMode)
+            {
+                OnDebugEvent("Preview: create " + fiStatusFile.FullName);
+                statusFileWriter = null;
+                return true;
             }
 
             // Create the new file; try up to 3 times
@@ -143,7 +201,8 @@ namespace DMS_InstDirScanner
 
                     // The file always starts with a blank line
                     swOutFile.WriteLine();
-                    return swOutFile;
+                    statusFileWriter = swOutFile;
+                    return true;
                 }
                 catch (Exception ex)
                 {
@@ -155,18 +214,19 @@ namespace DMS_InstDirScanner
             }
 
             OnErrorEvent("Exception creating output file " + fiStatusFile.FullName + ": " + errorMessage);
-            return null;
+            statusFileWriter = null;
+            return false;
         }
 
         /// <summary>
         /// Query the files and directories on the instrument's shared data directory
         /// </summary>
         /// <param name="intrumentData"></param>
-        /// <param name="swOutFile"></param>
+        /// <param name="statusFileWriter"></param>
         /// <param name="mgrSettings"></param>
         /// <returns>True on success, false if the target directory is not found</returns>
         /// <remarks></remarks>
-        private bool GetDirectoryData(clsInstData intrumentData, TextWriter swOutFile, clsMgrSettings mgrSettings)
+        private bool GetDirectoryData(clsInstData intrumentData, TextWriter statusFileWriter, clsMgrSettings mgrSettings)
         {
             var connected = false;
             var remoteDirectoryPath = Path.Combine(intrumentData.StorageVolume, intrumentData.StoragePath);
@@ -186,6 +246,12 @@ namespace DMS_InstDirScanner
                     bionetUser = Environment.MachineName + "\\" + bionetUser;
                 }
 
+                if (NoBionet)
+                {
+                    OnStatusEvent("Ignoring Bionet share " + remoteDirectoryPath);
+                    return false;
+                }
+
                 shareConn = new ShareConnector(remoteDirectoryPath, bionetUser, DecodePassword(mgrSettings.GetParam("bionetpwd")));
                 connected = shareConn.Connect();
 
@@ -198,7 +264,6 @@ namespace DMS_InstDirScanner
                 {
                     OnStatusEvent(" ... connected to " + remoteDirectoryPath + userDescription);
                 }
-
             }
             else
             {
@@ -218,13 +283,13 @@ namespace DMS_InstDirScanner
             // List the directory path and current date/time on the first line
             // Will look like this:
             // (Directory: \\VOrbiETD04.bionet\ProteomicsData\ at 2012-01-23 2:15 PM)
-            WriteToOutput(swOutFile, "Directory: " + remoteDirectoryPath + " at " + DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss tt"));
+            WriteToOutput(statusFileWriter, "Directory: " + remoteDirectoryPath + " at " + DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss tt"));
 
             var directoryExists = Directory.Exists(remoteDirectoryPath);
             if (!directoryExists)
             {
                 OnStatusEvent("Path not found: " + remoteDirectoryPath);
-                WriteToOutput(swOutFile, "(Directory does not exist)");
+                WriteToOutput(statusFileWriter, "(Directory does not exist)");
             }
             else
             {
@@ -238,7 +303,7 @@ namespace DMS_InstDirScanner
                     if (datasetDirectory.Name.StartsWith("x_"))
                         archiveCount++;
 
-                    WriteToOutput(swOutFile, "Dir ", datasetDirectory.Name, FileSizeToText(totalSizeBytes));
+                    WriteToOutput(statusFileWriter, "Dir ", datasetDirectory.Name, FileSizeToText(totalSizeBytes));
                 }
 
                 foreach (var datasetFile in files)
@@ -247,7 +312,7 @@ namespace DMS_InstDirScanner
                     if (datasetFile.Name.StartsWith("x_"))
                         archiveCount++;
 
-                    WriteToOutput(swOutFile, "File ", datasetFile.Name, fileSizeText);
+                    WriteToOutput(statusFileWriter, "File ", datasetFile.Name, fileSizeText);
                 }
 
                 var fileCountText = files.Count == 1 ? "file" : "files";
@@ -364,10 +429,10 @@ namespace DMS_InstDirScanner
             return totalSizeBytes;
         }
 
-        private void WriteToOutput(TextWriter swOutFile, string field1, string field2 = "", string field3 = "" )
+        private void WriteToOutput(TextWriter swOutFile, string field1, string field2 = "", string field3 = "")
         {
             var dataLine = field1 + '\t' + field2 + '\t' + field3;
-            swOutFile.WriteLine(dataLine);
+            swOutFile?.WriteLine(dataLine);
         }
 
         private string DecodePassword(string encodedPwd)

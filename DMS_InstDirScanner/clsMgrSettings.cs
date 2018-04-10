@@ -1,425 +1,558 @@
-'*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy
-' Pacific Northwest National Laboratory, Richland, WA
-' Copyright 2007, Battelle Memorial Institute
-' Created 07/27/2009
-'
-'*********************************************************************************************************
-Imports System.Xml
-Imports PRISM.Logging
+﻿
+//*********************************************************************************************************
+// Written by Dave Clark for the US Department of Energy
+// Pacific Northwest National Laboratory, Richland, WA
+// Copyright 2009, Battelle Memorial Institute
+// Created 06/16/2009
+//*********************************************************************************************************
 
-#Region "Interfaces"
-Public Interface IMgrParams
-    Function GetParam(ItemKey As String) As String
-    Function GetParam(ItemKey As String, valueIfMissing As String) As String
-    Function GetParam(ItemKey As String, valueIfMissing As Integer) As Integer
-    Sub SetParam(ItemKey As String, ItemValue As String)
-End Interface
-#End Region
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+using PRISM;
 
-''' <summary>
-''' Class for loading, storing and accessing manager parameters.
-''' </summary>
-''' <remarks>
-''' Loads initial settings from local config file, then checks to see if remainder of settings should be
-''' loaded or manager set to inactive. If manager active, retrieves remainder of settings from manager
-''' parameters database.
-''' </remarks>
-Public Class clsMgrSettings
-    Implements IMgrParams
+namespace DMS_InstDirScanner
+{
+    /// <summary>
+    /// Class for loading, storing and accessing manager parameters.
+    /// </summary>
+    /// <remarks>
+    /// Loads initial settings from local config file, then checks to see if remainder of settings should be
+    /// loaded or manager set to inactive. If manager active, retrieves remainder of settings from manager
+    /// parameters database.
+    /// </remarks>
+    public class clsMgrSettings : clsLoggerBase
+    {
+        #region "Constants"
 
-#Region "Module variables"
-    Private m_MgrParams As Dictionary(Of String, String)
-    Private m_ErrMsg As String = ""
-#End Region
+        /// <summary>
+        /// Status message for when the manager is deactivated locally
+        /// </summary>
+        /// <remarks>Used when MgrActive_Local is False in AppName.exe.config</remarks>
+        public const string DEACTIVATED_LOCALLY = "Manager deactivated locally";
 
-#Region "Properties"
-    Public ReadOnly Property ErrMsg As String
-        Get
-            Return m_ErrMsg
-        End Get
-    End Property
-#End Region
+        /// <summary>
+        /// Manager parameter: config database connection string
+        /// </summary>
+        public const string MGR_PARAM_MGR_CFG_DB_CONN_STRING = "MgrCnfgDbConnectStr";
+        /// <summary>
+        /// Manager parameter: manager active
+        /// </summary>
+        /// <remarks>Defined in AppName.exe.config</remarks>
+        public const string MGR_PARAM_MGR_ACTIVE_LOCAL = "MgrActive_Local";
 
-#Region "Methods"
-    ''' <summary>
-    ''' Constructor
-    ''' </summary>
-    ''' <remarks></remarks>
-    Public Sub New()
+        /// <summary>
+        /// Manager parameter: manager name
+        /// </summary>
+        public const string MGR_PARAM_MGR_NAME = "MgrName";
 
-        If Not LoadSettings() Then
-            Throw New ApplicationException("Unable to initialize manager settings class")
-        End If
+        /// <summary>
+        /// Manager parameter: using defaults flag
+        /// </summary>
+        public const string MGR_PARAM_USING_DEFAULTS = "UsingDefaults";
 
-    End Sub
+        #endregion
 
-    ''' <summary>
-    ''' Loads manager settings from config file and database
-    ''' </summary>
-    ''' <returns>True if successful; False on error</returns>
-    ''' <remarks></remarks>
-    Public Function LoadSettings() As Boolean
+        #region "Class variables"
 
-        m_ErrMsg = ""
+        private readonly Dictionary<string, string> mParamDictionary;
 
-        ' Get settings from config file
-        m_MgrParams = LoadMgrSettingsFromFile()
+        private bool mMCParamsLoaded;
+        private string mErrMsg = "";
 
-        ' Test the settings retrieved from the config file
-        If Not CheckInitialSettings(m_MgrParams) Then
-            ' Error logging was already handled by CheckInitialSettings
-            Return False
-        End If
+        #endregion
 
-        ' Determine if manager is deactivated locally
-        If Not CBool(m_MgrParams("MgrActive_Local")) Then
-            LogWarning("Manager deactivated locally")
-            m_ErrMsg = "Manager deactivated locally"
-            Return False
-        End If
+        #region "Properties"
 
-        ' Get remaining settings from database
-        If Not LoadMgrSettingsFromDB(m_MgrParams) Then
-            ' Error logging handled by LoadMgrSettingsFromDB
-            Return False
-        End If
+        /// <summary>
+        /// Error message
+        /// </summary>
+        public string ErrMsg => mErrMsg;
 
-        ' No problems found
-        Return True
+        /// <summary>
+        /// Manager name
+        /// </summary>
+        public string ManagerName => GetParam(MGR_PARAM_MGR_NAME, Environment.MachineName + "_Undefined-Manager");
 
-    End Function
+        /// <summary>
+        /// Dictionary of manager parameters
+        /// </summary>
+        public Dictionary<string, string> TaskDictionary => mParamDictionary;
 
-    ''' <summary>
-    ''' Loads the initial settings from application config file
-    ''' </summary>
-    ''' <returns>String dictionary containing initial settings if suceessful; NOTHING on error</returns>
-    ''' <remarks></remarks>
-    Private Function LoadMgrSettingsFromFile() As Dictionary(Of String, String)
+        #endregion
 
-        ' Load initial settings into string dictionary for return
-        Dim mgrParams As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+        #region "Methods"
 
-        My.Settings.Reload()
-        ' Manager config db connection string
-        mgrParams.Add("MgrCnfgDbConnectStr", My.Settings.MgrCnfgDbConnectStr)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public clsMgrSettings()
+        {
+            mParamDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!LoadSettings())
+            {
+                if (string.Equals(mErrMsg, DEACTIVATED_LOCALLY))
+                    throw new ApplicationException(DEACTIVATED_LOCALLY);
 
-        ' Manager active flag
-        mgrParams.Add("MgrActive_Local", My.Settings.MgrActive_Local.ToString())
+                throw new ApplicationException("Unable to initialize manager settings class: " + mErrMsg);
+            }
+        }
 
-        ' Manager name
-        mgrParams.Add("MgrName", My.Settings.MgrName)
+        /// <summary>
+        /// Load manager settings from the config file
+        /// </summary>
+        /// <returns></returns>
+        public bool LoadSettings()
+        {
+            var configFileSettings = LoadMgrSettingsFromFile();
 
-        ' Default settings in use flag
-        mgrParams.Add("UsingDefaults", My.Settings.UsingDefaults.ToString())
+            return LoadSettings(configFileSettings);
+        }
 
-        Return mgrParams
+        /// <summary>
+        /// Updates manager settings, then loads settings from the database or from ManagerSettingsLocal.xml if clsGlobal.OfflineMode is true
+        /// </summary>
+        /// <param name="configFileSettings">Manager settings loaded from file AnalysisManagerProg.exe.config</param>
+        /// <returns>True if successful; False on error</returns>
+        /// <remarks></remarks>
+        public bool LoadSettings(Dictionary<string, string> configFileSettings)
+        {
+            mErrMsg = string.Empty;
 
-    End Function
+            mParamDictionary.Clear();
 
-    ''' <summary>
-    ''' Tests initial settings retrieved from config file
-    ''' </summary>
-    ''' <param name="mgrParams"></param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Private Function CheckInitialSettings(mgrParams As IReadOnlyDictionary(Of String, String)) As Boolean
+            foreach (var item in configFileSettings)
+            {
+                mParamDictionary.Add(item.Key, item.Value);
+            }
 
-        ' Verify manager settings dictionary exists
-        If mgrParams Is Nothing Then
-            LogError("clsMgrSettings.CheckInitialSettings(); Manager parameters dictionary is null")
-            Return False
-        End If
+            // Get directory for main executable
+            var appPath = PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppPath();
+            var fi = new FileInfo(appPath);
+            mParamDictionary.Add("ApplicationPath", fi.DirectoryName);
 
-        ' Verify intact config file was found
-        Dim strUsingDefaults = ""
-        If Not mgrParams.TryGetValue("UsingDefaults", strUsingDefaults) Then
-            LogError("clsMgrSettings.CheckInitialSettings(); Manager parameter 'UsingDefaults' is not defined")
-            Return False
-        End If
+            // Test the settings retrieved from the config file
+            if (!CheckInitialSettings(mParamDictionary))
+            {
+                // Error logging handled by CheckInitialSettings
+                return false;
+            }
 
-        Dim usingDefaults As Boolean
-        If Not Boolean.TryParse(strUsingDefaults, usingDefaults) Then
-            LogError("clsMgrSettings.CheckInitialSettings(); Manager parameter 'UsingDefaults' must be True or False, not " & strUsingDefaults)
-            Return False
-        End If
+            // Determine if manager is deactivated locally
+            if (!mParamDictionary.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
+            {
+                mErrMsg = "Manager parameter " + MGR_PARAM_MGR_ACTIVE_LOCAL + " is missing from file " + Path.GetFileName(GetConfigFilePath());
+                LogError(mErrMsg);
+            }
 
-        If usingDefaults Then
-            LogError("clsMgrSettings.CheckInitialSettings(); Config file problem: default settings being used (UsingDefaults is true)")
-            Return False
-        End If
+            // Get remaining settings from database
+            if (!LoadMgrSettingsFromDB())
+            {
+                // Error logging handled by LoadMgrSettingsFromDB
+                return false;
+            }
 
-        ' No problems found
-        Return True
+            // Set flag indicating params have been loaded from MC db
+            mMCParamsLoaded = true;
 
-    End Function
+            // No problems found
+            return true;
+        }
 
-    ''' <summary>
-    ''' Gets remaining manager config settings from config database;
-    ''' Overload to use module-level string dictionary when calling from external method
-    ''' </summary>
-    ''' <returns>True for success; False for error</returns>
-    ''' <remarks></remarks>
-    Public Overloads Function LoadMgrSettingsFromDB() As Boolean
+        private Dictionary<string, string> LoadMgrSettingsFromFile()
+        {
+            // Load initial settings into string dictionary for return
+            var mgrSettingsFromFile = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        Return LoadMgrSettingsFromDB(m_MgrParams)
+            // Manager config db connection string
+            var mgrCfgDBConnString = Properties.Settings.Default.MgrCnfgDbConnectStr;
+            mgrSettingsFromFile.Add(MGR_PARAM_MGR_CFG_DB_CONN_STRING, mgrCfgDBConnString);
 
-    End Function
+            // Manager active flag
+            var mgrActiveLocal = Properties.Settings.Default.MgrActive_Local.ToString();
+            mgrSettingsFromFile.Add(MGR_PARAM_MGR_ACTIVE_LOCAL, mgrActiveLocal);
+
+            // Manager name
+            var mgrName = Properties.Settings.Default.MgrName;
+            if (mgrName.Contains("$ComputerName$"))
+                mgrSettingsFromFile.Add(MGR_PARAM_MGR_NAME, mgrName.Replace("$ComputerName$", Environment.MachineName));
+            else
+                mgrSettingsFromFile.Add(MGR_PARAM_MGR_NAME, mgrName);
+
+            // Default settings in use flag
+            var usingDefaults = Properties.Settings.Default.UsingDefaults.ToString();
+            mgrSettingsFromFile.Add(MGR_PARAM_USING_DEFAULTS, usingDefaults);
+
+            return mgrSettingsFromFile;
+        }
 
 
-    ''' <summary>
-    ''' Gets remaining manager config settings from config database
-    ''' </summary>
-    ''' <param name="mgrSettings">String dictionary containing parameters that have been loaded so far</param>
-    ''' <returns>True for success; False for error</returns>
-    ''' <remarks></remarks>
-    Public Overloads Function LoadMgrSettingsFromDB(mgrSettings As Dictionary(Of String, String)) As Boolean
+        /// <summary>
+        /// Tests initial settings retrieved from config file
+        /// </summary>
+        /// <param name="paramDictionary"></param>
+        /// <returns></returns>
+        /// <remarks></remarks>
+        private bool CheckInitialSettings(IReadOnlyDictionary<string, string> paramDictionary)
+        {
+            // Verify manager settings dictionary exists
+            if (paramDictionary == null)
+            {
+                mErrMsg = "CheckInitialSettings: Manager parameter string dictionary not found";
+                LogError(mErrMsg, true);
+                return false;
+            }
 
-        ' Requests job parameters from database. Input string specifies view to use. Performs retries if necessary.
+            if (!paramDictionary.TryGetValue(MGR_PARAM_USING_DEFAULTS, out var usingDefaultsText))
+            {
+                mErrMsg = "CheckInitialSettings: 'UsingDefaults' entry not found in Config file";
+                LogError(mErrMsg, true);
+            }
+            else
+            {
 
-        Dim mgrName = m_MgrParams("MgrName")
+                if (bool.TryParse(usingDefaultsText, out var usingDefaults) && usingDefaults)
+                {
+                    mErrMsg = "CheckInitialSettings: Config file problem, contains UsingDefaults=True";
+                    LogError(mErrMsg, true);
+                    return false;
+                }
+            }
 
-        Dim columns = New List(Of String) From {
-                "ParameterName",
-                "ParameterValue"
+            // No problems found
+            return true;
+        }
+
+        private string GetGroupNameFromSettings(DataTable dtSettings)
+        {
+            foreach (DataRow currentRow in dtSettings.Rows)
+            {
+                // Add the column heading and value to the dictionary
+                var paramKey = DbCStr(currentRow[dtSettings.Columns["ParameterName"]]);
+
+                if (string.Equals(paramKey, "MgrSettingGroupName", StringComparison.OrdinalIgnoreCase))
+                {
+                    var groupName = DbCStr(currentRow[dtSettings.Columns["ParameterValue"]]);
+                    if (!string.IsNullOrWhiteSpace(groupName))
+                    {
+                        return groupName;
+                    }
+
+                    return string.Empty;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Gets manager config settings from manager control DB (Manager_Control)
+        /// </summary>
+        /// <returns>True if success, otherwise false</returns>
+        /// <remarks>Performs retries if necessary.</remarks>
+        private bool LoadMgrSettingsFromDB(bool logConnectionErrors = true)
+        {
+
+            var managerName = GetParam(MGR_PARAM_MGR_NAME, string.Empty);
+
+            if (string.IsNullOrEmpty(managerName))
+            {
+                mErrMsg = "Manager parameter " + MGR_PARAM_MGR_NAME + " is missing from file " + Path.GetFileName(GetConfigFilePath());
+                LogError(mErrMsg);
+                return false;
+            }
+
+            var success = LoadMgrSettingsFromDBWork(managerName, out var dtSettings, logConnectionErrors, returnErrorIfNoParameters: true);
+            if (!success)
+            {
+                return false;
+            }
+
+            success = StoreParameters(dtSettings, skipExistingParameters: false, managerName: managerName);
+
+            if (!success)
+                return false;
+
+            while (success)
+            {
+                var mgrSettingsGroup = GetGroupNameFromSettings(dtSettings);
+                if (string.IsNullOrEmpty(mgrSettingsGroup))
+                {
+                    break;
                 }
 
-        Dim sqlStr As String =
-                " SELECT " & String.Join(",", columns) &
-                " FROM V_MgrParams " &
-                " WHERE ManagerName = '" & mgrName & "'"
+                // This manager has group-based settings defined; load them now
 
-        Dim connectionString = mgrSettings("MgrCnfgDbConnectStr")
-        If String.IsNullOrWhiteSpace(connectionString) Then
-            LogError("Connection string is empty; cannot retrieve manager parameters")
-            Return False
-        End If
+                success = LoadMgrSettingsFromDBWork(mgrSettingsGroup, out dtSettings, logConnectionErrors, returnErrorIfNoParameters: false);
 
-        Dim dbTools = New PRISM.clsDBTools(connectionString)
-        AddHandler dbTools.ErrorEvent, AddressOf DBToolsErrorHandler
-        AddHandler dbTools.WarningEvent, AddressOf DBToolsWarningHandler
+                if (success)
+                {
+                    success = StoreParameters(dtSettings, skipExistingParameters: true, managerName: mgrSettingsGroup);
+                }
+            }
 
-        ' Get a table holding the parameters for one manager
+            return success;
+        }
 
-        Dim lstResults As List(Of List(Of String)) = Nothing
-        Dim success = dbTools.GetQueryResults(sqlStr, lstResults, "LoadMgrSettingsFromDB")
+        private bool LoadMgrSettingsFromDBWork(string managerName, out DataTable dtSettings, bool logConnectionErrors,
+                                               bool returnErrorIfNoParameters, int retryCount = 3)
+        {
+            var dbConnectionString = GetParam(MGR_PARAM_MGR_CFG_DB_CONN_STRING, "");
+            dtSettings = null;
 
-        If Not success Then
-            LogError("Unable to retrieve manager settings from the database for manager " & mgrName)
-            Return False
-        End If
+            if (string.IsNullOrEmpty(dbConnectionString))
+            {
+                mErrMsg = MGR_PARAM_MGR_CFG_DB_CONN_STRING +
+                           " parameter not found in mParamDictionary; it should be defined in the " + Path.GetFileName(GetConfigFilePath()) + " file";
+                WriteErrorMsg(mErrMsg);
+                return false;
+            }
 
-        ' Verify at least one row returned
-        If lstResults.Count < 1 Then
-            LogError("clsMgrSettings.LoadMgrSettingsFromDB; manager settings not found in V_MgrParams for manager " & mgrName)
-            Return False
-        End If
+            var sqlStr = "SELECT ParameterName, ParameterValue FROM V_MgrParams WHERE ManagerName = '" + managerName + "'";
 
-        Dim colMapping = dbTools.GetColumnMapping(columns)
+            // Get a table holding the parameters for this manager
+            while (retryCount >= 0)
+            {
+                try
+                {
+                    using (var cn = new SqlConnection(dbConnectionString))
+                    {
+                        var cmd = new SqlCommand
+                        {
+                            CommandType = CommandType.Text,
+                            CommandText = sqlStr,
+                            Connection = cn,
+                            CommandTimeout = 30
+                        };
 
-        ' Fill a string dictionary with the manager parameters that have been found
-        Try
-            For Each result In lstResults
+                        using (var da = new SqlDataAdapter(cmd))
+                        {
+                            using (var ds = new DataSet())
+                            {
+                                da.Fill(ds);
+                                dtSettings = ds.Tables[0];
+                            }
+                        }
+                    }
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retryCount -= 1;
+                    var msg = string.Format("LoadMgrSettingsFromDB; Exception getting manager settings from database: {0}; " +
+                                            "ConnectionString: {1}, RetryCount = {2}",
+                                            ex.Message, dbConnectionString, retryCount);
 
-                Dim paramKey = dbTools.GetColumnValue(result, colMapping, "ParameterName")
-                Dim paramVal = dbTools.GetColumnValue(result, colMapping, "ParameterValue")
+                    if (logConnectionErrors)
+                        WriteErrorMsg(msg, allowLogToDB: false);
 
-                If m_MgrParams.ContainsKey(paramKey) Then
-                    m_MgrParams(paramKey) = paramVal
-                Else
-                    m_MgrParams.Add(paramKey, paramVal)
-                End If
-            Next
+                    // Delay for 5 seconds before trying again
+                    if (retryCount >= 0)
+                        clsProgRunner.SleepMilliseconds(5000);
+                }
 
-            Return True
-        Catch ex As Exception
-            LogError("clsMgrSettings.LoadMgrSettingsFromDB; Exception filling string dictionary from table: " & ex.Message)
-            Return False
-        End Try
+            } // while
 
-    End Function
+            // If loop exited due to errors, return false
+            if (retryCount < 0)
+            {
+                // Log the message to the DB if the monthly Windows updates are not pending
+                var allowLogToDB = !clsWindowsUpdateStatus.ServerUpdatesArePending();
 
-    Private Sub LogError(message As String)
-        LogTools.LogError(message)
-    End Sub
+                mErrMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database";
+                if (logConnectionErrors)
+                    WriteErrorMsg(mErrMsg, allowLogToDB);
 
-    Private Sub LogWarning(message As String)
-        LogTools.LogWarning(message)
-    End Sub
+                return false;
+            }
 
-    ''' <summary>
-    ''' Gets a parameter from the parameters string dictionary
-    ''' </summary>
-    ''' <param name="ItemKey">Key name for item</param>
-    ''' <returns>String value associated with specified key</returns>
-    ''' <remarks>Returns Nothing if key isn't found</remarks>
-    Public Function GetParam(ItemKey As String, valueIfMissing As String) As String Implements IMgrParams.GetParam
+            // Validate that the data table object is initialized
+            if (dtSettings == null)
+            {
+                // Data table not initialized
+                mErrMsg = "LoadMgrSettingsFromDB; dtSettings datatable is null; using " + dbConnectionString;
+                if (logConnectionErrors)
+                    WriteErrorMsg(mErrMsg);
 
-        If Not m_MgrParams.ContainsKey(ItemKey) Then
-            Return valueIfMissing
-        End If
+                return false;
+            }
 
-        Return m_MgrParams.Item(ItemKey)
+            // Verify at least one row returned
+            if (dtSettings.Rows.Count < 1 && returnErrorIfNoParameters)
+            {
+                // Wrong number of rows returned
+                mErrMsg = "LoadMgrSettingsFromDB; Manager " + managerName + " not defined in the manager control database; using " + dbConnectionString;
+                WriteErrorMsg(mErrMsg);
+                dtSettings.Dispose();
+                return false;
+            }
 
-    End Function
+            return true;
+        }
 
-    ''' <summary>
-    ''' Gets a parameter from the parameters string dictionary
-    ''' </summary>
-    ''' <param name="ItemKey">Key name for item</param>
-    ''' <returns>String value associated with specified key</returns>
-    ''' <remarks>Returns Nothing if key isn't found</remarks>
-    Public Function GetParam(ItemKey As String, valueIfMissing As Integer) As Integer Implements IMgrParams.GetParam
 
-        If Not m_MgrParams.ContainsKey(ItemKey) Then
-            Return valueIfMissing
-        End If
+        /// <summary>
+        /// Update mParamDictionary with settings in dtSettings, optionally skipping existing parameters
+        /// </summary>
+        /// <param name="dtSettings"></param>
+        /// <param name="skipExistingParameters"></param>
+        /// <param name="managerName"></param>
+        /// <returns></returns>
+        private bool StoreParameters(DataTable dtSettings, bool skipExistingParameters, string managerName)
+        {
+            bool success;
 
-        Dim strValue = m_MgrParams.Item(ItemKey)
-        Dim value As Integer
-        If Integer.TryParse(strValue, value) Then
-            Return value
-        End If
+            try
+            {
+                foreach (DataRow currentRow in dtSettings.Rows)
+                {
+                    // Add the column heading and value to the dictionary
+                    var paramKey = DbCStr(currentRow[dtSettings.Columns["ParameterName"]]);
+                    var paramVal = DbCStr(currentRow[dtSettings.Columns["ParameterValue"]]);
 
-        Return valueIfMissing
+                    if (paramKey.ToLower() == "perspective" && Environment.MachineName.ToLower().StartsWith("monroe"))
+                    {
+                        if (paramVal.ToLower() == "server")
+                        {
+                            paramVal = "client";
+                            Console.WriteLine(
+                                @"StoreParameters: Overriding manager perspective to be 'client' because impersonating a server-based manager from an office computer");
+                        }
+                    }
 
-    End Function
+                    if (mParamDictionary.ContainsKey(paramKey))
+                    {
+                        if (!skipExistingParameters)
+                        {
+                            mParamDictionary[paramKey] = paramVal;
+                        }
+                    }
+                    else
+                    {
+                        mParamDictionary.Add(paramKey, paramVal);
+                    }
+                }
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                mErrMsg = "LoadMgrSettingsFromDB: Exception filling string dictionary from table for manager " +
+                          "'" + managerName + "': " + ex.Message;
+                WriteErrorMsg(mErrMsg);
+                success = false;
+            }
+            finally
+            {
+                dtSettings?.Dispose();
+            }
 
-    ''' <summary>
-    ''' Gets a parameter from the parameters string dictionary
-    ''' </summary>
-    ''' <param name="ItemKey">Key name for item</param>
-    ''' <returns>String value associated with specified key</returns>
-    ''' <remarks>Returns Nothing if key isn't found</remarks>
-    Public Function GetParam(ItemKey As String) As String Implements IMgrParams.GetParam
+            return success;
+        }
 
-        Return m_MgrParams.Item(ItemKey)
+        /// <summary>
+        /// Gets a manager parameter
+        /// </summary>
+        /// <param name="itemKey"></param>
+        /// <returns>Parameter value if found, otherwise empty string</returns>
+        public string GetParam(string itemKey)
+        {
+            return GetParam(itemKey, string.Empty);
+        }
 
-    End Function
+        /// <summary>
+        /// Gets a manager parameter
+        /// </summary>
+        /// <param name="itemKey">Parameter name</param>
+        /// <param name="valueIfMissing">Value to return if the parameter does not exist</param>
+        /// <returns>Parameter value if found, otherwise empty string</returns>
+        public string GetParam(string itemKey, string valueIfMissing)
+        {
+            if (mParamDictionary.TryGetValue(itemKey, out var itemValue))
+            {
+                return itemValue ?? string.Empty;
+            }
 
-    ''' <summary>
-    ''' Sets a parameter in the parameters string dictionary
-    ''' </summary>
-    ''' <param name="ItemKey">Key name for the item</param>
-    ''' <param name="ItemValue">Value to assign to the key</param>
-    ''' <remarks></remarks>
-    Public Sub SetParam(ItemKey As String, ItemValue As String) Implements IMgrParams.SetParam
+            return valueIfMissing ?? string.Empty;
+        }
 
-        m_MgrParams.Item(ItemKey) = ItemValue
+        /// <summary>
+        /// Gets a manager parameter
+        /// </summary>
+        /// <param name="itemKey">Parameter name</param>
+        /// <param name="valueIfMissing">Value to return if the parameter does not exist</param>
+        /// <returns>Parameter value if found, otherwise empty string</returns>
+        public bool GetParam(string itemKey, bool valueIfMissing)
+        {
+            if (mParamDictionary.TryGetValue(itemKey, out var valueText))
+            {
+                var value = clsUtilityMethods.CBoolSafe(valueText, valueIfMissing);
+                return value;
+            }
 
-    End Sub
+            return valueIfMissing;
+        }
 
-    ''' <summary>
-    ''' Gets a collection representing all keys in the parameters string dictionary
-    ''' </summary>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Function GetAllKeys() As ICollection
+        /// <summary>
+        /// Gets a manager parameter
+        /// </summary>
+        /// <param name="itemKey">Parameter name</param>
+        /// <param name="valueIfMissing">Value to return if the parameter does not exist</param>
+        /// <returns>Parameter value if found, otherwise empty string</returns>
+        public int GetParam(string itemKey, int valueIfMissing)
+        {
+            if (mParamDictionary.TryGetValue(itemKey, out var valueText))
+            {
+                var value = clsUtilityMethods.CIntSafe(valueText, valueIfMissing);
+                return value;
+            }
 
-        Return m_MgrParams.Keys
+            return valueIfMissing;
+        }
 
-    End Function
+        /// <summary>
+        /// Set a manager parameter
+        /// </summary>
+        /// <param name="itemKey"></param>
+        /// <param name="itemValue"></param>
+        public void SetParam(string itemKey, string itemValue)
+        {
+            if (mParamDictionary.ContainsKey(itemKey))
+            {
+                mParamDictionary[itemKey] = itemValue;
+            }
+            else
+            {
+                mParamDictionary.Add(itemKey, itemValue);
+            }
+        }
 
-    ''' <summary>
-    ''' Writes specfied value to an application config file.
-    ''' </summary>
-    ''' <param name="Key">Name for parameter (case sensitive)</param>
-    ''' <param name="Value">New value for parameter</param>
-    ''' <returns>TRUE for success; FALSE for error (ErrMsg property contains reason)</returns>
-    ''' <remarks>This bit of lunacy is needed because MS doesn't supply a means to write to an app config file</remarks>
-    Public Function WriteConfigSetting(Key As String, Value As String) As Boolean
+        private string DbCStr(object inpObj)
+        {
+            if (inpObj == null)
+            {
+                return "";
+            }
+            return inpObj.ToString();
+        }
 
-        m_ErrMsg = ""
+        private void WriteErrorMsg(string errorMessage, bool allowLogToDB = true)
+        {
+            var logToDb = !mMCParamsLoaded && allowLogToDB;
+            LogError(errorMessage, logToDb);
+        }
 
-        ' Load the config document
-        Dim MyDoc As XmlDocument = LoadConfigDocument()
-        If MyDoc Is Nothing Then
-            ' Error message has already been produced by LoadConfigDocument
-            Return False
-        End If
+        /// <summary>
+        /// Specifies the full name and path for the application config file
+        /// </summary>
+        /// <returns>String containing full name and path</returns>
+        private string GetConfigFilePath()
+        {
+            var configFilePath = PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppPath() + ".config";
+            return configFilePath;
+        }
 
-        ' Retrieve the settings node
-        Dim MyNode As XmlNode = MyDoc.SelectSingleNode("//applicationSettings")
-
-        If MyNode Is Nothing Then
-            m_ErrMsg = "clsMgrSettings.WriteConfigSettings; appSettings node not found"
-            Return False
-        End If
-
-        Try
-            ' Select the eleement containing the value for the specified key containing the key
-            Dim MyElement = CType(MyNode.SelectSingleNode(String.Format("//setting[@name='{0}']/value", Key)), XmlElement)
-            If MyElement IsNot Nothing Then
-                ' Set key to specified value
-                MyElement.InnerText = Value
-            Else
-                ' Key was not found
-                m_ErrMsg = "clsMgrSettings.WriteConfigSettings; specified key not found: " & Key
-                Return False
-            End If
-            MyDoc.Save(GetConfigFilePath())
-            Return True
-        Catch ex As Exception
-            m_ErrMsg = "clsMgrSettings.WriteConfigSettings; Exception updating settings file: " & ex.Message
-            Return False
-        End Try
-
-    End Function
-
-    ''' <summary>
-    ''' Loads an app config file for changing parameters
-    ''' </summary>
-    ''' <returns>App config file as an XML document if successful; NOTHING on failure</returns>
-    ''' <remarks></remarks>
-    Private Function LoadConfigDocument() As XmlDocument
-
-        Try
-            Dim myDoc = New XmlDocument
-            myDoc.Load(GetConfigFilePath)
-            Return myDoc
-        Catch ex As Exception
-            m_ErrMsg = "clsMgrSettings.LoadConfigDocument; Exception loading settings file: " & ex.Message
-            Return Nothing
-        End Try
-
-    End Function
-
-    ''' <summary>
-    ''' Specifies the full name and path for the application config file
-    ''' </summary>
-    ''' <returns>String containing full name and path</returns>
-    ''' <remarks></remarks>
-    Private Function GetConfigFilePath() As String
-
-        Return clsMainProcess.GetAppPath() & ".config"
-
-    End Function
-
-    ''' <summary>
-    ''' Converts a database output object that could be dbNull to a string
-    ''' </summary>
-    ''' <param name="InpObj"></param>
-    ''' <returns>String equivalent of object; empty string if object is dbNull</returns>
-    ''' <remarks></remarks>
-    Protected Function DbCStr(InpObj As Object) As String
-
-        ' If input object is DbNull, returns "", otherwise returns String representation of object
-        If InpObj Is DBNull.Value Then
-            Return ""
-        Else
-            Return CStr(InpObj)
-        End If
-
-    End Function
-
-    Private Sub DBToolsErrorHandler(message As String, ex As Exception)
-        LogError(message)
-    End Sub
-
-    Private Sub DBToolsWarningHandler(message As String)
-        LogWarning(message)
-    End Sub
-
-#End Region
-
-End Class
+        #endregion
+    }
+}

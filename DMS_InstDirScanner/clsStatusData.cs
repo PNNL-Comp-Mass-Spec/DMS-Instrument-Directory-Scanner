@@ -1,60 +1,57 @@
-'*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy
-' Pacific Northwest National Laboratory, Richland, WA
-' Copyright 2009, Battelle Memorial Institute
-' Created 08/04/2009
-'
-'*********************************************************************************************************
+﻿
+//*********************************************************************************************************
+// Written by Dave Clark for the US Department of Energy
+// Pacific Northwest National Laboratory, Richland, WA
+// Copyright 2009, Battelle Memorial Institute
+// Created 08/14/2009
+//*********************************************************************************************************
 
-''' <summary>
-''' Class to hold long-term data for status reporting.
-''' This is a hack to avoid adding an instance of the status file class to the log tools class
-''' </summary>
-Public Class clsStatusData
+using System.Collections.Generic;
 
-#Region "Module variables"
-    Private Shared m_MostRecentLogMessage As String
-    Private Shared ReadOnly m_ErrorQueue As Queue(Of String) = New Queue(Of String)
-#End Region
+namespace DMS_InstDirScanner
+{
+    /// <summary>
+    /// Class to hold long-term data for status reporting.
+    /// This is a hack to avoid adding an instance of the status file class to the log tools class
+    /// </summary>
+    class clsStatusData
+    {
 
-#Region "Properties"
-    Public Shared Property MostRecentLogMessage As String
-        Get
-            Return m_MostRecentLogMessage
-        End Get
-        Set
-            ' Filter out routine startup and shutdown messages
-            If Value.Contains("=== Started") Or Value.Contains("===== Closing") Then
-                ' Do nothing
-            Else
-                m_MostRecentLogMessage = Value
-            End If
-        End Set
-    End Property
-
-    Public Shared ReadOnly Property ErrorQueue As Queue(Of String)
-        Get
-            Return m_ErrorQueue
-        End Get
-    End Property
-#End Region
-
-#Region "Methods"
-    Public Shared Sub AddErrorMessage(ErrMsg As String)
-        ' Add the most recent error message
-        m_ErrorQueue.Enqueue(ErrMsg)
-
-        ' If there are > 4 entries in the queue, delete the oldest ones
-        If m_ErrorQueue.Count > 4 Then
-            While m_ErrorQueue.Count > 4
-                m_ErrorQueue.Dequeue()
-            End While
-            m_ErrorQueue.TrimExcess()
-        End If
-
-    End Sub
-
-#End Region
+        private static string m_MostRecentLogMessage;
+        private static readonly Queue<string> m_ErrorQueue = new Queue<string>();
 
 
-End Class
+        public static string MostRecentLogMessage
+        {
+            get => m_MostRecentLogMessage;
+            set
+            {
+                // Filter out routine startup and shutdown messages
+                if (value.Contains("=== Started") || (value.Contains("===== Closing")))
+                {
+                    // Do nothing
+                }
+                else
+                {
+                    m_MostRecentLogMessage = value;
+                }
+            }
+        }
+
+        public static Queue<string> ErrorQueue => m_ErrorQueue;
+
+
+        public static void AddErrorMessage(string ErrMsg)
+        {
+            // Add the most recent error message
+            m_ErrorQueue.Enqueue(ErrMsg);
+
+            // If there are > 4 entries in the queue, delete the oldest ones
+            while (m_ErrorQueue.Count > 4)
+            {
+                m_ErrorQueue.Dequeue();
+            }
+        }
+
+    }
+}

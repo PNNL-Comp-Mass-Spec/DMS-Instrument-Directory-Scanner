@@ -1,33 +1,52 @@
-﻿'*********************************************************************************************************
-' Written by Dave Clark for the US Department of Energy
-' Pacific Northwest National Laboratory, Richland, WA
-' Copyright 2009, Battelle Memorial Institute
-' Created 07/27/2009
-'
-'*********************************************************************************************************
+﻿//*********************************************************************************************************
+// Written by Dave Clark for the US Department of Energy
+// Pacific Northwest National Laboratory, Richland, WA
+// Copyright 2009, Battelle Memorial Institute
+// Created 07/27/2009
+//
+//*********************************************************************************************************
 
-''' <summary>
-''' Class to hold data for each instrument
-''' </summary>
-Public Class clsInstData
+using System.IO;
 
-#Region "Module variables"
+namespace DMS_InstDirScanner
+{
 
-#End Region
+    /// <summary>
+    /// Class to hold data for each instrument
+    /// </summary>
+    public class clsInstData
+    {
+        /// <summary>
+        /// Storage volume, for example, \\QExactP04.bionet\
+        /// </summary>
+        /// <remarks></remarks>
+        public string StorageVolume { get; set; }
 
-#Region "Properties"
+        /// <summary>
+        /// Storage path, typically ProteomicsData\
+        /// </summary>
+        public string StoragePath { get; set; }
 
-    Public Property StorageVolume As String
+        /// <summary>
+        /// Capture method
+        /// </summary>
+        /// <remarks>
+        /// fso if on a domain computer
+        /// secfso if on bionet</remarks>
+        public string CaptureMethod { get; set; }
 
-    Public Property StoragePath As String
+        /// <summary>
+        /// Instrument name
+        /// </summary>
+        public string InstName { get; set; }
 
-    Public Property CaptureMethod As String
-
-    Public Property InstName As String
-
-#End Region
-
-    Public Overrides Function ToString() As String
-        Return InstName + ": " + StorageVolume + StoragePath
-    End Function
-End Class
+        /// <summary>
+        /// Instrument name: StorageVolumne\StoragePath
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return InstName + ": " + Path.Combine(StorageVolume, StoragePath);
+        }
+    }
+}

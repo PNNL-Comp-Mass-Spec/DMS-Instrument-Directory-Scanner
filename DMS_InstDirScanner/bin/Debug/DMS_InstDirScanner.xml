@@ -9,7 +9,22 @@
             Handles all directory access tasks
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsDirectoryTools.#ctor">
+        <member name="P:DMS_InstDirScanner.clsDirectoryTools.FileTools">
+            <summary>
+            Instance of clsFileTools
+            </summary>
+        </member>
+        <member name="P:DMS_InstDirScanner.clsDirectoryTools.NoBionet">
+            <summary>
+            When true, ignore Bionet instruments
+            </summary>
+        </member>
+        <member name="P:DMS_InstDirScanner.clsDirectoryTools.PreviewMode">
+            <summary>
+            When true, preview the stats but don't change any instrument stat files
+            </summary>
+        </member>
+        <member name="M:DMS_InstDirScanner.clsDirectoryTools.#ctor(System.Boolean,System.Boolean)">
             <summary>
             Constructor
             </summary>
@@ -20,7 +35,7 @@
             Query the files and directories on the instrument's shared data directory
             </summary>
             <param name="intrumentData"></param>
-            <param name="swOutFile"></param>
+            <param name="statusFileWriter"></param>
             <param name="mgrSettings"></param>
             <returns>True on success, false if the target directory is not found</returns>
             <remarks></remarks>
@@ -112,6 +127,16 @@
         <member name="T:DMS_InstDirScanner.clsMainProcess">
             <summary>
             Master processing class
+            </summary>
+        </member>
+        <member name="P:DMS_InstDirScanner.clsMainProcess.NoBionet">
+            <summary>
+            When true, ignore Bionet instruments
+            </summary>
+        </member>
+        <member name="P:DMS_InstDirScanner.clsMainProcess.PreviewMode">
+            <summary>
+            When true, preview the stats but don't change any instrument stat files
             </summary>
         </member>
         <member name="M:DMS_InstDirScanner.clsMainProcess.#ctor">
@@ -609,10 +634,11 @@
             Class that starts application execution
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.Program.Main">
+        <member name="M:DMS_InstDirScanner.Program.Main(System.String[])">
             <summary>
-            The main entry point for the application.
+            Entry method
             </summary>
+            <returns>0 if no error, error code if an error</returns>
         </member>
     </members>
 </doc>

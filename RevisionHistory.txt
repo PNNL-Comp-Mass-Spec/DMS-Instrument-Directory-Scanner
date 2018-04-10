@@ -1,5 +1,9 @@
 Instrument Directory Scanner History
 
+Version 1.4.6674; April 10, 2018
+	- Converted to C#
+	- Added command line arguments /NoBionet and /Preview
+
 Version 1.3.6549; December 6, 2017
 	- Synchronize clsLogTools with other projects
 		- Initialize the log file with CreateFileLogger

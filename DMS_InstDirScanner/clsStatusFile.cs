@@ -528,7 +528,7 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Writes the status to the message queue
         /// </summary>
-        /// <param name="strStatusXML">A string contiaining the XML to write</param>
+        /// <param name="strStatusXML">A string containing the XML to write</param>
         protected void LogStatusToMessageQueue(string strStatusXML)
         {
             if (m_MsgHandler == null)

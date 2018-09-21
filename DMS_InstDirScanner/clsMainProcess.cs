@@ -112,10 +112,10 @@ namespace DMS_InstDirScanner
             }
 
             // Setup the loggers
-            var logFileNameBase = m_MgrSettings.GetParam("logfilename", "InstDirScanner");
+            var logFileNameBase = m_MgrSettings.GetParam("LogFileName", "InstDirScanner");
 
             BaseLogger.LogLevels logLevel;
-            if (int.TryParse(m_MgrSettings.GetParam("debuglevel"), out var debugLevel))
+            if (int.TryParse(m_MgrSettings.GetParam("DebugLevel"), out var debugLevel))
             {
                 logLevel = (BaseLogger.LogLevels)debugLevel;
             }
@@ -128,8 +128,8 @@ namespace DMS_InstDirScanner
 
             // Typically:
             // Data Source=gigasax;Initial Catalog=DMS5;Integrated Security=SSPI;
-            var logCnStr = m_MgrSettings.GetParam("connectionstring");
-            var moduleName = m_MgrSettings.GetParam("modulename");
+            var logCnStr = m_MgrSettings.GetParam("ConnectionString");
+            var moduleName = m_MgrSettings.GetParam("ModuleName");
             LogTools.CreateDbLogger(logCnStr, moduleName);
 
             // Make the initial log entry
@@ -195,7 +195,7 @@ namespace DMS_InstDirScanner
             try
             {
                 // Check to see if manager is active
-                if (!bool.Parse(m_MgrSettings.GetParam("mgractive")))
+                if (!bool.Parse(m_MgrSettings.GetParam("MgrActive")))
                 {
                     var message = "Program disabled in manager control DB";
                     ConsoleMsgUtils.ShowWarning(message);
@@ -205,7 +205,7 @@ namespace DMS_InstDirScanner
                     return;
                 }
 
-                if (!bool.Parse(m_MgrSettings.GetParam("mgractive_local")))
+                if (!bool.Parse(m_MgrSettings.GetParam("MgrActive_local")))
                 {
                     var message = "Program disabled locally";
                     ConsoleMsgUtils.ShowWarning(message);
@@ -215,10 +215,10 @@ namespace DMS_InstDirScanner
                     return;
                 }
 
-                var workDir = m_MgrSettings.GetParam("workdir", string.Empty);
+                var workDir = m_MgrSettings.GetParam("WorkDir", string.Empty);
                 if (string.IsNullOrWhiteSpace(workDir))
                 {
-                    LogFatalError("Manager parameter \'workdir\' is not defined");
+                    LogFatalError("Manager parameter \'WorkDir\' is not defined");
                     return;
                 }
 
@@ -295,7 +295,7 @@ namespace DMS_InstDirScanner
 
             var sqlQuery = "SELECT " + string.Join(",", columns) + " FROM V_Instrument_Source_Paths";
 
-            var connectionString = m_MgrSettings.GetParam("connectionstring");
+            var connectionString = m_MgrSettings.GetParam("ConnectionString");
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 LogError("Connection string is empty; cannot retrieve manager parameters");
@@ -374,9 +374,9 @@ namespace DMS_InstDirScanner
             try
             {
                 var configFilePath = Path.Combine(m_MgrDirectoryPath, m_MgrExeName + ".config");
-                var configfile = new FileInfo(configFilePath);
+                var configFile = new FileInfo(configFilePath);
 
-                if (!configfile.Exists)
+                if (!configFile.Exists)
                 {
                     LogError("File not found: " + configFilePath);
                     return string.Empty;
@@ -386,7 +386,7 @@ namespace DMS_InstDirScanner
 
                 // Open DMS_InstDirScanner.exe.config using a simple text reader in case the file has malformed XML
 
-                using (var reader = new StreamReader(new FileStream(configfile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
+                using (var reader = new StreamReader(new FileStream(configFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
                 {
                     while (!reader.EndOfStream)
                     {

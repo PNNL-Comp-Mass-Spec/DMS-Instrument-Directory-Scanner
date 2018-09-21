@@ -41,7 +41,7 @@ namespace DMS_InstDirScanner
         public string InstName { get; set; }
 
         /// <summary>
-        /// Instrument name: StorageVolumne\StoragePath
+        /// Instrument name: StorageVolume\StoragePath
         /// </summary>
         /// <returns></returns>
         public override string ToString()

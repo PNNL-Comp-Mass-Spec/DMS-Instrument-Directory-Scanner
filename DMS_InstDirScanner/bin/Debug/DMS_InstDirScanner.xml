@@ -34,7 +34,7 @@
             <summary>
             Query the files and directories on the instrument's shared data directory
             </summary>
-            <param name="intrumentData"></param>
+            <param name="instrumentData"></param>
             <param name="statusFileWriter"></param>
             <param name="mgrSettings"></param>
             <returns>True on success, false if the target directory is not found</returns>
@@ -78,7 +78,7 @@
         </member>
         <member name="M:DMS_InstDirScanner.clsInstData.ToString">
             <summary>
-            Instrument name: StorageVolumne\StoragePath
+            Instrument name: StorageVolume\StoragePath
             </summary>
             <returns></returns>
         </member>
@@ -156,12 +156,6 @@
             Do a directory scan
             </summary>
             <remarks></remarks>
-        </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.GetAppFolderPath">
-            <summary>
-            Returns the full path to the executing .Exe or .Dll
-            </summary>
-            <returns></returns>
         </member>
         <member name="M:DMS_InstDirScanner.clsMainProcess.GetAppPath">
             <summary>
@@ -544,7 +538,7 @@
             <summary>
             Writes the status to the message queue
             </summary>
-            <param name="strStatusXML">A string contiaining the XML to write</param>
+            <param name="strStatusXML">A string containing the XML to write</param>
         </member>
         <member name="M:DMS_InstDirScanner.clsStatusFile.GetRunTime">
             <summary>

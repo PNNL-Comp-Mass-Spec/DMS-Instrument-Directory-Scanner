@@ -61,7 +61,7 @@ namespace DMS_InstDirScanner
             var instCounter = 0;
             var instCount = instList.Count;
 
-            mDebugLevel = mgrSettings.GetParam("debuglevel", 1);
+            mDebugLevel = mgrSettings.GetParam("DebugLevel", 1);
 
             progStatus.TaskStartTime = DateTime.UtcNow;
 
@@ -221,24 +221,24 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Query the files and directories on the instrument's shared data directory
         /// </summary>
-        /// <param name="intrumentData"></param>
+        /// <param name="instrumentData"></param>
         /// <param name="statusFileWriter"></param>
         /// <param name="mgrSettings"></param>
         /// <returns>True on success, false if the target directory is not found</returns>
         /// <remarks></remarks>
-        private bool GetDirectoryData(clsInstData intrumentData, TextWriter statusFileWriter, clsMgrSettings mgrSettings)
+        private bool GetDirectoryData(clsInstData instrumentData, TextWriter statusFileWriter, clsMgrSettings mgrSettings)
         {
             var connected = false;
-            var remoteDirectoryPath = Path.Combine(intrumentData.StorageVolume, intrumentData.StoragePath);
+            var remoteDirectoryPath = Path.Combine(instrumentData.StorageVolume, instrumentData.StoragePath);
             ShareConnector shareConn = null;
 
             string userDescription;
 
             // If this is a machine on bionet, set up a connection
-            if (intrumentData.CaptureMethod.ToLower() == "secfso")
+            if (instrumentData.CaptureMethod.ToLower() == "secfso")
             {
                 // Typically user ftms (not LCMSOperator)
-                var bionetUser = mgrSettings.GetParam("bionetuser");
+                var bionetUser = mgrSettings.GetParam("BionetUser");
 
                 if (!bionetUser.Contains("\\"))
                 {
@@ -252,7 +252,7 @@ namespace DMS_InstDirScanner
                     return false;
                 }
 
-                shareConn = new ShareConnector(remoteDirectoryPath, bionetUser, DecodePassword(mgrSettings.GetParam("bionetpwd")));
+                shareConn = new ShareConnector(remoteDirectoryPath, bionetUser, DecodePassword(mgrSettings.GetParam("BionetPwd")));
                 connected = shareConn.Connect();
 
                 userDescription = " as user " + bionetUser;
@@ -278,7 +278,7 @@ namespace DMS_InstDirScanner
 
             var instrumentDataDirectory = new DirectoryInfo(remoteDirectoryPath);
 
-            OnStatusEvent("Reading " + intrumentData.InstName + ", Directory " + remoteDirectoryPath + userDescription);
+            OnStatusEvent("Reading " + instrumentData.InstName + ", Directory " + remoteDirectoryPath + userDescription);
 
             // List the directory path and current date/time on the first line
             // Will look like this:
@@ -299,7 +299,7 @@ namespace DMS_InstDirScanner
 
                 foreach (var datasetDirectory in directories)
                 {
-                    var totalSizeBytes = GetDirectorySize(intrumentData.InstName, datasetDirectory);
+                    var totalSizeBytes = GetDirectorySize(instrumentData.InstName, datasetDirectory);
                     if (datasetDirectory.Name.StartsWith("x_"))
                         archiveCount++;
 

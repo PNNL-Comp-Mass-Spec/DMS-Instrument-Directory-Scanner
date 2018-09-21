@@ -57,10 +57,7 @@ namespace DMS_InstDirScanner
 
         #region "Class variables"
 
-        private readonly Dictionary<string, string> mParamDictionary;
-
         private bool mMCParamsLoaded;
-        private string mErrMsg = "";
 
         #endregion
 
@@ -69,7 +66,7 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Error message
         /// </summary>
-        public string ErrMsg => mErrMsg;
+        public string ErrMsg { get; private set; } = "";
 
         /// <summary>
         /// Manager name
@@ -79,7 +76,7 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Dictionary of manager parameters
         /// </summary>
-        public Dictionary<string, string> TaskDictionary => mParamDictionary;
+        public Dictionary<string, string> TaskDictionary { get; }
 
         #endregion
 
@@ -90,13 +87,13 @@ namespace DMS_InstDirScanner
         /// </summary>
         public clsMgrSettings()
         {
-            mParamDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            TaskDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (!LoadSettings())
             {
-                if (string.Equals(mErrMsg, DEACTIVATED_LOCALLY))
+                if (string.Equals(ErrMsg, DEACTIVATED_LOCALLY))
                     throw new ApplicationException(DEACTIVATED_LOCALLY);
 
-                throw new ApplicationException("Unable to initialize manager settings class: " + mErrMsg);
+                throw new ApplicationException("Unable to initialize manager settings class: " + ErrMsg);
             }
         }
 
@@ -119,32 +116,32 @@ namespace DMS_InstDirScanner
         /// <remarks></remarks>
         public bool LoadSettings(Dictionary<string, string> configFileSettings)
         {
-            mErrMsg = string.Empty;
+            ErrMsg = string.Empty;
 
-            mParamDictionary.Clear();
+            TaskDictionary.Clear();
 
             foreach (var item in configFileSettings)
             {
-                mParamDictionary.Add(item.Key, item.Value);
+                TaskDictionary.Add(item.Key, item.Value);
             }
 
             // Get directory for main executable
             var appPath = PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppPath();
             var fi = new FileInfo(appPath);
-            mParamDictionary.Add("ApplicationPath", fi.DirectoryName);
+            TaskDictionary.Add("ApplicationPath", fi.DirectoryName);
 
             // Test the settings retrieved from the config file
-            if (!CheckInitialSettings(mParamDictionary))
+            if (!CheckInitialSettings(TaskDictionary))
             {
                 // Error logging handled by CheckInitialSettings
                 return false;
             }
 
             // Determine if manager is deactivated locally
-            if (!mParamDictionary.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
+            if (!TaskDictionary.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
             {
-                mErrMsg = "Manager parameter " + MGR_PARAM_MGR_ACTIVE_LOCAL + " is missing from file " + Path.GetFileName(GetConfigFilePath());
-                LogError(mErrMsg);
+                ErrMsg = "Manager parameter " + MGR_PARAM_MGR_ACTIVE_LOCAL + " is missing from file " + Path.GetFileName(GetConfigFilePath());
+                LogError(ErrMsg);
             }
 
             // Get remaining settings from database
@@ -200,23 +197,23 @@ namespace DMS_InstDirScanner
             // Verify manager settings dictionary exists
             if (paramDictionary == null)
             {
-                mErrMsg = "CheckInitialSettings: Manager parameter string dictionary not found";
-                LogError(mErrMsg, true);
+                ErrMsg = "CheckInitialSettings: Manager parameter string dictionary not found";
+                LogError(ErrMsg, true);
                 return false;
             }
 
             if (!paramDictionary.TryGetValue(MGR_PARAM_USING_DEFAULTS, out var usingDefaultsText))
             {
-                mErrMsg = "CheckInitialSettings: 'UsingDefaults' entry not found in Config file";
-                LogError(mErrMsg, true);
+                ErrMsg = "CheckInitialSettings: 'UsingDefaults' entry not found in Config file";
+                LogError(ErrMsg, true);
             }
             else
             {
 
                 if (bool.TryParse(usingDefaultsText, out var usingDefaults) && usingDefaults)
                 {
-                    mErrMsg = "CheckInitialSettings: Config file problem, contains UsingDefaults=True";
-                    LogError(mErrMsg, true);
+                    ErrMsg = "CheckInitialSettings: Config file problem, contains UsingDefaults=True";
+                    LogError(ErrMsg, true);
                     return false;
                 }
             }
@@ -259,8 +256,8 @@ namespace DMS_InstDirScanner
 
             if (string.IsNullOrEmpty(managerName))
             {
-                mErrMsg = "Manager parameter " + MGR_PARAM_MGR_NAME + " is missing from file " + Path.GetFileName(GetConfigFilePath());
-                LogError(mErrMsg);
+                ErrMsg = "Manager parameter " + MGR_PARAM_MGR_NAME + " is missing from file " + Path.GetFileName(GetConfigFilePath());
+                LogError(ErrMsg);
                 return false;
             }
 
@@ -304,9 +301,9 @@ namespace DMS_InstDirScanner
 
             if (string.IsNullOrEmpty(dbConnectionString))
             {
-                mErrMsg = MGR_PARAM_MGR_CFG_DB_CONN_STRING +
+                ErrMsg = MGR_PARAM_MGR_CFG_DB_CONN_STRING +
                            " parameter not found in mParamDictionary; it should be defined in the " + Path.GetFileName(GetConfigFilePath()) + " file";
-                WriteErrorMsg(mErrMsg);
+                WriteErrorMsg(ErrMsg);
                 return false;
             }
 
@@ -361,9 +358,9 @@ namespace DMS_InstDirScanner
                 // Log the message to the DB if the monthly Windows updates are not pending
                 var allowLogToDB = !WindowsUpdateStatus.ServerUpdatesArePending();
 
-                mErrMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database";
+                ErrMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database";
                 if (logConnectionErrors)
-                    WriteErrorMsg(mErrMsg, allowLogToDB);
+                    WriteErrorMsg(ErrMsg, allowLogToDB);
 
                 return false;
             }
@@ -372,9 +369,9 @@ namespace DMS_InstDirScanner
             if (dtSettings == null)
             {
                 // Data table not initialized
-                mErrMsg = "LoadMgrSettingsFromDB; dtSettings datatable is null; using " + dbConnectionString;
+                ErrMsg = "LoadMgrSettingsFromDB; dtSettings data table is null; using " + dbConnectionString;
                 if (logConnectionErrors)
-                    WriteErrorMsg(mErrMsg);
+                    WriteErrorMsg(ErrMsg);
 
                 return false;
             }
@@ -383,8 +380,8 @@ namespace DMS_InstDirScanner
             if (dtSettings.Rows.Count < 1 && returnErrorIfNoParameters)
             {
                 // Wrong number of rows returned
-                mErrMsg = "LoadMgrSettingsFromDB; Manager " + managerName + " not defined in the manager control database; using " + dbConnectionString;
-                WriteErrorMsg(mErrMsg);
+                ErrMsg = "LoadMgrSettingsFromDB; Manager " + managerName + " not defined in the manager control database; using " + dbConnectionString;
+                WriteErrorMsg(ErrMsg);
                 dtSettings.Dispose();
                 return false;
             }
@@ -422,25 +419,25 @@ namespace DMS_InstDirScanner
                         }
                     }
 
-                    if (mParamDictionary.ContainsKey(paramKey))
+                    if (TaskDictionary.ContainsKey(paramKey))
                     {
                         if (!skipExistingParameters)
                         {
-                            mParamDictionary[paramKey] = paramVal;
+                            TaskDictionary[paramKey] = paramVal;
                         }
                     }
                     else
                     {
-                        mParamDictionary.Add(paramKey, paramVal);
+                        TaskDictionary.Add(paramKey, paramVal);
                     }
                 }
                 success = true;
             }
             catch (Exception ex)
             {
-                mErrMsg = "LoadMgrSettingsFromDB: Exception filling string dictionary from table for manager " +
+                ErrMsg = "LoadMgrSettingsFromDB: Exception filling string dictionary from table for manager " +
                           "'" + managerName + "': " + ex.Message;
-                WriteErrorMsg(mErrMsg);
+                WriteErrorMsg(ErrMsg);
                 success = false;
             }
             finally
@@ -469,7 +466,7 @@ namespace DMS_InstDirScanner
         /// <returns>Parameter value if found, otherwise empty string</returns>
         public string GetParam(string itemKey, string valueIfMissing)
         {
-            if (mParamDictionary.TryGetValue(itemKey, out var itemValue))
+            if (TaskDictionary.TryGetValue(itemKey, out var itemValue))
             {
                 return itemValue ?? string.Empty;
             }
@@ -485,7 +482,7 @@ namespace DMS_InstDirScanner
         /// <returns>Parameter value if found, otherwise empty string</returns>
         public bool GetParam(string itemKey, bool valueIfMissing)
         {
-            if (mParamDictionary.TryGetValue(itemKey, out var valueText))
+            if (TaskDictionary.TryGetValue(itemKey, out var valueText))
             {
                 var value = clsUtilityMethods.CBoolSafe(valueText, valueIfMissing);
                 return value;
@@ -502,7 +499,7 @@ namespace DMS_InstDirScanner
         /// <returns>Parameter value if found, otherwise empty string</returns>
         public int GetParam(string itemKey, int valueIfMissing)
         {
-            if (mParamDictionary.TryGetValue(itemKey, out var valueText))
+            if (TaskDictionary.TryGetValue(itemKey, out var valueText))
             {
                 var value = clsUtilityMethods.CIntSafe(valueText, valueIfMissing);
                 return value;
@@ -516,15 +513,16 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="itemKey"></param>
         /// <param name="itemValue"></param>
+        // ReSharper disable once UnusedMember.Global
         public void SetParam(string itemKey, string itemValue)
         {
-            if (mParamDictionary.ContainsKey(itemKey))
+            if (TaskDictionary.ContainsKey(itemKey))
             {
-                mParamDictionary[itemKey] = itemValue;
+                TaskDictionary[itemKey] = itemValue;
             }
             else
             {
-                mParamDictionary.Add(itemKey, itemValue);
+                TaskDictionary.Add(itemKey, itemValue);
             }
         }
 

@@ -12,7 +12,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class Program
     {
-        public const string PROGRAM_DATE = "April 10, 2018";
+        public const string PROGRAM_DATE = "September 20, 2018";
 
         private static bool mNoBionet;
 
@@ -76,7 +76,7 @@ namespace DMS_InstDirScanner
                     if (!mainProcess.InitMgr())
                     {
                         FileLogger.FlushPendingMessages();
-                        clsProgRunner.SleepMilliseconds(1500);
+                        ProgRunner.SleepMilliseconds(1500);
                         return -2;
                     }
 
@@ -116,7 +116,7 @@ namespace DMS_InstDirScanner
                 // Make sure no invalid parameters are present
                 if (commandLineParser.InvalidParametersPresent(validParameters))
                 {
-                    ShowErrorMessage("Invalid commmand line parameters",
+                    ShowErrorMessage("Invalid command line parameters",
                         (from item in commandLineParser.InvalidParameters(validParameters) select "/" + item).ToList());
 
                     return false;
@@ -184,7 +184,7 @@ namespace DMS_InstDirScanner
                 Console.WriteLine();
                 Console.WriteLine(ConsoleMsgUtils.WrapParagraph(
                     "Licensed under the Apache License, Version 2.0; you may not use this file except in compliance with the License. " +
-                    "You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0"));
+                    "You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0"));
                 Console.WriteLine();
 
                 // Delay for 750 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)

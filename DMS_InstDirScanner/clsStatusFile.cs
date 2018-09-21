@@ -18,7 +18,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Provides tools for creating and updating a task status file
     /// </summary>
-    internal class clsStatusFile : clsEventNotifier
+    internal class clsStatusFile : EventNotifier
     {
 
         #region "Enums"

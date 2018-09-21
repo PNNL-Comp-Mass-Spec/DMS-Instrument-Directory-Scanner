@@ -18,7 +18,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Handles all directory access tasks
     /// </summary>
-    internal class clsDirectoryTools : clsEventNotifier
+    internal class clsDirectoryTools : EventNotifier
     {
 
         #region "Member variables"
@@ -30,9 +30,9 @@ namespace DMS_InstDirScanner
         #endregion
 
         /// <summary>
-        /// Instance of clsFileTools
+        /// Instance of FileTools
         /// </summary>
-        private clsFileTools FileTools { get; }
+        private FileTools FileTools { get; }
 
         /// <summary>
         /// When true, ignore Bionet instruments
@@ -51,7 +51,7 @@ namespace DMS_InstDirScanner
         public clsDirectoryTools(bool noBionet, bool previewMode)
         {
             mMostRecentIOErrorInstrument = string.Empty;
-            FileTools = new clsFileTools();
+            FileTools = new FileTools();
             NoBionet = noBionet;
             PreviewMode = previewMode;
         }
@@ -208,7 +208,7 @@ namespace DMS_InstDirScanner
                 {
                     errorMessage = ex.Message;
                     // Delay for 1 second before trying again
-                    clsProgRunner.SleepMilliseconds(1000);
+                    ProgRunner.SleepMilliseconds(1000);
                 }
 
             }

@@ -104,7 +104,7 @@ namespace DMS_InstDirScanner
                         errorList.Add(ex.Message);
 
                     // Sleep for 3 seconds
-                    PRISM.clsProgRunner.SleepMilliseconds(3000);
+                    PRISM.ProgRunner.SleepMilliseconds(3000);
                 }
 
                 retriesRemaining -= 1;

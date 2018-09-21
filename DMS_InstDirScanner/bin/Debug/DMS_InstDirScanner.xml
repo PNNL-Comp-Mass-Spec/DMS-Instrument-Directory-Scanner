@@ -11,7 +11,7 @@
         </member>
         <member name="P:DMS_InstDirScanner.clsDirectoryTools.FileTools">
             <summary>
-            Instance of clsFileTools
+            Instance of FileTools
             </summary>
         </member>
         <member name="P:DMS_InstDirScanner.clsDirectoryTools.NoBionet">

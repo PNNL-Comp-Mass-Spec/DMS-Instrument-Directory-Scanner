@@ -302,7 +302,7 @@ namespace DMS_InstDirScanner
                 return null;
             }
 
-            var dbTools = new clsDBTools(connectionString);
+            var dbTools = new DBTools(connectionString);
             AttachEvents(dbTools);
 
             // Get a table containing the active instruments
@@ -426,7 +426,7 @@ namespace DMS_InstDirScanner
 
         #region "Event Handlers"
 
-        private void AttachEvents(clsEventNotifier objClass)
+        private void AttachEvents(EventNotifier objClass)
         {
             objClass.ErrorEvent += ErrorEventHandler;
             objClass.StatusEvent += MessageEventHandler;

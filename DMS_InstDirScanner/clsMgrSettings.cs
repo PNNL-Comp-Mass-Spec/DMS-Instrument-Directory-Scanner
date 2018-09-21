@@ -350,7 +350,7 @@ namespace DMS_InstDirScanner
 
                     // Delay for 5 seconds before trying again
                     if (retryCount >= 0)
-                        clsProgRunner.SleepMilliseconds(5000);
+                        ProgRunner.SleepMilliseconds(5000);
                 }
 
             } // while
@@ -359,7 +359,7 @@ namespace DMS_InstDirScanner
             if (retryCount < 0)
             {
                 // Log the message to the DB if the monthly Windows updates are not pending
-                var allowLogToDB = !clsWindowsUpdateStatus.ServerUpdatesArePending();
+                var allowLogToDB = !WindowsUpdateStatus.ServerUpdatesArePending();
 
                 mErrMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database";
                 if (logConnectionErrors)

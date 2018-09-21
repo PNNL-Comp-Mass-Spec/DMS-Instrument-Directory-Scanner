@@ -589,11 +589,17 @@ namespace DMS_InstDirScanner
                 // Get the most recent job info
                 MostRecentJobInfo = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentJobInfo")?.InnerText;
 
-                // Get the error messsages
-                foreach (XmlNode Xn in Doc.SelectNodes("//Manager/RecentErrorMessages/ErrMsg"))
+                var recentErrorMessages = Doc.SelectNodes("//Manager/RecentErrorMessages/ErrMsg");
+
+                if (recentErrorMessages != null)
                 {
-                    clsStatusData.AddErrorMessage(Xn.InnerText);
+                    // Get the error messages
+                    foreach (XmlNode Xn in recentErrorMessages)
+                    {
+                        clsStatusData.AddErrorMessage(Xn.InnerText);
+                    }
                 }
+
             }
             catch (Exception ex)
             {

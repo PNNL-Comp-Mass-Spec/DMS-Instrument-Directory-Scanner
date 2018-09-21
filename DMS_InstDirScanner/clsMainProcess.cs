@@ -258,15 +258,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Returns the full path to the executing .Exe or .Dll
         /// </summary>
-        /// <returns></returns>
-        public static string GetAppFolderPath()
-        {
-            return Path.GetDirectoryName(GetAppPath());
-        }
-
-        /// <summary>
-        /// Returns the full path to the executing .Exe or .Dll
-        /// </summary>
         /// <returns>File path</returns>
         /// <remarks></remarks>
         public static string GetAppPath()

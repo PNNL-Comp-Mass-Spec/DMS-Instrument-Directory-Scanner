@@ -25,6 +25,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
+        // ReSharper disable once UnusedMember.Global
         public static double BytesToGB(long bytes)
         {
             return bytes / 1024.0 / 1024.0 / 1024.0;
@@ -35,6 +36,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
+        // ReSharper disable once UnusedMember.Global
         public static bool CBoolSafe(string value)
         {
             return CBoolSafe(value, false);

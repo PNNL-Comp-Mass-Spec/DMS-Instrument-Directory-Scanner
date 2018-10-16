@@ -14,7 +14,7 @@ namespace DMS_InstDirScanner
     /// Class to hold long-term data for status reporting.
     /// This is a hack to avoid adding an instance of the status file class to the log tools class
     /// </summary>
-    class clsStatusData
+    class StatusData
     {
 
         private static string mMostRecentLogMessage;

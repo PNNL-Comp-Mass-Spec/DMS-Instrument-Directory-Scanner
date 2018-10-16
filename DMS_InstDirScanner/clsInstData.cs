@@ -14,7 +14,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Class to hold data for each instrument
     /// </summary>
-    public class clsInstData
+    public class InstrumentData
     {
         /// <summary>
         /// Storage volume, for example, \\QExactP04.bionet\

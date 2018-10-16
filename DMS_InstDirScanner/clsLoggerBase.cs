@@ -5,7 +5,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Base class that implements logging methods
     /// </summary>
-    public abstract class clsLoggerBase
+    public abstract class LoggerBase
     {
 
         /// <summary>
@@ -16,7 +16,7 @@ namespace DMS_InstDirScanner
         /// <remarks>The message is shown in dark grey in the console.</remarks>
         protected static void LogDebug(string statusMessage, bool writeToLog = true)
         {
-            clsUtilityMethods.LogDebug(statusMessage, writeToLog);
+            UtilityMethods.LogDebug(statusMessage, writeToLog);
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace DMS_InstDirScanner
         /// <param name="logToDb">When true, log the message to the database and the local log file</param>
         protected static void LogError(string errorMessage, bool logToDb = false)
         {
-            clsUtilityMethods.LogError(errorMessage, logToDb);
+            UtilityMethods.LogError(errorMessage, logToDb);
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace DMS_InstDirScanner
         /// <param name="ex">Exception to log</param>
         protected static void LogError(string errorMessage, Exception ex)
         {
-            clsUtilityMethods.LogError(errorMessage, ex);
+            UtilityMethods.LogError(errorMessage, ex);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace DMS_InstDirScanner
         /// <param name="writeToLog">True to write to the log file; false to only display at console</param>
         public static void LogMessage(string statusMessage, bool isError = false, bool writeToLog = true)
         {
-            clsUtilityMethods.LogMessage(statusMessage, isError, writeToLog);
+            UtilityMethods.LogMessage(statusMessage, isError, writeToLog);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace DMS_InstDirScanner
         /// <param name="logToDb">When true, log the message to the database and the local log file</param>
         protected static void LogWarning(string warningMessage, bool logToDb = false)
         {
-            clsUtilityMethods.LogWarning(warningMessage, logToDb);
+            UtilityMethods.LogWarning(warningMessage, logToDb);
         }
 
 

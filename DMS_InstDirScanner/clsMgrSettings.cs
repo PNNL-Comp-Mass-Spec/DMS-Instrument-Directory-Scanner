@@ -23,7 +23,7 @@ namespace DMS_InstDirScanner
     /// loaded or manager set to inactive. If manager active, retrieves remainder of settings from manager
     /// parameters database.
     /// </remarks>
-    public class clsMgrSettings : clsLoggerBase
+    public class MgrSettings : LoggerBase
     {
         #region "Constants"
 
@@ -85,7 +85,7 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Constructor
         /// </summary>
-        public clsMgrSettings()
+        public MgrSettings()
         {
             TaskDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (!LoadSettings())
@@ -358,7 +358,7 @@ namespace DMS_InstDirScanner
                 // Log the message to the DB if the monthly Windows updates are not pending
                 var allowLogToDB = !WindowsUpdateStatus.ServerUpdatesArePending();
 
-                ErrMsg = "clsMgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database";
+                ErrMsg = "MgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database";
                 if (logConnectionErrors)
                     WriteErrorMsg(ErrMsg, allowLogToDB);
 
@@ -484,7 +484,7 @@ namespace DMS_InstDirScanner
         {
             if (TaskDictionary.TryGetValue(itemKey, out var valueText))
             {
-                var value = clsUtilityMethods.CBoolSafe(valueText, valueIfMissing);
+                var value = UtilityMethods.CBoolSafe(valueText, valueIfMissing);
                 return value;
             }
 
@@ -501,7 +501,7 @@ namespace DMS_InstDirScanner
         {
             if (TaskDictionary.TryGetValue(itemKey, out var valueText))
             {
-                var value = clsUtilityMethods.CIntSafe(valueText, valueIfMissing);
+                var value = UtilityMethods.CIntSafe(valueText, valueIfMissing);
                 return value;
             }
 

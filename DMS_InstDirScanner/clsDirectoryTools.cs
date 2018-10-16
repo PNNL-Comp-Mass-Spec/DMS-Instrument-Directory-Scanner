@@ -18,7 +18,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Handles all directory access tasks
     /// </summary>
-    internal class clsDirectoryTools : EventNotifier
+    internal class DirectoryTools : EventNotifier
     {
 
         #region "Member variables"
@@ -48,7 +48,7 @@ namespace DMS_InstDirScanner
         /// Constructor
         /// </summary>
         /// <remarks></remarks>
-        public clsDirectoryTools(bool noBionet, bool previewMode)
+        public DirectoryTools(bool noBionet, bool previewMode)
         {
             mMostRecentIOErrorInstrument = string.Empty;
             FileTools = new FileTools();
@@ -56,7 +56,7 @@ namespace DMS_InstDirScanner
             PreviewMode = previewMode;
         }
 
-        public bool PerformDirectoryScans(List<clsInstData> instList, string outDirectoryPath, clsMgrSettings mgrSettings, clsStatusFile progStatus)
+        public bool PerformDirectoryScans(List<InstrumentData> instList, string outDirectoryPath, MgrSettings mgrSettings, StatusFile progStatus)
         {
             var instCounter = 0;
             var instCount = instList.Count;
@@ -226,7 +226,7 @@ namespace DMS_InstDirScanner
         /// <param name="mgrSettings"></param>
         /// <returns>True on success, false if the target directory is not found</returns>
         /// <remarks></remarks>
-        private bool GetDirectoryData(clsInstData instrumentData, TextWriter statusFileWriter, clsMgrSettings mgrSettings)
+        private bool GetDirectoryData(InstrumentData instrumentData, TextWriter statusFileWriter, MgrSettings mgrSettings)
         {
             var connected = false;
             var remoteDirectoryPath = Path.Combine(instrumentData.StorageVolume, instrumentData.StoragePath);

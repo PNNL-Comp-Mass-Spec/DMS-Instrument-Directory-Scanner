@@ -18,7 +18,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Handles sending and receiving of control and status messages
     /// </summary>
-    class clsMessageHandler : clsLoggerBase, IDisposable
+    class MessageHandler : LoggerBase, IDisposable
     {
 
         #region "Class variables"
@@ -26,7 +26,7 @@ namespace DMS_InstDirScanner
         private string m_BrokerUri;
 
         private string m_StatusTopicName;	// Used for status output
-        private clsMgrSettings m_MgrSettings;
+        private MgrSettings m_MgrSettings;
 
         private IConnection m_Connection;
         private ISession m_StatusSession;
@@ -39,7 +39,7 @@ namespace DMS_InstDirScanner
 
         #region "Properties"
 
-        public clsMgrSettings MgrSettings
+        public MgrSettings MgrSettings
         {
             set => m_MgrSettings = value;
         }

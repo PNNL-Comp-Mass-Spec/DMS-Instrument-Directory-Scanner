@@ -19,7 +19,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Master processing class
     /// </summary>
-    public class clsMainProcess : clsLoggerBase
+    public class MainProcess : LoggerBase
     {
         #region "Constants"
 
@@ -35,11 +35,11 @@ namespace DMS_InstDirScanner
 
         private readonly string m_MgrDirectoryPath;
 
-        private clsMgrSettings m_MgrSettings;
+        private MgrSettings m_MgrSettings;
 
-        static clsStatusFile m_StatusFile;
+        static StatusFile m_StatusFile;
 
-        private clsMessageHandler m_MsgHandler;
+        private MessageHandler m_MsgHandler;
 
         #endregion
 
@@ -60,7 +60,7 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Constructor
         /// </summary>
-        public clsMainProcess()
+        public MainProcess()
         {
             var exeInfo = new FileInfo(GetAppPath());
             m_MgrExeName = exeInfo.Name;
@@ -103,11 +103,11 @@ namespace DMS_InstDirScanner
             // Get the manager settings
             try
             {
-                m_MgrSettings = new clsMgrSettings();
+                m_MgrSettings = new MgrSettings();
             }
             catch
             {
-                // Failures are logged by clsMgrSettings to local emergency log file
+                // Failures are logged by MgrSettings to local emergency log file
                 return false;
             }
 
@@ -139,7 +139,7 @@ namespace DMS_InstDirScanner
 
             // Setup the message queue
 
-            m_MsgHandler = new clsMessageHandler
+            m_MsgHandler = new MessageHandler
             {
                 BrokerUri = m_MgrSettings.GetParam("MessageQueueURI"),
                 StatusTopicName = m_MgrSettings.GetParam("MessageQueueTopicMgrStatus"),
@@ -169,11 +169,11 @@ namespace DMS_InstDirScanner
             else
                 statusFileNameLoc = Path.Combine(fInfo.DirectoryName, "Status.xml");
 
-            m_StatusFile = new clsStatusFile(statusFileNameLoc, m_MsgHandler)
+            m_StatusFile = new StatusFile(statusFileNameLoc, m_MsgHandler)
             {
                 LogToMsgQueue = m_MgrSettings.GetParam("LogStatusToMessageQueue", false),
                 MgrName = m_MgrSettings.ManagerName,
-                MgrStatus = clsStatusFile.EnumMgrStatus.Running
+                MgrStatus = StatusFile.EnumMgrStatus.Running
             };
 
             AttachEvents(m_StatusFile);
@@ -238,7 +238,7 @@ namespace DMS_InstDirScanner
                 }
 
                 // Scan the directories
-                var scanner = new clsDirectoryTools(NoBionet, PreviewMode);
+                var scanner = new DirectoryTools(NoBionet, PreviewMode);
                 AttachEvents(scanner);
 
                 scanner.PerformDirectoryScans(instList, workDir, m_MgrSettings, m_StatusFile);
@@ -275,7 +275,7 @@ namespace DMS_InstDirScanner
             return PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetEntryOrExecutingAssembly().GetName().Version.ToString();
         }
 
-        private List<clsInstData> GetInstrumentList()
+        private List<InstrumentData> GetInstrumentList()
         {
             LogMessage("Getting instrument list");
             var columns = new List<string> {
@@ -315,12 +315,12 @@ namespace DMS_InstDirScanner
             var colMapping = dbTools.GetColumnMapping(columns);
 
             // Create a list of all instrument data
-            var instrumentList = new List<clsInstData>();
+            var instrumentList = new List<InstrumentData>();
             try
             {
                 foreach (var result in lstResults)
                 {
-                    var instrumentInfo = new clsInstData
+                    var instrumentInfo = new InstrumentData
                     {
                         CaptureMethod = dbTools.GetColumnValue(result, colMapping, "method"),
                         InstName = dbTools.GetColumnValue(result, colMapping, "Instrument"),

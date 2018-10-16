@@ -4,33 +4,33 @@
         <name>DMS_InstDirScanner</name>
     </assembly>
     <members>
-        <member name="T:DMS_InstDirScanner.clsDirectoryTools">
+        <member name="T:DMS_InstDirScanner.DirectoryTools">
             <summary>
             Handles all directory access tasks
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsDirectoryTools.FileTools">
+        <member name="P:DMS_InstDirScanner.DirectoryTools.FileTools">
             <summary>
             Instance of FileTools
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsDirectoryTools.NoBionet">
+        <member name="P:DMS_InstDirScanner.DirectoryTools.NoBionet">
             <summary>
             When true, ignore Bionet instruments
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsDirectoryTools.PreviewMode">
+        <member name="P:DMS_InstDirScanner.DirectoryTools.PreviewMode">
             <summary>
             When true, preview the stats but don't change any instrument stat files
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsDirectoryTools.#ctor(System.Boolean,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.DirectoryTools.#ctor(System.Boolean,System.Boolean)">
             <summary>
             Constructor
             </summary>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsDirectoryTools.GetDirectoryData(DMS_InstDirScanner.clsInstData,System.IO.TextWriter,DMS_InstDirScanner.clsMgrSettings)">
+        <member name="M:DMS_InstDirScanner.DirectoryTools.GetDirectoryData(DMS_InstDirScanner.InstrumentData,System.IO.TextWriter,DMS_InstDirScanner.MgrSettings)">
             <summary>
             Query the files and directories on the instrument's shared data directory
             </summary>
@@ -40,30 +40,30 @@
             <returns>True on success, false if the target directory is not found</returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsDirectoryTools.LogCriticalError(System.String)">
+        <member name="M:DMS_InstDirScanner.DirectoryTools.LogCriticalError(System.String)">
             <summary>
             Logs an error message to the local log file, unless it is currently between midnight and 1 am
             </summary>
             <param name="errorMessage"></param>
             <remarks></remarks>
         </member>
-        <member name="T:DMS_InstDirScanner.clsInstData">
+        <member name="T:DMS_InstDirScanner.InstrumentData">
             <summary>
             Class to hold data for each instrument
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsInstData.StorageVolume">
+        <member name="P:DMS_InstDirScanner.InstrumentData.StorageVolume">
             <summary>
             Storage volume, for example, \\QExactP04.bionet\
             </summary>
             <remarks></remarks>
         </member>
-        <member name="P:DMS_InstDirScanner.clsInstData.StoragePath">
+        <member name="P:DMS_InstDirScanner.InstrumentData.StoragePath">
             <summary>
             Storage path, typically ProteomicsData\
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsInstData.CaptureMethod">
+        <member name="P:DMS_InstDirScanner.InstrumentData.CaptureMethod">
             <summary>
             Capture method
             </summary>
@@ -71,23 +71,23 @@
             fso if on a domain computer
             secfso if on bionet</remarks>
         </member>
-        <member name="P:DMS_InstDirScanner.clsInstData.InstName">
+        <member name="P:DMS_InstDirScanner.InstrumentData.InstName">
             <summary>
             Instrument name
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsInstData.ToString">
+        <member name="M:DMS_InstDirScanner.InstrumentData.ToString">
             <summary>
             Instrument name: StorageVolume\StoragePath
             </summary>
             <returns></returns>
         </member>
-        <member name="T:DMS_InstDirScanner.clsLoggerBase">
+        <member name="T:DMS_InstDirScanner.LoggerBase">
             <summary>
             Base class that implements logging methods
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsLoggerBase.LogDebug(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.LoggerBase.LogDebug(System.String,System.Boolean)">
             <summary>
             Show a status message at the console and optionally include in the log file, tagging it as a debug message
             </summary>
@@ -95,21 +95,21 @@
             <param name="writeToLog">True to write to the log file; false to only display at console</param>
             <remarks>The message is shown in dark grey in the console.</remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsLoggerBase.LogError(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.LoggerBase.LogError(System.String,System.Boolean)">
             <summary>
             Log an error message
             </summary>
             <param name="errorMessage">Error message</param>
             <param name="logToDb">When true, log the message to the database and the local log file</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsLoggerBase.LogError(System.String,System.Exception)">
+        <member name="M:DMS_InstDirScanner.LoggerBase.LogError(System.String,System.Exception)">
             <summary>
             Log an error message and exception
             </summary>
             <param name="errorMessage">Error message (do not include ex.message)</param>
             <param name="ex">Exception to log</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsLoggerBase.LogMessage(System.String,System.Boolean,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.LoggerBase.LogMessage(System.String,System.Boolean,System.Boolean)">
             <summary>
             Show a status message at the console and optionally include in the log file
             </summary>
@@ -117,108 +117,108 @@
             <param name="isError">True if this is an error</param>
             <param name="writeToLog">True to write to the log file; false to only display at console</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsLoggerBase.LogWarning(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.LoggerBase.LogWarning(System.String,System.Boolean)">
             <summary>
             Log a warning message
             </summary>
             <param name="warningMessage">Warning message</param>
             <param name="logToDb">When true, log the message to the database and the local log file</param>
         </member>
-        <member name="T:DMS_InstDirScanner.clsMainProcess">
+        <member name="T:DMS_InstDirScanner.MainProcess">
             <summary>
             Master processing class
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsMainProcess.NoBionet">
+        <member name="P:DMS_InstDirScanner.MainProcess.NoBionet">
             <summary>
             When true, ignore Bionet instruments
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsMainProcess.PreviewMode">
+        <member name="P:DMS_InstDirScanner.MainProcess.PreviewMode">
             <summary>
             When true, preview the stats but don't change any instrument stat files
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.#ctor">
+        <member name="M:DMS_InstDirScanner.MainProcess.#ctor">
             <summary>
             Constructor
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.InitMgr">
+        <member name="M:DMS_InstDirScanner.MainProcess.InitMgr">
             <summary>
             Initializes the manager settings and classes
             </summary>
             <returns>True for success; False if error occurs</returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.DoDirectoryScan">
+        <member name="M:DMS_InstDirScanner.MainProcess.DoDirectoryScan">
             <summary>
             Do a directory scan
             </summary>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.GetAppPath">
+        <member name="M:DMS_InstDirScanner.MainProcess.GetAppPath">
             <summary>
             Returns the full path to the executing .Exe or .Dll
             </summary>
             <returns>File path</returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.GetAppVersion">
+        <member name="M:DMS_InstDirScanner.MainProcess.GetAppVersion">
             <summary>
             Returns the .NET assembly version followed by the program date
             </summary>
             <returns></returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.GetXmlConfigDefaultConnectionString">
+        <member name="M:DMS_InstDirScanner.MainProcess.GetXmlConfigDefaultConnectionString">
             <summary>
             Extract the value MgrCnfgDbConnectStr from DMS_InstDirScanner.exe.config
             </summary>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMainProcess.GetXmlConfigFileSetting(System.String)">
+        <member name="M:DMS_InstDirScanner.MainProcess.GetXmlConfigFileSetting(System.String)">
             <summary>
             Extract the value for the given setting from DMS_InstDirScanner.exe.config
             </summary>
             <returns>Setting value if found, otherwise an empty string</returns>
             <remarks>Uses a simple text reader in case the file has malformed XML</remarks>
         </member>
-        <member name="T:DMS_InstDirScanner.clsMessageHandler">
+        <member name="T:DMS_InstDirScanner.MessageHandler">
             <summary>
             Handles sending and receiving of control and status messages
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMessageHandler.CreateConnection(System.Int32,System.Int32)">
+        <member name="M:DMS_InstDirScanner.MessageHandler.CreateConnection(System.Int32,System.Int32)">
             <summary>
             Create set of NMS connection objects necessary to talk to the ActiveMQ broker
             </summary>
             <param name="retryCount">Number of times to try the connection</param>
             <param name="timeoutSeconds">Number of seconds to wait for the broker to respond</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMessageHandler.Init">
+        <member name="M:DMS_InstDirScanner.MessageHandler.Init">
             <summary>
             Create the message broker communication objects and register the listener function
             </summary>
             <returns>TRUE for success; FALSE otherwise</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMessageHandler.SendMessage(System.String)">
+        <member name="M:DMS_InstDirScanner.MessageHandler.SendMessage(System.String)">
             <summary>
             Sends a status message
             </summary>
             <param name="message">Outgoing message string</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMessageHandler.DestroyConnection">
+        <member name="M:DMS_InstDirScanner.MessageHandler.DestroyConnection">
             <summary>
             Cleans up a connection after error or when closing
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMessageHandler.Dispose">
+        <member name="M:DMS_InstDirScanner.MessageHandler.Dispose">
             <summary>
             Implements IDisposable interface
             </summary>
         </member>
-        <member name="T:DMS_InstDirScanner.clsMgrSettings">
+        <member name="T:DMS_InstDirScanner.MgrSettings">
             <summary>
             Class for loading, storing and accessing manager parameters.
             </summary>
@@ -228,68 +228,68 @@
             parameters database.
             </remarks>
         </member>
-        <member name="F:DMS_InstDirScanner.clsMgrSettings.DEACTIVATED_LOCALLY">
+        <member name="F:DMS_InstDirScanner.MgrSettings.DEACTIVATED_LOCALLY">
             <summary>
             Status message for when the manager is deactivated locally
             </summary>
             <remarks>Used when MgrActive_Local is False in AppName.exe.config</remarks>
         </member>
-        <member name="F:DMS_InstDirScanner.clsMgrSettings.MGR_PARAM_MGR_CFG_DB_CONN_STRING">
+        <member name="F:DMS_InstDirScanner.MgrSettings.MGR_PARAM_MGR_CFG_DB_CONN_STRING">
             <summary>
             Manager parameter: config database connection string
             </summary>
         </member>
-        <member name="F:DMS_InstDirScanner.clsMgrSettings.MGR_PARAM_MGR_ACTIVE_LOCAL">
+        <member name="F:DMS_InstDirScanner.MgrSettings.MGR_PARAM_MGR_ACTIVE_LOCAL">
             <summary>
             Manager parameter: manager active
             </summary>
             <remarks>Defined in AppName.exe.config</remarks>
         </member>
-        <member name="F:DMS_InstDirScanner.clsMgrSettings.MGR_PARAM_MGR_NAME">
+        <member name="F:DMS_InstDirScanner.MgrSettings.MGR_PARAM_MGR_NAME">
             <summary>
             Manager parameter: manager name
             </summary>
         </member>
-        <member name="F:DMS_InstDirScanner.clsMgrSettings.MGR_PARAM_USING_DEFAULTS">
+        <member name="F:DMS_InstDirScanner.MgrSettings.MGR_PARAM_USING_DEFAULTS">
             <summary>
             Manager parameter: using defaults flag
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsMgrSettings.ErrMsg">
+        <member name="P:DMS_InstDirScanner.MgrSettings.ErrMsg">
             <summary>
             Error message
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsMgrSettings.ManagerName">
+        <member name="P:DMS_InstDirScanner.MgrSettings.ManagerName">
             <summary>
             Manager name
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsMgrSettings.TaskDictionary">
+        <member name="P:DMS_InstDirScanner.MgrSettings.TaskDictionary">
             <summary>
             Dictionary of manager parameters
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.#ctor">
+        <member name="M:DMS_InstDirScanner.MgrSettings.#ctor">
             <summary>
             Constructor
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.LoadSettings">
+        <member name="M:DMS_InstDirScanner.MgrSettings.LoadSettings">
             <summary>
             Load manager settings from the config file
             </summary>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.LoadSettings(System.Collections.Generic.Dictionary{System.String,System.String})">
+        <member name="M:DMS_InstDirScanner.MgrSettings.LoadSettings(System.Collections.Generic.Dictionary{System.String,System.String})">
             <summary>
-            Updates manager settings, then loads settings from the database or from ManagerSettingsLocal.xml if clsGlobal.OfflineMode is true
+            Updates manager settings, then loads settings from the database
             </summary>
             <param name="configFileSettings">Manager settings loaded from file AnalysisManagerProg.exe.config</param>
             <returns>True if successful; False on error</returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.CheckInitialSettings(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+        <member name="M:DMS_InstDirScanner.MgrSettings.CheckInitialSettings(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
             <summary>
             Tests initial settings retrieved from config file
             </summary>
@@ -297,14 +297,14 @@
             <returns></returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.LoadMgrSettingsFromDB(System.Boolean)">
+        <member name="M:DMS_InstDirScanner.MgrSettings.LoadMgrSettingsFromDB(System.Boolean)">
             <summary>
             Gets manager config settings from manager control DB (Manager_Control)
             </summary>
             <returns>True if success, otherwise false</returns>
             <remarks>Performs retries if necessary.</remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.StoreParameters(System.Data.DataTable,System.Boolean,System.String)">
+        <member name="M:DMS_InstDirScanner.MgrSettings.StoreParameters(System.Data.DataTable,System.Boolean,System.String)">
             <summary>
             Update mParamDictionary with settings in dtSettings, optionally skipping existing parameters
             </summary>
@@ -313,14 +313,14 @@
             <param name="managerName"></param>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.GetParam(System.String)">
+        <member name="M:DMS_InstDirScanner.MgrSettings.GetParam(System.String)">
             <summary>
             Gets a manager parameter
             </summary>
             <param name="itemKey"></param>
             <returns>Parameter value if found, otherwise empty string</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.GetParam(System.String,System.String)">
+        <member name="M:DMS_InstDirScanner.MgrSettings.GetParam(System.String,System.String)">
             <summary>
             Gets a manager parameter
             </summary>
@@ -328,7 +328,7 @@
             <param name="valueIfMissing">Value to return if the parameter does not exist</param>
             <returns>Parameter value if found, otherwise empty string</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.GetParam(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.MgrSettings.GetParam(System.String,System.Boolean)">
             <summary>
             Gets a manager parameter
             </summary>
@@ -336,7 +336,7 @@
             <param name="valueIfMissing">Value to return if the parameter does not exist</param>
             <returns>Parameter value if found, otherwise empty string</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.GetParam(System.String,System.Int32)">
+        <member name="M:DMS_InstDirScanner.MgrSettings.GetParam(System.String,System.Int32)">
             <summary>
             Gets a manager parameter
             </summary>
@@ -344,177 +344,177 @@
             <param name="valueIfMissing">Value to return if the parameter does not exist</param>
             <returns>Parameter value if found, otherwise empty string</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.SetParam(System.String,System.String)">
+        <member name="M:DMS_InstDirScanner.MgrSettings.SetParam(System.String,System.String)">
             <summary>
             Set a manager parameter
             </summary>
             <param name="itemKey"></param>
             <param name="itemValue"></param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsMgrSettings.GetConfigFilePath">
+        <member name="M:DMS_InstDirScanner.MgrSettings.GetConfigFilePath">
             <summary>
             Specifies the full name and path for the application config file
             </summary>
             <returns>String containing full name and path</returns>
         </member>
-        <member name="T:DMS_InstDirScanner.clsStatusData">
+        <member name="T:DMS_InstDirScanner.StatusData">
             <summary>
             Class to hold long-term data for status reporting.
             This is a hack to avoid adding an instance of the status file class to the log tools class
             </summary>
         </member>
-        <member name="T:DMS_InstDirScanner.clsStatusFile">
+        <member name="T:DMS_InstDirScanner.StatusFile">
             <summary>
             Provides tools for creating and updating a task status file
             </summary>
         </member>
-        <member name="T:DMS_InstDirScanner.clsStatusFile.EnumMgrStatus">
+        <member name="T:DMS_InstDirScanner.StatusFile.EnumMgrStatus">
             <summary>
             Manager status constants
             </summary>
         </member>
-        <member name="T:DMS_InstDirScanner.clsStatusFile.EnumTaskStatus">
+        <member name="T:DMS_InstDirScanner.StatusFile.EnumTaskStatus">
             <summary>
             Task status constants
             </summary>
         </member>
-        <member name="T:DMS_InstDirScanner.clsStatusFile.EnumTaskStatusDetail">
+        <member name="T:DMS_InstDirScanner.StatusFile.EnumTaskStatusDetail">
             <summary>
             Task status detail constants
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.FileNamePath">
+        <member name="P:DMS_InstDirScanner.StatusFile.FileNamePath">
             <summary>
             Status file path
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.MgrName">
+        <member name="P:DMS_InstDirScanner.StatusFile.MgrName">
             <summary>
             Manager name
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.MgrStatus">
+        <member name="P:DMS_InstDirScanner.StatusFile.MgrStatus">
             <summary>
             Manager status
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.CpuUtilization">
+        <member name="P:DMS_InstDirScanner.StatusFile.CpuUtilization">
             <summary>
             Overall CPU utilization of all threads
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.Tool">
+        <member name="P:DMS_InstDirScanner.StatusFile.Tool">
             <summary>
             Step tool name
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.TaskStatus">
+        <member name="P:DMS_InstDirScanner.StatusFile.TaskStatus">
             <summary>
             Task status
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.TaskStartTime">
+        <member name="P:DMS_InstDirScanner.StatusFile.TaskStartTime">
             <summary>
             Task start time (UTC-based)
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.Progress">
+        <member name="P:DMS_InstDirScanner.StatusFile.Progress">
             <summary>
             Progress (value between 0 and 100)
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.CurrentOperation">
+        <member name="P:DMS_InstDirScanner.StatusFile.CurrentOperation">
             <summary>
             Current task
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.TaskStatusDetail">
+        <member name="P:DMS_InstDirScanner.StatusFile.TaskStatusDetail">
             <summary>
             Task status detail
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.JobNumber">
+        <member name="P:DMS_InstDirScanner.StatusFile.JobNumber">
             <summary>
             Job number
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.JobStep">
+        <member name="P:DMS_InstDirScanner.StatusFile.JobStep">
             <summary>
             Step number
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.Dataset">
+        <member name="P:DMS_InstDirScanner.StatusFile.Dataset">
             <summary>
             Dataset name
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.MostRecentJobInfo">
+        <member name="P:DMS_InstDirScanner.StatusFile.MostRecentJobInfo">
             <summary>
             Most recent job info
             </summary>
         </member>
-        <member name="P:DMS_InstDirScanner.clsStatusFile.LogToMsgQueue">
+        <member name="P:DMS_InstDirScanner.StatusFile.LogToMsgQueue">
             <summary>
             When true, the status XML is being sent to the manager status message queue
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.#ctor(System.String,DMS_InstDirScanner.clsMessageHandler)">
+        <member name="M:DMS_InstDirScanner.StatusFile.#ctor(System.String,DMS_InstDirScanner.MessageHandler)">
             <summary>
             Constructor
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.ClearCachedInfo">
+        <member name="M:DMS_InstDirScanner.StatusFile.ClearCachedInfo">
             <summary>
             Clears cached status info
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.ConvertMgrStatusToString(DMS_InstDirScanner.clsStatusFile.EnumMgrStatus)">
+        <member name="M:DMS_InstDirScanner.StatusFile.ConvertMgrStatusToString(DMS_InstDirScanner.StatusFile.EnumMgrStatus)">
             <summary>
             Converts the manager status enum to a string value
             </summary>
             <param name="statusEnum">An IStatusFile.EnumMgrStatus object</param>
             <returns>String representation of input object</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.ConvertTaskStatusToString(DMS_InstDirScanner.clsStatusFile.EnumTaskStatus)">
+        <member name="M:DMS_InstDirScanner.StatusFile.ConvertTaskStatusToString(DMS_InstDirScanner.StatusFile.EnumTaskStatus)">
             <summary>
             Converts the task status enum to a string value
             </summary>
             <param name="statusEnum">An IStatusFile.EnumTaskStatus object</param>
             <returns>String representation of input object</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.ConvertTaskStatusDetailToString(DMS_InstDirScanner.clsStatusFile.EnumTaskStatusDetail)">
+        <member name="M:DMS_InstDirScanner.StatusFile.ConvertTaskStatusDetailToString(DMS_InstDirScanner.StatusFile.EnumTaskStatusDetail)">
             <summary>
             Converts the task status enum to a string value
             </summary>
             <param name="statusEnum">An IStatusFile.EnumTaskStatusDetail object</param>
             <returns>String representation of input object</returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.GetProcessID">
+        <member name="M:DMS_InstDirScanner.StatusFile.GetProcessID">
             <summary>
             Return the ProcessID of the Analysis manager
             </summary>
             <returns></returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.GetStatusFileDirectory">
+        <member name="M:DMS_InstDirScanner.StatusFile.GetStatusFileDirectory">
             <summary>
             Get the directory path for the status file tracked by FileNamePath
             </summary>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.WriteStatusFile">
+        <member name="M:DMS_InstDirScanner.StatusFile.WriteStatusFile">
             <summary>
             Writes the status file
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(System.Single)">
+        <member name="M:DMS_InstDirScanner.StatusFile.UpdateAndWrite(System.Single)">
             <summary>
             Updates status file
             (Overload to update when completion percentage is the only change)
             </summary>
             <param name="percentComplete">Job completion percentage (value between 0 and 100)</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.UpdateAndWrite(DMS_InstDirScanner.clsStatusFile.EnumTaskStatusDetail,System.Single)">
+        <member name="M:DMS_InstDirScanner.StatusFile.UpdateAndWrite(DMS_InstDirScanner.StatusFile.EnumTaskStatusDetail,System.Single)">
             <summary>
             Updates status file
             (Overload to update file when status and completion percentage change)
@@ -522,56 +522,56 @@
             <param name="status">Job status enum</param>
             <param name="percentComplete">Job completion percentage (value between 0 and 100)</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.UpdateStopped(System.Boolean)">
+        <member name="M:DMS_InstDirScanner.StatusFile.UpdateStopped(System.Boolean)">
             <summary>
             Sets status file to show manager not running
             </summary>
             <param name="mgrError">TRUE if manager not running due to error; FALSE otherwise</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.UpdateDisabled(System.Boolean)">
+        <member name="M:DMS_InstDirScanner.StatusFile.UpdateDisabled(System.Boolean)">
             <summary>
             Updates status file to show manager disabled
             </summary>
             <param name="disabledLocally">TRUE if manager disabled locally, otherwise FALSE</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.LogStatusToMessageQueue(System.String)">
+        <member name="M:DMS_InstDirScanner.StatusFile.LogStatusToMessageQueue(System.String)">
             <summary>
             Writes the status to the message queue
             </summary>
             <param name="strStatusXML">A string containing the XML to write</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.GetRunTime">
+        <member name="M:DMS_InstDirScanner.StatusFile.GetRunTime">
             <summary>
             Total time the job has been running
             </summary>
             <returns>Number of hours manager has been processing job</returns>
             <remarks></remarks>
         </member>
-        <member name="M:DMS_InstDirScanner.clsStatusFile.InitStatusFromFile">
+        <member name="M:DMS_InstDirScanner.StatusFile.InitStatusFromFile">
             <summary>
             Initializes the status from a file, if file exists
             </summary>
         </member>
-        <member name="T:DMS_InstDirScanner.clsUtilityMethods">
+        <member name="T:DMS_InstDirScanner.UtilityMethods">
             <summary>
             Holds static utility methods that are put here to avoid cluttering up other classes
             </summary>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.BytesToGB(System.Int64)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.BytesToGB(System.Int64)">
             <summary>
             Convert bytes to Gigabytes
             </summary>
             <param name="bytes"></param>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.CBoolSafe(System.String)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.CBoolSafe(System.String)">
             <summary>
             Convert string to bool; default false if an error
             </summary>
             <param name="value"></param>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.CBoolSafe(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.CBoolSafe(System.String,System.Boolean)">
             <summary>
             Convert a string value to a boolean
             </summary>
@@ -579,7 +579,7 @@
             <param name="defaultValue"></param>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.CIntSafe(System.String,System.Int32)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.CIntSafe(System.String,System.Int32)">
             <summary>
             Convert a string value to an integer
             </summary>
@@ -587,21 +587,21 @@
             <param name="defaultValue"></param>
             <returns></returns>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.LogError(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.LogError(System.String,System.Boolean)">
             <summary>
             Log an error message
             </summary>
             <param name="errorMessage">Error message</param>
             <param name="logToDb">When true, log the message to the database and the local log file</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.LogError(System.String,System.Exception)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.LogError(System.String,System.Exception)">
             <summary>
             Log an error message and exception
             </summary>
             <param name="errorMessage">Error message</param>
             <param name="ex">Exception to log</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.LogMessage(System.String,System.Boolean,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.LogMessage(System.String,System.Boolean,System.Boolean)">
             <summary>
             Show a status message at the console and optionally include in the log file
             </summary>
@@ -609,14 +609,14 @@
             <param name="isError">True if this is an error</param>
             <param name="writeToLog">True to write to the log file; false to only display at console</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.LogWarning(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.LogWarning(System.String,System.Boolean)">
             <summary>
             Log a warning message
             </summary>
             <param name="warningMessage">Warning message</param>
             <param name="logToDb">When true, log the message to the database and the local log file</param>
         </member>
-        <member name="M:DMS_InstDirScanner.clsUtilityMethods.LogDebug(System.String,System.Boolean)">
+        <member name="M:DMS_InstDirScanner.UtilityMethods.LogDebug(System.String,System.Boolean)">
             <summary>
             Show a debug message, and optionally log to disk
             </summary>

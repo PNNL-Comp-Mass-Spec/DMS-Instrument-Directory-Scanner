@@ -64,7 +64,7 @@ namespace DMS_InstDirScanner
                     return -1;
                 }
 
-                var mainProcess = new clsMainProcess
+                var mainProcess = new MainProcess
                 {
                     NoBionet = mNoBionet,
                     PreviewMode = mPreviewMode
@@ -158,7 +158,7 @@ namespace DMS_InstDirScanner
         {
             try
             {
-                var exePath = clsMainProcess.GetAppPath();
+                var exePath = MainProcess.GetAppPath();
 
                 Console.WriteLine(ConsoleMsgUtils.WrapParagraph(
                     "This program finds the files and directories in the source folder for active DMS instruments. " +

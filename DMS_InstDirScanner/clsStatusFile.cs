@@ -18,7 +18,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Provides tools for creating and updating a task status file
     /// </summary>
-    internal class clsStatusFile : EventNotifier
+    internal class StatusFile : EventNotifier
     {
 
         #region "Enums"
@@ -68,7 +68,7 @@ namespace DMS_InstDirScanner
 
         private int m_WritingErrorCountSaved;
 
-        readonly clsMessageHandler m_MsgHandler;
+        readonly MessageHandler m_MsgHandler;
 
         int m_MessageQueueExceptionCount;
 
@@ -158,7 +158,7 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Constructor
         /// </summary>
-        public clsStatusFile(string statusFilePath, clsMessageHandler msgHandler)
+        public StatusFile(string statusFilePath, MessageHandler msgHandler)
         {
             FileNamePath = statusFilePath;
             TaskStartTime = DateTime.UtcNow;
@@ -271,7 +271,7 @@ namespace DMS_InstDirScanner
         }
 
         private string GenerateStatusXML(
-            clsStatusFile status,
+            StatusFile status,
             DateTime lastUpdate,
             int processId,
             int cpuUtilization,
@@ -315,7 +315,7 @@ namespace DMS_InstDirScanner
                 xWriter.WriteElementString("ProcessID", processId.ToString());
                 xWriter.WriteStartElement("RecentErrorMessages");
 
-                foreach (var errMsg in clsStatusData.ErrorQueue)
+                foreach (var errMsg in StatusData.ErrorQueue)
                 {
                     xWriter.WriteElementString("ErrMsg", errMsg);
                 }
@@ -336,7 +336,7 @@ namespace DMS_InstDirScanner
                 xWriter.WriteElementString("Job", status.JobNumber.ToString());
                 xWriter.WriteElementString("Step", status.JobStep.ToString());
                 xWriter.WriteElementString("Dataset", status.Dataset);
-                xWriter.WriteElementString("MostRecentLogMessage", clsStatusData.MostRecentLogMessage);
+                xWriter.WriteElementString("MostRecentLogMessage", StatusData.MostRecentLogMessage);
                 xWriter.WriteElementString("MostRecentJobInfo", status.MostRecentJobInfo);
                 xWriter.WriteEndElement(); // TaskDetails
                 xWriter.WriteEndElement(); // Task
@@ -584,7 +584,7 @@ namespace DMS_InstDirScanner
                 Doc.LoadXml(XmlStr);
 
                 // Get the most recent log message
-                clsStatusData.MostRecentLogMessage = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentLogMessage")?.InnerText;
+                StatusData.MostRecentLogMessage = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentLogMessage")?.InnerText;
 
                 // Get the most recent job info
                 MostRecentJobInfo = Doc.SelectSingleNode("//Task/TaskDetails/MostRecentJobInfo")?.InnerText;
@@ -596,7 +596,7 @@ namespace DMS_InstDirScanner
                     // Get the error messages
                     foreach (XmlNode Xn in recentErrorMessages)
                     {
-                        clsStatusData.AddErrorMessage(Xn.InnerText);
+                        StatusData.AddErrorMessage(Xn.InnerText);
                     }
                 }
 

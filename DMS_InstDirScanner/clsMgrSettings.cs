@@ -126,7 +126,7 @@ namespace DMS_InstDirScanner
             }
 
             // Get directory for main executable
-            var appPath = PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppPath();
+            var appPath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
             var fi = new FileInfo(appPath);
             TaskDictionary.Add("ApplicationPath", fi.DirectoryName);
 
@@ -547,7 +547,7 @@ namespace DMS_InstDirScanner
         /// <returns>String containing full name and path</returns>
         private string GetConfigFilePath()
         {
-            var configFilePath = PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppPath() + ".config";
+            var configFilePath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath() + ".config";
             return configFilePath;
         }
 

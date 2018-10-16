@@ -262,7 +262,7 @@ namespace DMS_InstDirScanner
         /// <remarks></remarks>
         public static string GetAppPath()
         {
-            return PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppPath();
+            return PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace DMS_InstDirScanner
         /// <remarks></remarks>
         public static string GetAppVersion()
         {
-            return PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetEntryOrExecutingAssembly().GetName().Version.ToString();
+            return PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetEntryOrExecutingAssembly().GetName().Version.ToString();
         }
 
         private List<clsInstData> GetInstrumentList()

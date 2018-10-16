@@ -12,7 +12,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class Program
     {
-        public const string PROGRAM_DATE = "September 21, 2018";
+        public const string PROGRAM_DATE = "October 16, 2018";
 
         private static bool mNoBionet;
 
@@ -164,7 +164,7 @@ namespace DMS_InstDirScanner
                     "This program finds the files and directories in the source folder for active DMS instruments. " +
                     "It creates a text file for each instrument on a central share, listing the files and directories." +
                     "On the DMS website, the helper_inst_source page file reads these text files show DMS users dataset" +
-                    "files and directories on the instruments, for example http://dms2.pnl.gov/helper_inst_source/view/QExactP02"));
+                    "files and directories on the instruments, for example https://dms2.pnl.gov/helper_inst_source/view/QExactP02"));
                 Console.WriteLine();
                 Console.WriteLine("Program syntax:");
                 Console.WriteLine(exePath + " [/NoBionet] [/Preview]");

@@ -183,8 +183,8 @@ namespace DMS_InstDirScanner
                 Console.WriteLine("Website: https://omics.pnl.gov/ or https://panomics.pnnl.gov/");
                 Console.WriteLine();
                 Console.WriteLine(ConsoleMsgUtils.WrapParagraph(
-                    "Licensed under the Apache License, Version 2.0; you may not use this file except in compliance with the License. " +
-                    "You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0"));
+                    "Licensed under the 2-Clause BSD License; you may not use this file except in compliance with the License. " +
+                    "You may obtain a copy of the License at https://opensource.org/licenses/BSD-2-Clause"));
                 Console.WriteLine();
 
                 // Delay for 750 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)

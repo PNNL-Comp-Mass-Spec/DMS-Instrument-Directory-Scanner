@@ -111,29 +111,22 @@ namespace DMS_InstDirScanner
         }
 
         /// <summary>
-        /// Load manager settings from the config file
-        /// </summary>
-        /// <returns></returns>
-        public bool LoadSettings()
-        {
-            var configFileSettings = LoadMgrSettingsFromFile();
-
-            return LoadSettings(configFileSettings);
-        }
-
-        /// <summary>
         /// Updates manager settings, then loads settings from the database
         /// </summary>
-        /// <param name="configFileSettings">Manager settings loaded from file AnalysisManagerProg.exe.config</param>
+        /// <param name="localSettings">Manager settings loaded from file AnalysisManagerProg.exe.config</param>
         /// <returns>True if successful; False on error</returns>
         /// <remarks></remarks>
-        public bool LoadSettings(Dictionary<string, string> configFileSettings)
+        public bool LoadSettings(Dictionary<string, string> localSettings)
         {
             ErrMsg = string.Empty;
 
             MgrParams.Clear();
 
-            foreach (var item in configFileSettings)
+            // Copy the settings from localSettings to configFileSettings
+            // Assures that the MgrName setting is defined and auto-updates it if it contains $ComputerName$
+            var mgrSettingsFromFile = InitializeMgrSettings(localSettings);
+
+            foreach (var item in mgrSettingsFromFile)
             {
                 MgrParams.Add(item.Key, item.Value);
             }
@@ -150,6 +143,13 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
+            // Assure that MgrActive_Local is defined
+            if (!MgrParams.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
+            {
+                // MgrActive_Local parameter not defined defined in the AppName.exe.config file
+                HandleParameterNotDefined(MGR_PARAM_MGR_ACTIVE_LOCAL);
+            }
+
             // Get remaining settings from database
             if (!LoadMgrSettingsFromDB())
             {
@@ -164,29 +164,28 @@ namespace DMS_InstDirScanner
             return true;
         }
 
-        private Dictionary<string, string> LoadMgrSettingsFromFile()
+        private Dictionary<string, string> InitializeMgrSettings(Dictionary<string, string> localSettings)
         {
             var mgrSettingsFromFile = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            // Manager config db connection string
-            var mgrCfgDBConnString = Properties.Settings.Default.MgrCnfgDbConnectStr;
-            mgrSettingsFromFile.Add(MGR_PARAM_MGR_CFG_DB_CONN_STRING, mgrCfgDBConnString);
-
-            // Manager active flag
-            var mgrActiveLocal = Properties.Settings.Default.MgrActive_Local.ToString();
-            mgrSettingsFromFile.Add(MGR_PARAM_MGR_ACTIVE_LOCAL, mgrActiveLocal);
+            foreach (var item in localSettings)
+            {
+                mgrSettingsFromFile.Add(item.Key, item.Value);
+            }
 
             // If MgrName value contains the text $ComputerName$, replace it with computer's name
             // This is a case-sensitive comparison
-            var mgrName = Properties.Settings.Default.MgrName;
-            if (mgrName.Contains("$ComputerName$"))
-                mgrSettingsFromFile.Add(MGR_PARAM_MGR_NAME, mgrName.Replace("$ComputerName$", Environment.MachineName));
+            if (mgrSettingsFromFile.TryGetValue(MGR_PARAM_MGR_NAME, out var mgrName))
+            {
+                if (mgrName.Contains("$ComputerName$"))
+                {
+                    mgrSettingsFromFile[MGR_PARAM_MGR_NAME] = mgrName.Replace("$ComputerName$", Environment.MachineName);
+                }
+            }
             else
-                mgrSettingsFromFile.Add(MGR_PARAM_MGR_NAME, mgrName);
-
-            // Default settings in use flag
-            var usingDefaults = Properties.Settings.Default.UsingDefaults.ToString();
-            mgrSettingsFromFile.Add(MGR_PARAM_USING_DEFAULTS, usingDefaults);
+            {
+                mgrSettingsFromFile.Add(MGR_PARAM_MGR_NAME, Environment.MachineName + "_Undefined-Manager");
+            }
 
             return mgrSettingsFromFile;
         }

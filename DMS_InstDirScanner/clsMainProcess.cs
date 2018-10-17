@@ -103,11 +103,19 @@ namespace DMS_InstDirScanner
             // Get the manager settings
             try
             {
+                var localSettings = new Dictionary<string, string>
+                {
+                    {MgrSettings.MGR_PARAM_MGR_CFG_DB_CONN_STRING, Properties.Settings.Default.MgrCnfgDbConnectStr},
+                    {MgrSettings.MGR_PARAM_MGR_ACTIVE_LOCAL, Properties.Settings.Default.MgrActive_Local.ToString()},
+                    {MgrSettings.MGR_PARAM_MGR_NAME, Properties.Settings.Default.MgrName},
+                    {MgrSettings.MGR_PARAM_USING_DEFAULTS, Properties.Settings.Default.UsingDefaults.ToString()}
+                };
+
                 m_MgrSettings = new MgrSettings();
                 RegisterEvents(m_MgrSettings);
                 m_MgrSettings.CriticalErrorEvent += CriticalErrorEvent;
 
-                var success = m_MgrSettings.LoadSettings();
+                var success = m_MgrSettings.LoadSettings(localSettings);
                 if (!success)
                     return false;
             }

@@ -513,8 +513,19 @@ namespace DMS_InstDirScanner
         {
             if (MgrParams.TryGetValue(itemKey, out var valueText))
             {
-                var value = UtilityMethods.CBoolSafe(valueText, valueIfMissing);
-                return value;
+                if (string.IsNullOrEmpty(valueText))
+                    return valueIfMissing;
+
+                if (bool.TryParse(valueText, out var value))
+                    return value;
+
+                if (int.TryParse(valueText, out var integerValue))
+                {
+                    if (integerValue == 0)
+                        return false;
+                    if (integerValue == 1)
+                        return true;
+                }
             }
 
             return valueIfMissing;
@@ -530,8 +541,11 @@ namespace DMS_InstDirScanner
         {
             if (MgrParams.TryGetValue(itemKey, out var valueText))
             {
-                var value = UtilityMethods.CIntSafe(valueText, valueIfMissing);
-                return value;
+                if (string.IsNullOrEmpty(valueText))
+                    return valueIfMissing;
+
+                if (int.TryParse(valueText, out var value))
+                    return value;
             }
 
             return valueIfMissing;

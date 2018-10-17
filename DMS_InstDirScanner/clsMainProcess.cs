@@ -188,7 +188,7 @@ namespace DMS_InstDirScanner
                 MgrStatus = StatusFile.EnumMgrStatus.Running
             };
 
-            AttachEvents(m_StatusFile);
+            RegisterEvents(m_StatusFile);
 
             m_StatusFile.WriteStatusFile();
 
@@ -251,7 +251,7 @@ namespace DMS_InstDirScanner
 
                 // Scan the directories
                 var scanner = new DirectoryTools(NoBionet, PreviewMode);
-                AttachEvents(scanner);
+                RegisterEvents(scanner);
 
                 scanner.PerformDirectoryScans(instList, workDir, m_MgrSettings, m_StatusFile);
 
@@ -306,7 +306,7 @@ namespace DMS_InstDirScanner
             }
 
             var dbTools = new DBTools(connectionString);
-            AttachEvents(dbTools);
+            RegisterEvents(dbTools);
 
             // Get a table containing the active instruments
             var success = dbTools.GetQueryResults(sqlQuery, out var lstResults, "GetInstrumentList");
@@ -429,11 +429,22 @@ namespace DMS_InstDirScanner
 
         #region "Event Handlers"
 
-        private void AttachEvents(EventNotifier objClass)
+        private void RegisterEvents(EventNotifier sourceClass)
         {
-            objClass.ErrorEvent += ErrorEventHandler;
-            objClass.StatusEvent += MessageEventHandler;
-            objClass.WarningEvent += WarningEventHandler;
+            sourceClass.DebugEvent += DebugEventHandler;
+            sourceClass.ErrorEvent += ErrorEventHandler;
+            sourceClass.StatusEvent += MessageEventHandler;
+            sourceClass.WarningEvent += WarningEventHandler;
+        }
+
+        private void CriticalErrorEvent(string message, Exception ex)
+        {
+            LogError(message, true);
+        }
+
+        private void DebugEventHandler(string message)
+        {
+            ConsoleMsgUtils.ShowDebug(message, "  ", 0);
         }
 
         private void ErrorEventHandler(string message, Exception ex)

@@ -132,15 +132,9 @@ namespace DMS_InstDirScanner
             // Setup the loggers
             var logFileNameBase = m_MgrSettings.GetParam("LogFileName", "InstDirScanner");
 
-            BaseLogger.LogLevels logLevel;
-            if (int.TryParse(m_MgrSettings.GetParam("DebugLevel"), out var debugLevel))
-            {
-                logLevel = (BaseLogger.LogLevels)debugLevel;
-            }
-            else
-            {
-                logLevel = BaseLogger.LogLevels.INFO;
-            }
+            var debugLevel = m_MgrSettings.GetParam("DebugLevel", (int)BaseLogger.LogLevels.INFO);
+
+            var logLevel = (BaseLogger.LogLevels)debugLevel;
 
             LogTools.CreateFileLogger(logFileNameBase, logLevel);
 
@@ -213,7 +207,7 @@ namespace DMS_InstDirScanner
             try
             {
                 // Check to see if manager is active
-                if (!bool.Parse(m_MgrSettings.GetParam("MgrActive")))
+                if (!m_MgrSettings.GetParam("MgrActive", true))
                 {
                     var message = "Program disabled in manager control DB";
                     ConsoleMsgUtils.ShowWarning(message);
@@ -223,7 +217,7 @@ namespace DMS_InstDirScanner
                     return;
                 }
 
-                if (!bool.Parse(m_MgrSettings.GetParam("MgrActive_local")))
+                if (!m_MgrSettings.GetParam(MgrSettings.MGR_PARAM_MGR_ACTIVE_LOCAL, true))
                 {
                     var message = "Program disabled locally";
                     ConsoleMsgUtils.ShowWarning(message);

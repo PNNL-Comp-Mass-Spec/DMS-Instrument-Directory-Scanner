@@ -438,16 +438,6 @@ namespace DMS_InstDirScanner
                     var paramKey = DbCStr(currentRow[dtSettings.Columns["ParameterName"]]);
                     var paramVal = DbCStr(currentRow[dtSettings.Columns["ParameterValue"]]);
 
-                    if (paramKey.ToLower() == "perspective" && Environment.MachineName.ToLower().StartsWith("monroe"))
-                    {
-                        if (paramVal.ToLower() == "server")
-                        {
-                            paramVal = "client";
-                            Console.WriteLine(
-                                @"StoreParameters: Overriding manager perspective to be 'client' because impersonating a server-based manager from an office computer");
-                        }
-                    }
-
                     if (MgrParams.ContainsKey(paramKey))
                     {
                         if (!skipExistingParameters)

@@ -111,6 +111,18 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
+            if (Environment.MachineName.ToLower().StartsWith("monroe"))
+            {
+                var mgrPerspective = m_MgrSettings.GetParam("perspective");
+
+                if (mgrPerspective.Equals("server", StringComparison.OrdinalIgnoreCase))
+                {
+                    m_MgrSettings.SetParam("perspective", "client");
+                    Console.WriteLine("StoreParameters: Overriding manager perspective to be 'client' " +
+                                      "because impersonating a server-based manager from an office computer");
+                }
+            }
+
             // Setup the loggers
             var logFileNameBase = m_MgrSettings.GetParam("LogFileName", "InstDirScanner");
 

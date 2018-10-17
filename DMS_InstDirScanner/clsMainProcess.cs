@@ -104,10 +104,16 @@ namespace DMS_InstDirScanner
             try
             {
                 m_MgrSettings = new MgrSettings();
+                RegisterEvents(m_MgrSettings);
+                m_MgrSettings.CriticalErrorEvent += CriticalErrorEvent;
+
+                var success = m_MgrSettings.LoadSettings();
+                if (!success)
+                    return false;
             }
             catch
             {
-                // Failures are logged by MgrSettings to local emergency log file
+                // Failures should have already been logged (or shown at the console)
                 return false;
             }
 

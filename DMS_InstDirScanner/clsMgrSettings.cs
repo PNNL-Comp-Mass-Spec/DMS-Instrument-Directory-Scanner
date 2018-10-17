@@ -93,17 +93,21 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <remarks>Call LoadSettings after instantiating this class</remarks>
         public MgrSettings()
         {
-            if (!LoadSettings())
-            {
-                if (string.Equals(ErrMsg, DEACTIVATED_LOCALLY))
-                    throw new ApplicationException(DEACTIVATED_LOCALLY);
             ParamsLoadedFromDB = false;
             MgrParams = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
 
-                throw new ApplicationException("Unable to initialize manager settings class: " + ErrMsg);
-            }
+        /// <summary>
+        /// Specifies the full name and path for the application config file
+        /// </summary>
+        /// <returns>String containing full name and path</returns>
+        private string GetConfigFileName()
+        {
+            var configFilePath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath() + ".config";
+            return Path.GetFileName(configFilePath);
         }
 
         /// <summary>
@@ -169,7 +173,6 @@ namespace DMS_InstDirScanner
 
         private Dictionary<string, string> LoadMgrSettingsFromFile()
         {
-            // Load initial settings into string dictionary for return
             var mgrSettingsFromFile = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             // Manager config db connection string
@@ -180,7 +183,8 @@ namespace DMS_InstDirScanner
             var mgrActiveLocal = Properties.Settings.Default.MgrActive_Local.ToString();
             mgrSettingsFromFile.Add(MGR_PARAM_MGR_ACTIVE_LOCAL, mgrActiveLocal);
 
-            // Manager name
+            // If MgrName value contains the text $ComputerName$, replace it with computer's name
+            // This is a case-sensitive comparison
             var mgrName = Properties.Settings.Default.MgrName;
             if (mgrName.Contains("$ComputerName$"))
                 mgrSettingsFromFile.Add(MGR_PARAM_MGR_NAME, mgrName.Replace("$ComputerName$", Environment.MachineName));
@@ -193,7 +197,6 @@ namespace DMS_InstDirScanner
 
             return mgrSettingsFromFile;
         }
-
 
         /// <summary>
         /// Tests initial settings retrieved from config file

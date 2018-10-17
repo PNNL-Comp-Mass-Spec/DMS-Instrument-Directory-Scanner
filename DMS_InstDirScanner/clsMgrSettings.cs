@@ -8,8 +8,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
 using System.IO;
 using PRISM;
 
@@ -198,14 +196,8 @@ namespace DMS_InstDirScanner
         /// <remarks></remarks>
         private bool CheckInitialSettings(IReadOnlyDictionary<string, string> paramDictionary)
         {
-            // Verify manager settings dictionary exists
-            if (paramDictionary == null)
-            {
-                ErrMsg = "CheckInitialSettings: Manager parameter string dictionary not found";
-                OnErrorEvent(ErrMsg);
-                return false;
-            }
 
+            // Verify that UsingDefaults is false
             if (!paramDictionary.TryGetValue(MGR_PARAM_USING_DEFAULTS, out var usingDefaultsText))
             {
                 HandleParameterNotDefined(MGR_PARAM_USING_DEFAULTS);
@@ -240,26 +232,12 @@ namespace DMS_InstDirScanner
             return true;
         }
 
-        private string GetGroupNameFromSettings(DataTable dtSettings)
+        private string GetGroupNameFromSettings(IReadOnlyDictionary<string, string> mgrSettings)
         {
-            foreach (DataRow currentRow in dtSettings.Rows)
-            {
-                // Add the column heading and value to the dictionary
-                var paramKey = DbCStr(currentRow[dtSettings.Columns["ParameterName"]]);
+            if (!mgrSettings.TryGetValue("MgrSettingGroupName", out var groupName))
+                return string.Empty;
 
-                if (string.Equals(paramKey, "MgrSettingGroupName", StringComparison.OrdinalIgnoreCase))
-                {
-                    var groupName = DbCStr(currentRow[dtSettings.Columns["ParameterValue"]]);
-                    if (!string.IsNullOrWhiteSpace(groupName))
-                    {
-                        return groupName;
-                    }
-
-                    return string.Empty;
-                }
-            }
-
-            return string.Empty;
+            return string.IsNullOrWhiteSpace(groupName) ? string.Empty : groupName;
         }
 
         private void HandleParameterNotDefined(string parameterName)
@@ -314,6 +292,7 @@ namespace DMS_InstDirScanner
             }
 
             return success;
+
         }
 
         /// <summary>
@@ -326,12 +305,12 @@ namespace DMS_InstDirScanner
         /// <returns></returns>
         private bool LoadMgrSettingsFromDBWork(
             string managerName,
-            out DataTable mgrSettingsFromDB,
+            out Dictionary<string, string> mgrSettingsFromDB,
             bool logConnectionErrors,
             bool returnErrorIfNoParameters)
         {
 
-            mgrSettingsFromDB = null;
+            mgrSettingsFromDB = new Dictionary<string, string>();
 
             var dbConnectionString = GetParam(MGR_PARAM_MGR_CFG_DB_CONN_STRING, "");
 
@@ -344,52 +323,18 @@ namespace DMS_InstDirScanner
 
             var sqlQuery = "SELECT ParameterName, ParameterValue FROM V_MgrParams WHERE ManagerName = '" + managerName + "'";
 
-            // Get a table holding the parameters for this manager
-            var retryCount = 3;
-            while (retryCount >= 0)
+            // Query the database (retrying up to 3 times)
+            var dbTools = new DBTools(dbConnectionString);
+
+            if (logConnectionErrors)
             {
-                try
-                {
-                    using (var cn = new SqlConnection(dbConnectionString))
-                    {
-                        var cmd = new SqlCommand
-                        {
-                            CommandType = CommandType.Text,
-                            CommandText = sqlQuery,
-                            Connection = cn,
-                            CommandTimeout = 30
-                        };
+                RegisterEvents(dbTools);
+            }
 
-                        using (var da = new SqlDataAdapter(cmd))
-                        {
-                            using (var ds = new DataSet())
-                            {
-                                da.Fill(ds);
-                                mgrSettingsFromDB = ds.Tables[0];
-                            }
-                        }
-                    }
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    retryCount -= 1;
-                    var msg = string.Format("LoadMgrSettingsFromDB; Exception getting manager settings from database: {0}; " +
-                                            "ConnectionString: {1}, RetryCount = {2}",
-                                            ex.Message, dbConnectionString, retryCount);
+            short retryCount = 3;
+            var success = dbTools.GetQueryResults(sqlQuery, out var queryResults, "LoadMgrSettingsFromDBWork", retryCount);
 
-                    if (logConnectionErrors)
-                        ReportError(msg, criticalError: false);
-
-                    // Delay for 5 seconds before trying again
-                    if (retryCount >= 0)
-                        ProgRunner.SleepMilliseconds(5000);
-                }
-
-            } // while
-
-            // If loop exited due to errors, return false
-            if (retryCount < 0)
+            if (!success)
             {
                 // Log the message to the DB if the monthly Windows updates are not pending
                 var criticalError = !WindowsUpdateStatus.ServerUpdatesArePending();
@@ -401,26 +346,19 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
-            // Validate that the data table object is initialized
-            if (mgrSettingsFromDB == null)
+            // Verify at least one row returned
+            if (queryResults.Count < 1 && returnErrorIfNoParameters)
             {
-                // Data table not initialized
-                ErrMsg = "LoadMgrSettingsFromDB; dtSettings data table is null; using " + dbConnectionString;
-                if (logConnectionErrors)
-                    ReportError(ErrMsg);
-
+                // Wrong number of rows returned
+                ErrMsg = string.Format("MgrSettings.LoadMgrSettingsFromDB; Manager '{0}' is not defined in the manager control database; using {1}",
+                                       managerName, dbConnectionString);
+                ReportError(ErrMsg);
                 return false;
             }
 
-            // Verify at least one row returned
-            if (mgrSettingsFromDB.Rows.Count < 1 && returnErrorIfNoParameters)
+            foreach (var item in queryResults)
             {
-                // Wrong number of rows returned
-                ErrMsg = string.Format("MgrSettings.LoadMgrSettingsFromDB; Manager {0} not defined in the manager control database; using {1}",
-                                       managerName, dbConnectionString);
-                ReportError(ErrMsg);
-                mgrSettingsFromDB.Dispose();
-                return false;
+                mgrSettingsFromDB.Add(item[0], item[1]);
             }
 
             return true;
@@ -433,28 +371,24 @@ namespace DMS_InstDirScanner
         /// <param name="managerOrGroupName"></param>
         /// <param name="skipExistingParameters"></param>
         /// <returns></returns>
-        private bool StoreParameters(DataTable dtSettings, string managerOrGroupName, bool skipExistingParameters)
+        private bool StoreParameters(IReadOnlyDictionary<string, string> mgrSettings, string managerOrGroupName, bool skipExistingParameters)
         {
             bool success;
 
             try
             {
-                foreach (DataRow currentRow in dtSettings.Rows)
+                foreach (var item in mgrSettings)
                 {
-                    // Add the column heading and value to the dictionary
-                    var paramKey = DbCStr(currentRow[dtSettings.Columns["ParameterName"]]);
-                    var paramVal = DbCStr(currentRow[dtSettings.Columns["ParameterValue"]]);
-
-                    if (MgrParams.ContainsKey(paramKey))
+                    if (MgrParams.ContainsKey(item.Key))
                     {
                         if (!skipExistingParameters)
                         {
-                            MgrParams[paramKey] = paramVal;
+                            MgrParams[item.Key] = item.Value;
                         }
                     }
                     else
                     {
-                        MgrParams.Add(paramKey, paramVal);
+                        MgrParams.Add(item.Key, item.Value);
                     }
                 }
                 success = true;
@@ -465,10 +399,6 @@ namespace DMS_InstDirScanner
                                        managerOrGroupName, ex.Message);
                 ReportError(ErrMsg);
                 success = false;
-            }
-            finally
-            {
-                dtSettings?.Dispose();
             }
 
             return success;
@@ -564,15 +494,6 @@ namespace DMS_InstDirScanner
             {
                 MgrParams.Add(itemKey, itemValue);
             }
-        }
-
-        private string DbCStr(object inpObj)
-        {
-            if (inpObj == null)
-            {
-                return "";
-            }
-            return inpObj.ToString();
         }
 
         #endregion

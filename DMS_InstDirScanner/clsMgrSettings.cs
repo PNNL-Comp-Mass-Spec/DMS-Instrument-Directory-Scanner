@@ -273,21 +273,17 @@ namespace DMS_InstDirScanner
 
             success = StoreParameters(mgrSettingsFromDB, managerName, skipExistingParameters: false);
 
-            while (success)
+            var mgrSettingsGroup = GetGroupNameFromSettings(mgrSettingsFromDB);
+
+            while (success && !string.IsNullOrEmpty(mgrSettingsGroup))
             {
-                var mgrSettingsGroup = GetGroupNameFromSettings(mgrSettingsFromDB);
-                if (string.IsNullOrEmpty(mgrSettingsGroup))
-                {
-                    break;
-                }
-
                 // This manager has group-based settings defined; load them now
-
                 success = LoadMgrSettingsFromDBWork(mgrSettingsGroup, out var mgrGroupSettingsFromDB, logConnectionErrors, returnErrorIfNoParameters: false);
 
                 if (success)
                 {
                     success = StoreParameters(mgrGroupSettingsFromDB, mgrSettingsGroup, skipExistingParameters: true);
+                    mgrSettingsGroup = GetGroupNameFromSettings(mgrGroupSettingsFromDB);
                 }
             }
 

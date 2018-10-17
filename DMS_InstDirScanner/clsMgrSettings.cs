@@ -58,7 +58,7 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Error message
         /// </summary>
-        public string ErrMsg { get; private set; } = "";
+        public string ErrMsg { get; protected set; } = "";
 
         /// <summary>
         /// Manager name
@@ -104,8 +104,17 @@ namespace DMS_InstDirScanner
         /// <returns>String containing full name and path</returns>
         private string GetConfigFileName()
         {
+            return Path.GetFileName(GetConfigFilePath());
+        }
+
+        /// <summary>
+        /// Specifies the full name and path for the application config file
+        /// </summary>
+        /// <returns>String containing full name and path</returns>
+        protected string GetConfigFilePath()
+        {
             var configFilePath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath() + ".config";
-            return Path.GetFileName(configFilePath);
+            return configFilePath;
         }
 
         /// <summary>
@@ -253,7 +262,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <returns>True if success, otherwise false</returns>
         /// <remarks>Performs retries if necessary.</remarks>
-        private bool LoadMgrSettingsFromDB(bool logConnectionErrors = true)
+        protected bool LoadMgrSettingsFromDB(bool logConnectionErrors = true)
         {
 
             var managerName = GetParam(MGR_PARAM_MGR_NAME, string.Empty);
@@ -514,7 +523,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="errorMessage"></param>
         /// <param name="criticalError"></param>
-        private void ReportError(string errorMessage, bool criticalError = true)
+        protected void ReportError(string errorMessage, bool criticalError = true)
         {
             if (!ParamsLoadedFromDB && criticalError)
             {
@@ -524,6 +533,16 @@ namespace DMS_InstDirScanner
             {
                 OnErrorEvent(errorMessage);
             }
+        }
+
+        /// <summary>
+        /// Raises an error event that includes an exception
+        /// </summary>
+        /// <param name="errorMessage"></param>
+        /// <param name="ex"></param>
+        protected void ReportError(string errorMessage, Exception ex)
+        {
+            OnErrorEvent(errorMessage, ex);
         }
 
         #endregion

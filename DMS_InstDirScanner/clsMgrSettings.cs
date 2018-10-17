@@ -55,12 +55,6 @@ namespace DMS_InstDirScanner
 
         #endregion
 
-        #region "Class variables"
-
-        private bool mMCParamsLoaded;
-
-        #endregion
-
         #region "Properties"
 
         /// <summary>
@@ -74,9 +68,17 @@ namespace DMS_InstDirScanner
         public string ManagerName => GetParam(MGR_PARAM_MGR_NAME, Environment.MachineName + "_Undefined-Manager");
 
         /// <summary>
+        /// This will be true after the parameter have been successfully loaded from the database
+        /// </summary>
+        public bool ParamsLoadedFromDB { get; private set; }
+
+        /// <summary>
         /// Dictionary of manager parameters
         /// </summary>
-        public Dictionary<string, string> TaskDictionary { get; }
+        public Dictionary<string, string> MgrParams { get; }
+
+        #endregion
+
         #region "Events"
 
         /// <summary>
@@ -93,11 +95,12 @@ namespace DMS_InstDirScanner
         /// </summary>
         public MgrSettings()
         {
-            TaskDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (!LoadSettings())
             {
                 if (string.Equals(ErrMsg, DEACTIVATED_LOCALLY))
                     throw new ApplicationException(DEACTIVATED_LOCALLY);
+            ParamsLoadedFromDB = false;
+            MgrParams = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
                 throw new ApplicationException("Unable to initialize manager settings class: " + ErrMsg);
             }
@@ -124,27 +127,27 @@ namespace DMS_InstDirScanner
         {
             ErrMsg = string.Empty;
 
-            TaskDictionary.Clear();
+            MgrParams.Clear();
 
             foreach (var item in configFileSettings)
             {
-                TaskDictionary.Add(item.Key, item.Value);
+                MgrParams.Add(item.Key, item.Value);
             }
 
             // Get directory for main executable
             var appPath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
-            var fi = new FileInfo(appPath);
-            TaskDictionary.Add("ApplicationPath", fi.DirectoryName);
+            var appFile = new FileInfo(appPath);
+            SetParam("ApplicationPath", appFile.DirectoryName);
 
             // Test the settings retrieved from the config file
-            if (!CheckInitialSettings(TaskDictionary))
+            if (!CheckInitialSettings(MgrParams))
             {
                 // Error logging handled by CheckInitialSettings
                 return false;
             }
 
-            // Determine if manager is deactivated locally
-            if (!TaskDictionary.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
+            // Assure that MgrActive_Local is defined
+            if (!MgrParams.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
             {
                 // MgrActive_Local parameter not defined defined in the AppName.exe.config file
                 HandleParameterNotDefined(MGR_PARAM_MGR_ACTIVE_LOCAL);
@@ -157,8 +160,8 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
-            // Set flag indicating params have been loaded from MC db
-            mMCParamsLoaded = true;
+            // Set flag indicating params have been loaded from the manager control database
+            ParamsLoadedFromDB = true;
 
             // No problems found
             return true;
@@ -274,20 +277,17 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
-            var success = LoadMgrSettingsFromDBWork(managerName, out var dtSettings, logConnectionErrors, returnErrorIfNoParameters: true);
+            var success = LoadMgrSettingsFromDBWork(managerName, out var mgrSettingsFromDB, logConnectionErrors, returnErrorIfNoParameters: true);
             if (!success)
             {
                 return false;
             }
 
-            success = StoreParameters(dtSettings, skipExistingParameters: false, managerName: managerName);
-
-            if (!success)
-                return false;
+            success = StoreParameters(mgrSettingsFromDB, managerName, skipExistingParameters: false);
 
             while (success)
             {
-                var mgrSettingsGroup = GetGroupNameFromSettings(dtSettings);
+                var mgrSettingsGroup = GetGroupNameFromSettings(mgrSettingsFromDB);
                 if (string.IsNullOrEmpty(mgrSettingsGroup))
                 {
                     break;
@@ -295,22 +295,35 @@ namespace DMS_InstDirScanner
 
                 // This manager has group-based settings defined; load them now
 
-                success = LoadMgrSettingsFromDBWork(mgrSettingsGroup, out dtSettings, logConnectionErrors, returnErrorIfNoParameters: false);
+                success = LoadMgrSettingsFromDBWork(mgrSettingsGroup, out var mgrGroupSettingsFromDB, logConnectionErrors, returnErrorIfNoParameters: false);
 
                 if (success)
                 {
-                    success = StoreParameters(dtSettings, skipExistingParameters: true, managerName: mgrSettingsGroup);
+                    success = StoreParameters(mgrGroupSettingsFromDB, mgrSettingsGroup, skipExistingParameters: true);
                 }
             }
 
             return success;
         }
 
-        private bool LoadMgrSettingsFromDBWork(string managerName, out DataTable dtSettings, bool logConnectionErrors,
-                                               bool returnErrorIfNoParameters, int retryCount = 3)
+        /// <summary>
+        /// Load manager settings from the database
+        /// </summary>
+        /// <param name="managerName">Manager name or manager group name</param>
+        /// <param name="mgrSettingsFromDB">Output: manager settings</param>
+        /// <param name="logConnectionErrors">When true, log connection errors</param>
+        /// <param name="returnErrorIfNoParameters">When true, return an error if no parameters defined</param>
+        /// <returns></returns>
+        private bool LoadMgrSettingsFromDBWork(
+            string managerName,
+            out DataTable mgrSettingsFromDB,
+            bool logConnectionErrors,
+            bool returnErrorIfNoParameters)
         {
+
+            mgrSettingsFromDB = null;
+
             var dbConnectionString = GetParam(MGR_PARAM_MGR_CFG_DB_CONN_STRING, "");
-            dtSettings = null;
 
             if (string.IsNullOrEmpty(dbConnectionString))
             {
@@ -319,9 +332,10 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
-            var sqlStr = "SELECT ParameterName, ParameterValue FROM V_MgrParams WHERE ManagerName = '" + managerName + "'";
+            var sqlQuery = "SELECT ParameterName, ParameterValue FROM V_MgrParams WHERE ManagerName = '" + managerName + "'";
 
             // Get a table holding the parameters for this manager
+            var retryCount = 3;
             while (retryCount >= 0)
             {
                 try
@@ -331,7 +345,7 @@ namespace DMS_InstDirScanner
                         var cmd = new SqlCommand
                         {
                             CommandType = CommandType.Text,
-                            CommandText = sqlStr,
+                            CommandText = sqlQuery,
                             Connection = cn,
                             CommandTimeout = 30
                         };
@@ -341,7 +355,7 @@ namespace DMS_InstDirScanner
                             using (var ds = new DataSet())
                             {
                                 da.Fill(ds);
-                                dtSettings = ds.Tables[0];
+                                mgrSettingsFromDB = ds.Tables[0];
                             }
                         }
                     }
@@ -378,7 +392,7 @@ namespace DMS_InstDirScanner
             }
 
             // Validate that the data table object is initialized
-            if (dtSettings == null)
+            if (mgrSettingsFromDB == null)
             {
                 // Data table not initialized
                 ErrMsg = "LoadMgrSettingsFromDB; dtSettings data table is null; using " + dbConnectionString;
@@ -389,7 +403,7 @@ namespace DMS_InstDirScanner
             }
 
             // Verify at least one row returned
-            if (dtSettings.Rows.Count < 1 && returnErrorIfNoParameters)
+            if (mgrSettingsFromDB.Rows.Count < 1 && returnErrorIfNoParameters)
             {
                 // Wrong number of rows returned
                 ErrMsg = string.Format("MgrSettings.LoadMgrSettingsFromDB; Manager {0} not defined in the manager control database; using {1}",
@@ -402,15 +416,14 @@ namespace DMS_InstDirScanner
             return true;
         }
 
-
         /// <summary>
         /// Update mParamDictionary with settings in dtSettings, optionally skipping existing parameters
         /// </summary>
         /// <param name="dtSettings"></param>
+        /// <param name="managerOrGroupName"></param>
         /// <param name="skipExistingParameters"></param>
-        /// <param name="managerName"></param>
         /// <returns></returns>
-        private bool StoreParameters(DataTable dtSettings, bool skipExistingParameters, string managerName)
+        private bool StoreParameters(DataTable dtSettings, string managerOrGroupName, bool skipExistingParameters)
         {
             bool success;
 
@@ -432,16 +445,16 @@ namespace DMS_InstDirScanner
                         }
                     }
 
-                    if (TaskDictionary.ContainsKey(paramKey))
+                    if (MgrParams.ContainsKey(paramKey))
                     {
                         if (!skipExistingParameters)
                         {
-                            TaskDictionary[paramKey] = paramVal;
+                            MgrParams[paramKey] = paramVal;
                         }
                     }
                     else
                     {
-                        TaskDictionary.Add(paramKey, paramVal);
+                        MgrParams.Add(paramKey, paramVal);
                     }
                 }
                 success = true;
@@ -479,7 +492,7 @@ namespace DMS_InstDirScanner
         /// <returns>Parameter value if found, otherwise empty string</returns>
         public string GetParam(string itemKey, string valueIfMissing)
         {
-            if (TaskDictionary.TryGetValue(itemKey, out var itemValue))
+            if (MgrParams.TryGetValue(itemKey, out var itemValue))
             {
                 return itemValue ?? string.Empty;
             }
@@ -495,7 +508,7 @@ namespace DMS_InstDirScanner
         /// <returns>Parameter value if found, otherwise empty string</returns>
         public bool GetParam(string itemKey, bool valueIfMissing)
         {
-            if (TaskDictionary.TryGetValue(itemKey, out var valueText))
+            if (MgrParams.TryGetValue(itemKey, out var valueText))
             {
                 var value = UtilityMethods.CBoolSafe(valueText, valueIfMissing);
                 return value;
@@ -512,7 +525,7 @@ namespace DMS_InstDirScanner
         /// <returns>Parameter value if found, otherwise empty string</returns>
         public int GetParam(string itemKey, int valueIfMissing)
         {
-            if (TaskDictionary.TryGetValue(itemKey, out var valueText))
+            if (MgrParams.TryGetValue(itemKey, out var valueText))
             {
                 var value = UtilityMethods.CIntSafe(valueText, valueIfMissing);
                 return value;
@@ -529,13 +542,13 @@ namespace DMS_InstDirScanner
         // ReSharper disable once UnusedMember.Global
         public void SetParam(string itemKey, string itemValue)
         {
-            if (TaskDictionary.ContainsKey(itemKey))
+            if (MgrParams.ContainsKey(itemKey))
             {
-                TaskDictionary[itemKey] = itemValue;
+                MgrParams[itemKey] = itemValue;
             }
             else
             {
-                TaskDictionary.Add(itemKey, itemValue);
+                MgrParams.Add(itemKey, itemValue);
             }
         }
 

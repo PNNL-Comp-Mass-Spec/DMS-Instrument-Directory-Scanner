@@ -150,13 +150,6 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
-            // Assure that MgrActive_Local is defined
-            if (!MgrParams.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
-            {
-                // MgrActive_Local parameter not defined defined in the AppName.exe.config file
-                HandleParameterNotDefined(MGR_PARAM_MGR_ACTIVE_LOCAL);
-            }
-
             // Get remaining settings from database
             if (!LoadMgrSettingsFromDB())
             {
@@ -227,6 +220,21 @@ namespace DMS_InstDirScanner
                     ReportError(ErrMsg);
                     return false;
                 }
+            }
+
+            // Determine if manager is deactivated locally
+            if (!paramDictionary.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out var activeLocalText))
+            {
+                // Parameter is not defined; log an error but return true
+                HandleParameterNotDefined(MGR_PARAM_MGR_ACTIVE_LOCAL);
+                return true;
+            }
+
+            if (!bool.TryParse(activeLocalText, out var activeLocal) || !activeLocal)
+            {
+                ErrMsg = DEACTIVATED_LOCALLY;
+                ReportError(DEACTIVATED_LOCALLY, false);
+                return false;
             }
 
             // No problems found

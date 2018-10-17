@@ -23,7 +23,7 @@ namespace DMS_InstDirScanner
     /// loaded or manager set to inactive. If manager active, retrieves remainder of settings from manager
     /// parameters database.
     /// </remarks>
-    public class MgrSettings : LoggerBase
+    public class MgrSettings : EventNotifier
     {
         #region "Constants"
 
@@ -77,6 +77,12 @@ namespace DMS_InstDirScanner
         /// Dictionary of manager parameters
         /// </summary>
         public Dictionary<string, string> TaskDictionary { get; }
+        #region "Events"
+
+        /// <summary>
+        /// Important error event (only raised if ParamsLoadedFromDB is false)
+        /// </summary>
+        public ErrorEventEventHandler CriticalErrorEvent;
 
         #endregion
 
@@ -140,8 +146,8 @@ namespace DMS_InstDirScanner
             // Determine if manager is deactivated locally
             if (!TaskDictionary.TryGetValue(MGR_PARAM_MGR_ACTIVE_LOCAL, out _))
             {
-                ErrMsg = "Manager parameter " + MGR_PARAM_MGR_ACTIVE_LOCAL + " is missing from file " + Path.GetFileName(GetConfigFilePath());
-                LogError(ErrMsg);
+                // MgrActive_Local parameter not defined defined in the AppName.exe.config file
+                HandleParameterNotDefined(MGR_PARAM_MGR_ACTIVE_LOCAL);
             }
 
             // Get remaining settings from database
@@ -198,22 +204,21 @@ namespace DMS_InstDirScanner
             if (paramDictionary == null)
             {
                 ErrMsg = "CheckInitialSettings: Manager parameter string dictionary not found";
-                LogError(ErrMsg, true);
+                OnErrorEvent(ErrMsg);
                 return false;
             }
 
             if (!paramDictionary.TryGetValue(MGR_PARAM_USING_DEFAULTS, out var usingDefaultsText))
             {
-                ErrMsg = "CheckInitialSettings: 'UsingDefaults' entry not found in Config file";
-                LogError(ErrMsg, true);
+                HandleParameterNotDefined(MGR_PARAM_USING_DEFAULTS);
             }
             else
             {
-
                 if (bool.TryParse(usingDefaultsText, out var usingDefaults) && usingDefaults)
                 {
-                    ErrMsg = "CheckInitialSettings: Config file problem, contains UsingDefaults=True";
-                    LogError(ErrMsg, true);
+                    ErrMsg = string.Format("MgrSettings.CheckInitialSettings; Config file problem, {0} contains UsingDefaults=True",
+                                           GetConfigFileName());
+                    ReportError(ErrMsg);
                     return false;
                 }
             }
@@ -244,6 +249,14 @@ namespace DMS_InstDirScanner
             return string.Empty;
         }
 
+        private void HandleParameterNotDefined(string parameterName)
+        {
+            ErrMsg = string.Format("Parameter '{0}' is not defined defined in file {1}",
+                                   parameterName,
+                                   GetConfigFileName());
+            ReportError(ErrMsg);
+        }
+
         /// <summary>
         /// Gets manager config settings from manager control DB (Manager_Control)
         /// </summary>
@@ -256,8 +269,8 @@ namespace DMS_InstDirScanner
 
             if (string.IsNullOrEmpty(managerName))
             {
-                ErrMsg = "Manager parameter " + MGR_PARAM_MGR_NAME + " is missing from file " + Path.GetFileName(GetConfigFilePath());
-                LogError(ErrMsg);
+                // MgrName parameter not defined defined in the AppName.exe.config file
+                HandleParameterNotDefined(MGR_PARAM_MGR_NAME);
                 return false;
             }
 
@@ -301,9 +314,8 @@ namespace DMS_InstDirScanner
 
             if (string.IsNullOrEmpty(dbConnectionString))
             {
-                ErrMsg = MGR_PARAM_MGR_CFG_DB_CONN_STRING +
-                           " parameter not found in mParamDictionary; it should be defined in the " + Path.GetFileName(GetConfigFilePath()) + " file";
-                WriteErrorMsg(ErrMsg);
+                // MgrCnfgDbConnectStr parameter not defined defined in the AppName.exe.config file
+                HandleParameterNotDefined(MGR_PARAM_MGR_CFG_DB_CONN_STRING);
                 return false;
             }
 
@@ -343,7 +355,7 @@ namespace DMS_InstDirScanner
                                             ex.Message, dbConnectionString, retryCount);
 
                     if (logConnectionErrors)
-                        WriteErrorMsg(msg, allowLogToDB: false);
+                        ReportError(msg, criticalError: false);
 
                     // Delay for 5 seconds before trying again
                     if (retryCount >= 0)
@@ -356,11 +368,11 @@ namespace DMS_InstDirScanner
             if (retryCount < 0)
             {
                 // Log the message to the DB if the monthly Windows updates are not pending
-                var allowLogToDB = !WindowsUpdateStatus.ServerUpdatesArePending();
+                var criticalError = !WindowsUpdateStatus.ServerUpdatesArePending();
 
-                ErrMsg = "MgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database";
+                ErrMsg = "MgrSettings.LoadMgrSettingsFromDB; Excessive failures attempting to retrieve manager settings from database for manager " + managerName;
                 if (logConnectionErrors)
-                    WriteErrorMsg(ErrMsg, allowLogToDB);
+                    ReportError(ErrMsg, criticalError);
 
                 return false;
             }
@@ -371,7 +383,7 @@ namespace DMS_InstDirScanner
                 // Data table not initialized
                 ErrMsg = "LoadMgrSettingsFromDB; dtSettings data table is null; using " + dbConnectionString;
                 if (logConnectionErrors)
-                    WriteErrorMsg(ErrMsg);
+                    ReportError(ErrMsg);
 
                 return false;
             }
@@ -380,9 +392,10 @@ namespace DMS_InstDirScanner
             if (dtSettings.Rows.Count < 1 && returnErrorIfNoParameters)
             {
                 // Wrong number of rows returned
-                ErrMsg = "LoadMgrSettingsFromDB; Manager " + managerName + " not defined in the manager control database; using " + dbConnectionString;
-                WriteErrorMsg(ErrMsg);
-                dtSettings.Dispose();
+                ErrMsg = string.Format("MgrSettings.LoadMgrSettingsFromDB; Manager {0} not defined in the manager control database; using {1}",
+                                       managerName, dbConnectionString);
+                ReportError(ErrMsg);
+                mgrSettingsFromDB.Dispose();
                 return false;
             }
 
@@ -435,9 +448,9 @@ namespace DMS_InstDirScanner
             }
             catch (Exception ex)
             {
-                ErrMsg = "LoadMgrSettingsFromDB: Exception filling string dictionary from table for manager " +
-                          "'" + managerName + "': " + ex.Message;
-                WriteErrorMsg(ErrMsg);
+                ErrMsg = string.Format("MgrSettings.StoreParameters; Exception storing settings for manager '{0}': {1}",
+                                       managerOrGroupName, ex.Message);
+                ReportError(ErrMsg);
                 success = false;
             }
             finally
@@ -535,20 +548,38 @@ namespace DMS_InstDirScanner
             return inpObj.ToString();
         }
 
-        private void WriteErrorMsg(string errorMessage, bool allowLogToDB = true)
+        #endregion
+
+        #region "Event Handlers"
+
+        /// <summary>
+        /// Report an important error
+        /// </summary>
+        /// <param name="message"></param>
+        private void OnCriticalErrorEvent(string message)
         {
-            var logToDb = !mMCParamsLoaded && allowLogToDB;
-            LogError(errorMessage, logToDb);
+            if (CriticalErrorEvent == null && WriteToConsoleIfNoListener)
+                ConsoleMsgUtils.ShowError(message, false, false, EmptyLinesBeforeErrorMessages);
+
+            CriticalErrorEvent?.Invoke(message, null);
         }
 
         /// <summary>
-        /// Specifies the full name and path for the application config file
+        /// Raises a CriticalErrorEvent if criticalError is true and ParamsLoadedFromDB is false
+        /// Otherwise, raises a normal error event
         /// </summary>
-        /// <returns>String containing full name and path</returns>
-        private string GetConfigFilePath()
+        /// <param name="errorMessage"></param>
+        /// <param name="criticalError"></param>
+        private void ReportError(string errorMessage, bool criticalError = true)
         {
-            var configFilePath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath() + ".config";
-            return configFilePath;
+            if (!ParamsLoadedFromDB && criticalError)
+            {
+                OnCriticalErrorEvent(errorMessage);
+            }
+            else
+            {
+                OnErrorEvent(errorMessage);
+            }
         }
 
         #endregion

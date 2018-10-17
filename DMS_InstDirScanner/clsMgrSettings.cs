@@ -121,9 +121,10 @@ namespace DMS_InstDirScanner
         /// Updates manager settings, then loads settings from the database
         /// </summary>
         /// <param name="localSettings">Manager settings loaded from file AnalysisManagerProg.exe.config</param>
+        /// <param name="loadSettingsFromDB">When true, also load settings from the database</param>
         /// <returns>True if successful; False on error</returns>
         /// <remarks></remarks>
-        public bool LoadSettings(Dictionary<string, string> localSettings)
+        public bool LoadSettings(Dictionary<string, string> localSettings, bool loadSettingsFromDB)
         {
             ErrMsg = string.Empty;
 
@@ -155,6 +156,11 @@ namespace DMS_InstDirScanner
             {
                 // MgrActive_Local parameter not defined defined in the AppName.exe.config file
                 HandleParameterNotDefined(MGR_PARAM_MGR_ACTIVE_LOCAL);
+            }
+
+            if (!loadSettingsFromDB)
+            {
+                return true;
             }
 
             // Get remaining settings from database

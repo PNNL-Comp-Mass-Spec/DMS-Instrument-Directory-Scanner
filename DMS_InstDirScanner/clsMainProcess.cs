@@ -115,7 +115,7 @@ namespace DMS_InstDirScanner
                 RegisterEvents(m_MgrSettings);
                 m_MgrSettings.CriticalErrorEvent += CriticalErrorEvent;
 
-                var success = m_MgrSettings.LoadSettings(localSettings);
+                var success = m_MgrSettings.LoadSettings(localSettings, true);
                 if (!success)
                     return false;
             }

@@ -1,5 +1,4 @@
-﻿
-//*********************************************************************************************************
+﻿//*********************************************************************************************************
 // Written by Dave Clark for the US Department of Energy
 // Pacific Northwest National Laboratory, Richland, WA
 // Copyright 2009, Battelle Memorial Institute
@@ -118,9 +117,9 @@ namespace DMS_InstDirScanner
         }
 
         /// <summary>
-        /// Updates manager settings, then loads settings from the database
+        /// Initialize manager settings using the local settings, then load additional settings from the database
         /// </summary>
-        /// <param name="localSettings">Manager settings loaded from file AnalysisManagerProg.exe.config</param>
+        /// <param name="localSettings">Manager settings from the AppName.exe.config file or from Properties.Settings.Default</param>
         /// <param name="loadSettingsFromDB">When true, also load settings from the database</param>
         /// <returns>True if successful; False on error</returns>
         /// <remarks></remarks>
@@ -139,7 +138,7 @@ namespace DMS_InstDirScanner
                 MgrParams.Add(item.Key, item.Value);
             }
 
-            // Get directory for main executable
+            // Auto-add setting ApplicationPath, which is the directory with this applications .exe
             var appPath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
             var appFile = new FileInfo(appPath);
             SetParam("ApplicationPath", appFile.DirectoryName);
@@ -303,7 +302,6 @@ namespace DMS_InstDirScanner
             }
 
             return success;
-
         }
 
         /// <summary>
@@ -376,11 +374,11 @@ namespace DMS_InstDirScanner
         }
 
         /// <summary>
-        /// Update mParamDictionary with settings in dtSettings, optionally skipping existing parameters
+        /// Store manager settings, optionally skipping existing parameters
         /// </summary>
-        /// <param name="dtSettings"></param>
-        /// <param name="managerOrGroupName"></param>
-        /// <param name="skipExistingParameters"></param>
+        /// <param name="mgrSettings">Manager settings</param>
+        /// <param name="managerOrGroupName">Manager name or manager group name</param>
+        /// <param name="skipExistingParameters">When true, skip existing parameters</param>
         /// <returns></returns>
         private bool StoreParameters(IReadOnlyDictionary<string, string> mgrSettings, string managerOrGroupName, bool skipExistingParameters)
         {
@@ -419,7 +417,7 @@ namespace DMS_InstDirScanner
         /// Gets a manager parameter
         /// </summary>
         /// <param name="itemKey"></param>
-        /// <returns>Parameter value if found, otherwise empty string</returns>
+        /// <returns>Parameter value if found, otherwise an empty string</returns>
         public string GetParam(string itemKey)
         {
             return GetParam(itemKey, string.Empty);
@@ -430,7 +428,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="itemKey">Parameter name</param>
         /// <param name="valueIfMissing">Value to return if the parameter does not exist</param>
-        /// <returns>Parameter value if found, otherwise empty string</returns>
+        /// <returns>Parameter value if found, otherwise valueIfMissing</returns>
         public string GetParam(string itemKey, string valueIfMissing)
         {
             if (MgrParams.TryGetValue(itemKey, out var itemValue))
@@ -446,7 +444,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="itemKey">Parameter name</param>
         /// <param name="valueIfMissing">Value to return if the parameter does not exist</param>
-        /// <returns>Parameter value if found, otherwise empty string</returns>
+        /// <returns>Parameter value if found, otherwise valueIfMissing</returns>
         public bool GetParam(string itemKey, bool valueIfMissing)
         {
             if (MgrParams.TryGetValue(itemKey, out var valueText))
@@ -474,7 +472,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="itemKey">Parameter name</param>
         /// <param name="valueIfMissing">Value to return if the parameter does not exist</param>
-        /// <returns>Parameter value if found, otherwise empty string</returns>
+        /// <returns>Parameter value if found, otherwise valueIfMissing</returns>
         public int GetParam(string itemKey, int valueIfMissing)
         {
             if (MgrParams.TryGetValue(itemKey, out var valueText))
@@ -490,7 +488,7 @@ namespace DMS_InstDirScanner
         }
 
         /// <summary>
-        /// Set a manager parameter
+        /// Adds or updates a manager parameter
         /// </summary>
         /// <param name="itemKey"></param>
         /// <param name="itemValue"></param>

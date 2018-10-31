@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using Apache.NMS;
 using Apache.NMS.ActiveMQ;
 using Apache.NMS.ActiveMQ.Commands;
+using PRISM.AppSettings;
 
 namespace DMS_InstDirScanner
 {

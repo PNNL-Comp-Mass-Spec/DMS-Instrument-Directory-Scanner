@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using PRISM;
+using PRISM.AppSettings;
 using PRISM.Logging;
 
 namespace DMS_InstDirScanner

@@ -12,6 +12,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using PRISM;
+using PRISM.AppSettings;
 using PRISM.Logging;
 
 namespace DMS_InstDirScanner

@@ -52,7 +52,6 @@
     <Compile Include="clsLoggerBase.cs" />
     <Compile Include="clsMainProcess.cs" />
     <Compile Include="clsMessageHandler.cs" />
-    <Compile Include="clsMgrSettings.cs" />
     <Compile Include="clsStatusData.cs" />
     <Compile Include="clsStatusFile.cs" />
     <Compile Include="clsUtilityMethods.cs" />
@@ -76,7 +75,7 @@
       <Version>1.7.2</Version>
     </PackageReference>
     <PackageReference Include="PRISM-Library">
-      <Version>2.5.4</Version>
+      <Version>2.5.8</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

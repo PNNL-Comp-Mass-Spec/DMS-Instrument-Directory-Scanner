@@ -453,7 +453,7 @@ namespace DMS_InstDirScanner
 
         private void DebugEventHandler(string message)
         {
-            ConsoleMsgUtils.ShowDebug(message, "  ", 0);
+            ConsoleMsgUtils.ShowDebugCustom(message, emptyLinesBeforeMessage: 0);
         }
 
         private void ErrorEventHandler(string message, Exception ex)

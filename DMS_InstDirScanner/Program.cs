@@ -12,7 +12,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class Program
     {
-        public const string PROGRAM_DATE = "May 7, 2019";
+        public const string PROGRAM_DATE = "May 9, 2019";
 
         private static bool mNoBionet;
 

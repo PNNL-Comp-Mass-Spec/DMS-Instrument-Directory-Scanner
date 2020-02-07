@@ -2,16 +2,16 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DMS_InstDirScanner.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="MgrActive_Local" Type="System.Boolean" Scope="User">
+    <Setting Name="MgrActive_Local" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="MgrCnfgDbConnectStr" Type="System.String" Scope="User">
+    <Setting Name="MgrCnfgDbConnectStr" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Data Source=proteinseqs;Initial Catalog=manager_control_T3;Integrated Security=SSPI</Value>
     </Setting>
-    <Setting Name="MgrName" Type="System.String" Scope="User">
+    <Setting Name="MgrName" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Proto-x_InstDirScan</Value>
     </Setting>
-    <Setting Name="UsingDefaults" Type="System.Boolean" Scope="User">
+    <Setting Name="UsingDefaults" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>

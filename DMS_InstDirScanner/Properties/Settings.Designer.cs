@@ -12,7 +12,7 @@ namespace DMS_InstDirScanner.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.6.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.4.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -23,19 +23,16 @@ namespace DMS_InstDirScanner.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool MgrActive_Local {
             get {
                 return ((bool)(this["MgrActive_Local"]));
             }
-            set {
-                this["MgrActive_Local"] = value;
-            }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Data Source=proteinseqs;Initial Catalog=manager_control_T3;Integrated Security=SS" +
             "PI")]
@@ -43,32 +40,23 @@ namespace DMS_InstDirScanner.Properties {
             get {
                 return ((string)(this["MgrCnfgDbConnectStr"]));
             }
-            set {
-                this["MgrCnfgDbConnectStr"] = value;
-            }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Proto-x_InstDirScan")]
         public string MgrName {
             get {
                 return ((string)(this["MgrName"]));
             }
-            set {
-                this["MgrName"] = value;
-            }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool UsingDefaults {
             get {
                 return ((bool)(this["UsingDefaults"]));
-            }
-            set {
-                this["UsingDefaults"] = value;
             }
         }
     }

@@ -14,6 +14,8 @@ using System.Text.RegularExpressions;
 using PRISM;
 using PRISM.AppSettings;
 using PRISM.Logging;
+using PRISMDatabaseUtils;
+using PRISMDatabaseUtils.AppSettings;
 
 namespace DMS_InstDirScanner
 {
@@ -104,7 +106,7 @@ namespace DMS_InstDirScanner
             // Get the manager settings
             try
             {
-                var localSettings = new Dictionary<string, string>
+                var defaultSettings = new Dictionary<string, string>
                 {
                     {MgrSettings.MGR_PARAM_MGR_CFG_DB_CONN_STRING, Properties.Settings.Default.MgrCnfgDbConnectStr},
                     {MgrSettings.MGR_PARAM_MGR_ACTIVE_LOCAL, Properties.Settings.Default.MgrActive_Local.ToString()},
@@ -112,9 +114,29 @@ namespace DMS_InstDirScanner
                     {MgrSettings.MGR_PARAM_USING_DEFAULTS, Properties.Settings.Default.UsingDefaults.ToString()}
                 };
 
-                m_MgrSettings = new MgrSettings();
+                m_MgrSettings = new MgrSettingsDB();
                 RegisterEvents(m_MgrSettings);
                 m_MgrSettings.CriticalErrorEvent += CriticalErrorEvent;
+
+                var mgrExePath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
+                var localSettings = m_MgrSettings.LoadMgrSettingsFromFile(mgrExePath + ".config");
+
+                if (localSettings == null)
+                {
+                    localSettings = defaultSettings;
+                }
+                else
+                {
+                    // Make sure the default settings exist and have valid values
+                    foreach (var setting in defaultSettings)
+                    {
+                        if (!localSettings.TryGetValue(setting.Key, out var existingValue) ||
+                            string.IsNullOrWhiteSpace(existingValue))
+                        {
+                            localSettings[setting.Key] = setting.Value;
+                        }
+                    }
+                }
 
                 var success = m_MgrSettings.LoadSettings(localSettings, true);
                 if (!success)
@@ -314,7 +336,7 @@ namespace DMS_InstDirScanner
                 return null;
             }
 
-            var dbTools = new DBTools(connectionString);
+            var dbTools = DbToolsFactory.GetDBTools(connectionString);
             RegisterEvents(dbTools);
 
             // Get a table containing the active instruments
@@ -438,7 +460,7 @@ namespace DMS_InstDirScanner
 
         #region "Event Handlers"
 
-        private void RegisterEvents(EventNotifier sourceClass)
+        private void RegisterEvents(IEventNotifier sourceClass)
         {
             sourceClass.DebugEvent += DebugEventHandler;
             sourceClass.ErrorEvent += ErrorEventHandler;

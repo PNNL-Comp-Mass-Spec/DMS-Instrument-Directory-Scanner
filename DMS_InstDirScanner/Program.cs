@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using PRISM;
 using PRISM.FileProcessor;
@@ -43,7 +41,7 @@ namespace DMS_InstDirScanner
 
                 var parsed = cmdLineParser.ParseArgs(args, false);
                 var options = parsed.ParsedResults;
-                if (!parsed.Success)
+                if (args.Length > 0 && !parsed.Success)
                 {
                     // Delay for 1500 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
                     Thread.Sleep(1500);

@@ -340,7 +340,7 @@ namespace DMS_InstDirScanner
             RegisterEvents(dbTools);
 
             // Get a table containing the active instruments
-            var success = dbTools.GetQueryResults(sqlQuery, out var lstResults, "GetInstrumentList");
+            var success = dbTools.GetQueryResults(sqlQuery, out var lstResults);
 
             // Verify valid data found
             if (!success || lstResults == null)

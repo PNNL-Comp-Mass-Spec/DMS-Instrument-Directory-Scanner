@@ -38,7 +38,7 @@ namespace DMS_InstDirScanner
 
         private readonly string m_MgrDirectoryPath;
 
-        private MgrSettings m_MgrSettings;
+        private MgrSettingsDB m_MgrSettings;
 
         static StatusFile m_StatusFile;
 
@@ -137,6 +137,9 @@ namespace DMS_InstDirScanner
                         }
                     }
                 }
+
+                Console.WriteLine();
+                m_MgrSettings.ValidatePgPass(localSettings);
 
                 var success = m_MgrSettings.LoadSettings(localSettings, true);
                 if (!success)

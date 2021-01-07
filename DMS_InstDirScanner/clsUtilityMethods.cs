@@ -57,23 +57,6 @@ namespace DMS_InstDirScanner
         }
 
         /// <summary>
-        /// Convert a string value to an integer
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        public static int CIntSafe(string value, int defaultValue)
-        {
-            if (string.IsNullOrEmpty(value))
-                return defaultValue;
-
-            if (int.TryParse(value, out var intValue))
-                return intValue;
-
-            return defaultValue;
-        }
-
-        /// <summary>
         /// Log an error message
         /// </summary>
         /// <param name="errorMessage">Error message</param>

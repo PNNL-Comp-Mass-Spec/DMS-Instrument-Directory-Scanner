@@ -21,6 +21,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class DirectoryTools : EventNotifier
     {
+        // Ignore Spelling: Bionet, fso, secfso, prepend, ftms, pwd, yyyy-MM-dd, hh:mm:ss tt
 
         #region "Member variables"
 
@@ -48,7 +49,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <remarks></remarks>
         public DirectoryTools(bool noBionet, bool previewMode)
         {
             mMostRecentIOErrorInstrument = string.Empty;
@@ -226,7 +226,6 @@ namespace DMS_InstDirScanner
         /// <param name="statusFileWriter"></param>
         /// <param name="mgrSettings"></param>
         /// <returns>True on success, false if the target directory is not found</returns>
-        /// <remarks></remarks>
         private bool GetDirectoryData(InstrumentData instrumentData, TextWriter statusFileWriter, MgrSettings mgrSettings)
         {
             var connected = false;
@@ -445,7 +444,6 @@ namespace DMS_InstDirScanner
         /// Logs an error message to the local log file, unless it is currently between midnight and 1 am
         /// </summary>
         /// <param name="errorMessage"></param>
-        /// <remarks></remarks>
         private void LogCriticalError(string errorMessage)
         {
             if (DateTime.Now.Hour == 0)

@@ -24,7 +24,6 @@ namespace DMS_InstDirScanner
         /// Convert bytes to Gigabytes
         /// </summary>
         /// <param name="bytes"></param>
-        /// <returns></returns>
         // ReSharper disable once UnusedMember.Global
         public static double BytesToGB(long bytes)
         {
@@ -35,7 +34,6 @@ namespace DMS_InstDirScanner
         /// Convert string to bool; default false if an error
         /// </summary>
         /// <param name="value"></param>
-        /// <returns></returns>
         // ReSharper disable once UnusedMember.Global
         public static bool CBoolSafe(string value)
         {
@@ -47,7 +45,6 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <param name="value"></param>
         /// <param name="defaultValue"></param>
-        /// <returns></returns>
         public static bool CBoolSafe(string value, bool defaultValue)
         {
             if (string.IsNullOrEmpty(value))

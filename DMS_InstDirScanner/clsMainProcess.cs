@@ -24,6 +24,8 @@ namespace DMS_InstDirScanner
     /// </summary>
     public class MainProcess : LoggerBase
     {
+        // Ignore Spelling: Bionet
+
         #region "Constants"
 
         private const string DEFAULT_BASE_LOGFILE_NAME = @"Logs\InstDirScanner";
@@ -74,7 +76,6 @@ namespace DMS_InstDirScanner
         /// Initializes the manager settings and classes
         /// </summary>
         /// <returns>True for success; False if error occurs</returns>
-        /// <remarks></remarks>
         public bool InitMgr()
         {
             // Define the default logging info
@@ -235,7 +236,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Do a directory scan
         /// </summary>
-        /// <remarks></remarks>
         public void DoDirectoryScan()
         {
             try
@@ -305,7 +305,6 @@ namespace DMS_InstDirScanner
         /// Returns the full path to the executing .Exe or .Dll
         /// </summary>
         /// <returns>File path</returns>
-        /// <remarks></remarks>
         public static string GetAppPath()
         {
             return PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
@@ -314,8 +313,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Returns the .NET assembly version followed by the program date
         /// </summary>
-        /// <returns></returns>
-        /// <remarks></remarks>
         public static string GetAppVersion()
         {
             return PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetEntryOrExecutingAssembly().GetName().Version.ToString();
@@ -391,7 +388,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Extract the value MgrCnfgDbConnectStr from DMS_InstDirScanner.exe.config
         /// </summary>
-        /// <returns></returns>
         private string GetXmlConfigDefaultConnectionString()
         {
             return GetXmlConfigFileSetting(MGR_PARAM_DEFAULT_DMS_CONN_STRING);

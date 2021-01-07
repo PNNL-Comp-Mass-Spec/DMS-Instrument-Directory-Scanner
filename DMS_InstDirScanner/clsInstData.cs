@@ -16,10 +16,11 @@ namespace DMS_InstDirScanner
     /// </summary>
     public class InstrumentData
     {
+        // Ignore Spelling: fso, secfso, bionet
+
         /// <summary>
         /// Storage volume, for example, \\QExactP04.bionet\
         /// </summary>
-        /// <remarks></remarks>
         public string StorageVolume { get; set; }
 
         /// <summary>
@@ -32,7 +33,8 @@ namespace DMS_InstDirScanner
         /// </summary>
         /// <remarks>
         /// fso if on a domain computer
-        /// secfso if on bionet</remarks>
+        /// secfso if on bionet
+        /// </remarks>
         public string CaptureMethod { get; set; }
 
         /// <summary>
@@ -43,7 +45,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Instrument name: StorageVolume\StoragePath
         /// </summary>
-        /// <returns></returns>
         public override string ToString()
         {
             return InstName + ": " + Path.Combine(StorageVolume, StoragePath);

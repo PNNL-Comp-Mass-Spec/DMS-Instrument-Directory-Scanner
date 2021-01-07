@@ -20,6 +20,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class StatusFile : EventNotifier
     {
+        // Ignore Spelling: yyyy-MM-dd, hh:mm:ss tt
 
         #region "Enums"
 
@@ -213,8 +214,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Return the ProcessID of the Analysis manager
         /// </summary>
-        /// <returns></returns>
-        /// <remarks></remarks>
         public int GetProcessID()
         {
             var processID = Process.GetCurrentProcess().Id;
@@ -224,7 +223,6 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Get the directory path for the status file tracked by FileNamePath
         /// </summary>
-        /// <returns></returns>
         private string GetStatusFileDirectory()
         {
             var statusFileDirectory = Path.GetDirectoryName(FileNamePath);
@@ -561,7 +559,6 @@ namespace DMS_InstDirScanner
         /// Total time the job has been running
         /// </summary>
         /// <returns>Number of hours manager has been processing job</returns>
-        /// <remarks></remarks>
         private float GetRunTime()
         {
             return (float)DateTime.UtcNow.Subtract(TaskStartTime).TotalHours;

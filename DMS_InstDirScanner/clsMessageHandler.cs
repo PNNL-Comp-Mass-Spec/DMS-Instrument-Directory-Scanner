@@ -19,14 +19,11 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Handles sending and receiving of control and status messages
     /// </summary>
-    class MessageHandler : LoggerBase, IDisposable
+    internal class MessageHandler : LoggerBase, IDisposable
     {
 
         #region "Class variables"
 
-        private string m_BrokerUri;
-
-        private string m_StatusTopicName;	// Used for status output
         private MgrSettings m_MgrSettings;
 
         private IConnection m_Connection;
@@ -45,17 +42,9 @@ namespace DMS_InstDirScanner
             set => m_MgrSettings = value;
         }
 
-        public string BrokerUri
-        {
-            get => m_BrokerUri;
-            set => m_BrokerUri = value;
-        }
+        public string BrokerUri { get; set; }
 
-        public string StatusTopicName
-        {
-            get => m_StatusTopicName;
-            set => m_StatusTopicName = value;
-        }
+        public string StatusTopicName { get; set; }
 
         #endregion
 
@@ -85,7 +74,7 @@ namespace DMS_InstDirScanner
             {
                 try
                 {
-                    IConnectionFactory connectionFactory = new ConnectionFactory(m_BrokerUri);
+                    IConnectionFactory connectionFactory = new ConnectionFactory(BrokerUri);
                     m_Connection = connectionFactory.CreateConnection();
                     m_Connection.RequestTimeout = new TimeSpan(0, 0, timeoutSeconds);
                     m_Connection.Start();
@@ -108,7 +97,7 @@ namespace DMS_InstDirScanner
                     PRISM.ProgRunner.SleepMilliseconds(3000);
                 }
 
-                retriesRemaining -= 1;
+                retriesRemaining--;
             }
 
             // If we get here, we never could connect to the message broker
@@ -135,7 +124,7 @@ namespace DMS_InstDirScanner
                 if (!m_HasConnection)
                     return false;
 
-                if (string.IsNullOrWhiteSpace(m_StatusTopicName))
+                if (string.IsNullOrWhiteSpace(StatusTopicName))
                 {
                     LogWarning("Status topic queue name is undefined");
                 }
@@ -143,7 +132,7 @@ namespace DMS_InstDirScanner
                 {
                     // topic for the capture tool manager to send status information over
                     m_StatusSession = m_Connection.CreateSession();
-                    m_StatusSender = m_StatusSession.CreateProducer(new ActiveMQTopic(m_StatusTopicName));
+                    m_StatusSender = m_StatusSession.CreateProducer(new ActiveMQTopic(StatusTopicName));
                     LogDebug("Status sender established");
                 }
 

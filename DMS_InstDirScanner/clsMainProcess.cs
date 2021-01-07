@@ -42,7 +42,7 @@ namespace DMS_InstDirScanner
 
         private MgrSettingsDB m_MgrSettings;
 
-        static StatusFile m_StatusFile;
+        private static StatusFile m_StatusFile;
 
         private MessageHandler m_MsgHandler;
 
@@ -152,7 +152,7 @@ namespace DMS_InstDirScanner
                 return false;
             }
 
-            if (Environment.MachineName.ToLower().StartsWith("monroe"))
+            if (Environment.MachineName.StartsWith("monroe", StringComparison.OrdinalIgnoreCase))
             {
                 var mgrPerspective = m_MgrSettings.GetParam("perspective");
 
@@ -243,7 +243,7 @@ namespace DMS_InstDirScanner
                 // Check to see if manager is active
                 if (!m_MgrSettings.GetParam("MgrActive", true))
                 {
-                    var message = "Program disabled in manager control DB";
+                    const string message = "Program disabled in manager control DB";
                     ConsoleMsgUtils.ShowWarning(message);
                     LogTools.LogMessage(message);
                     LogTools.LogMessage("===== Closing Inst Dir Scanner =====");
@@ -253,7 +253,7 @@ namespace DMS_InstDirScanner
 
                 if (!m_MgrSettings.GetParam(MgrSettings.MGR_PARAM_MGR_ACTIVE_LOCAL, true))
                 {
-                    var message = "Program disabled locally";
+                    const string message = "Program disabled locally";
                     ConsoleMsgUtils.ShowWarning(message);
                     LogTools.LogMessage(message);
                     LogTools.LogMessage("===== Closing Inst Dir Scanner =====");

@@ -69,9 +69,9 @@ namespace DMS_InstDirScanner
 
         private int m_WritingErrorCountSaved;
 
-        readonly MessageHandler m_MsgHandler;
+        private readonly MessageHandler m_MsgHandler;
 
-        int m_MessageQueueExceptionCount;
+        private int m_MessageQueueExceptionCount;
 
         #endregion
 
@@ -227,10 +227,7 @@ namespace DMS_InstDirScanner
         {
             var statusFileDirectory = Path.GetDirectoryName(FileNamePath);
 
-            if (statusFileDirectory == null)
-                return ".";
-
-            return statusFileDirectory;
+            return statusFileDirectory ?? ".";
         }
 
         /// <summary>
@@ -432,7 +429,7 @@ namespace DMS_InstDirScanner
             catch (Exception ex)
             {
                 // Increment the error counter
-                m_WritingErrorCountSaved += 1;
+                m_WritingErrorCountSaved++;
 
                 if (m_WritingErrorCountSaved >= WRITE_FAILURE_LOG_THRESHOLD)
                 {
@@ -539,7 +536,7 @@ namespace DMS_InstDirScanner
             }
             catch (Exception ex)
             {
-                m_MessageQueueExceptionCount += 1;
+                m_MessageQueueExceptionCount++;
                 var msg = "Exception sending status message to broker; count = " + m_MessageQueueExceptionCount;
 
                 if (DateTime.Now.TimeOfDay.Hours == 0 && DateTime.Now.TimeOfDay.Minutes >= 0 && DateTime.Now.TimeOfDay.Minutes <= 5)

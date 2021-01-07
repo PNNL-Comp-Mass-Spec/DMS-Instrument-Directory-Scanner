@@ -25,9 +25,9 @@ namespace DMS_InstDirScanner
 
         #region "Member variables"
 
-        int mDebugLevel = 1;
+        private int mDebugLevel = 1;
 
-        string mMostRecentIOErrorInstrument;
+        private string mMostRecentIOErrorInstrument;
 
         #endregion
 
@@ -235,7 +235,7 @@ namespace DMS_InstDirScanner
             string userDescription;
 
             // If this is a machine on bionet, set up a connection
-            if (instrumentData.CaptureMethod.ToLower() == "secfso")
+            if (string.Equals(instrumentData.CaptureMethod, "secfso", StringComparison.OrdinalIgnoreCase))
             {
                 // Typically user ftms (not LCMSOperator)
                 var bionetUser = mgrSettings.GetParam("BionetUser");
@@ -268,7 +268,7 @@ namespace DMS_InstDirScanner
             else
             {
                 userDescription = " as user " + Environment.UserName;
-                if (remoteDirectoryPath.ToLower().Contains(".bionet"))
+                if (remoteDirectoryPath.IndexOf(".bionet", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     OnWarningEvent("Warning: Connection to a bionet share should probably use \'secfso\'; " +
                                     "currently configured to use \'fso\' for " + remoteDirectoryPath);
@@ -397,7 +397,7 @@ namespace DMS_InstDirScanner
                 var files = datasetDirectory.GetFiles("*").ToList();
                 foreach (var currentFile in files)
                 {
-                    totalSizeBytes = (totalSizeBytes + currentFile.Length);
+                    totalSizeBytes += currentFile.Length;
                 }
 
                 // Do not use SearchOption.AllDirectories in case there are security issues with one or more of the subdirectories

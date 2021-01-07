@@ -9,7 +9,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Class that starts application execution
     /// </summary>
-    internal class Program
+    internal static class Program
     {
         public const string PROGRAM_DATE = "January 7, 2021";
 

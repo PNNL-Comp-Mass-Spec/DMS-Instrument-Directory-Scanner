@@ -17,7 +17,6 @@ namespace DMS_InstDirScanner
     /// </summary>
     public static class UtilityMethods
     {
-
         #region "Methods"
 
         /// <summary>
@@ -98,7 +97,6 @@ namespace DMS_InstDirScanner
                 else
                     Console.WriteLine(statusMessage);
             }
-
         }
 
         /// <summary>

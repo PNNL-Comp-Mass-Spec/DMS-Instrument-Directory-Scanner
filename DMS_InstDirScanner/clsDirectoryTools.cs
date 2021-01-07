@@ -115,19 +115,16 @@ namespace DMS_InstDirScanner
                         {
                             fiSourceFile.CopyTo(Path.Combine(diTargetDirectory.FullName, fiSourceFile.Name), true);
                         }
-
                     }
                     catch (Exception ex)
                     {
                         OnErrorEvent("Exception copying to MostRecentValid directory", ex);
                     }
-
                 }
                 catch (Exception ex)
                 {
                     LogCriticalError("Error finding files for " + instrument.InstName + " in PerformDirectoryScans: " + ex.Message);
                 }
-
             }
 
             return true;
@@ -163,7 +160,6 @@ namespace DMS_InstDirScanner
                     {
                         fiStatusFile.CopyTo(Path.Combine(backupDirectory.FullName, fiStatusFile.Name), true);
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -179,7 +175,6 @@ namespace DMS_InstDirScanner
                         return false;
                     }
                 }
-
             }
 
             if (PreviewMode)
@@ -211,7 +206,6 @@ namespace DMS_InstDirScanner
                     // Delay for 1 second before trying again
                     ProgRunner.SleepMilliseconds(1000);
                 }
-
             }
 
             OnErrorEvent("Exception creating output file " + fiStatusFile.FullName + ": " + errorMessage);
@@ -273,7 +267,6 @@ namespace DMS_InstDirScanner
                     OnWarningEvent("Warning: Connection to a bionet share should probably use \'secfso\'; " +
                                     "currently configured to use \'fso\' for " + remoteDirectoryPath);
                 }
-
             }
 
             var instrumentDataDirectory = new DirectoryInfo(remoteDirectoryPath);
@@ -329,7 +322,6 @@ namespace DMS_InstDirScanner
                 }
 
                 OnStatusEvent(fileStats);
-
             }
 
             // If this was a bionet machine, disconnect
@@ -339,7 +331,6 @@ namespace DMS_InstDirScanner
                 {
                     OnErrorEvent("Could not disconnect from " + remoteDirectoryPath);
                 }
-
             }
 
             return directoryExists;
@@ -408,7 +399,6 @@ namespace DMS_InstDirScanner
                     var subDirSizeBytes = GetDirectorySize(instrumentName, subDirectory);
                     totalSizeBytes += subDirSizeBytes;
                 }
-
             }
             catch (UnauthorizedAccessException)
             {
@@ -455,7 +445,6 @@ namespace DMS_InstDirScanner
             {
                 OnErrorEvent(errorMessage);
             }
-
         }
 
         private void LogErrorToDatabase(string errorMessage)
@@ -474,7 +463,5 @@ namespace DMS_InstDirScanner
             mMostRecentIOErrorInstrument = instrumentName;
             OnWarningEvent(errorMessage);
         }
-
     }
-
 }

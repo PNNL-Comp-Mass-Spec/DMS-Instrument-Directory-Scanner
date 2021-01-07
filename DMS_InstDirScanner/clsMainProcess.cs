@@ -298,7 +298,6 @@ namespace DMS_InstDirScanner
             {
                 LogError("Error in DoDirectoryScan", ex);
             }
-
         }
 
         /// <summary>
@@ -384,7 +383,6 @@ namespace DMS_InstDirScanner
             }
         }
 
-
         /// <summary>
         /// Extract the value MgrCnfgDbConnectStr from DMS_InstDirScanner.exe.config
         /// </summary>
@@ -400,7 +398,6 @@ namespace DMS_InstDirScanner
         /// <remarks>Uses a simple text reader in case the file has malformed XML</remarks>
         private string GetXmlConfigFileSetting(string settingName)
         {
-
             if (string.IsNullOrWhiteSpace(settingName))
                 throw new ArgumentException("Setting name cannot be blank", nameof(settingName));
 
@@ -446,7 +443,6 @@ namespace DMS_InstDirScanner
                 LogError("Exception reading setting " + settingName + " in DMS_InstDirScanner.exe.config", ex);
                 return string.Empty;
             }
-
         }
 
         private void LogFatalError(string errorMessage)
@@ -454,7 +450,6 @@ namespace DMS_InstDirScanner
             LogError(errorMessage);
             LogTools.LogMessage("===== Closing Inst Dir Scanner =====");
             m_StatusFile.UpdateStopped(true);
-
         }
 
         #region "Event Handlers"
@@ -494,6 +489,4 @@ namespace DMS_InstDirScanner
 
         #endregion
     }
-
-
 }

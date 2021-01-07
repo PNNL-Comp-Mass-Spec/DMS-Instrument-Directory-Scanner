@@ -56,14 +56,12 @@ namespace DMS_InstDirScanner
 
                 try
                 {
-
                     if (!mainProcess.InitMgr())
                     {
                         FileLogger.FlushPendingMessages();
                         ProgRunner.SleepMilliseconds(1500);
                         return -2;
                     }
-
                 }
                 catch (Exception ex)
                 {

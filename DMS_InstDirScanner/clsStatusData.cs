@@ -16,7 +16,6 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal static class StatusData
     {
-
         private static string mMostRecentLogMessage;
 
         public static string MostRecentLogMessage
@@ -49,6 +48,5 @@ namespace DMS_InstDirScanner
                 ErrorQueue.Dequeue();
             }
         }
-
     }
 }

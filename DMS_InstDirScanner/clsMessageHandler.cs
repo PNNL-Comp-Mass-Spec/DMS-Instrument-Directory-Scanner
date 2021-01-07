@@ -15,13 +15,11 @@ using PRISM.AppSettings;
 
 namespace DMS_InstDirScanner
 {
-
     /// <summary>
     /// Handles sending and receiving of control and status messages
     /// </summary>
     internal class MessageHandler : LoggerBase, IDisposable
     {
-
         #region "Class variables"
 
         private MgrSettings m_MgrSettings;

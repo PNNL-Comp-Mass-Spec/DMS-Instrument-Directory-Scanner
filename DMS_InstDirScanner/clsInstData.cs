@@ -10,7 +10,6 @@ using System.IO;
 
 namespace DMS_InstDirScanner
 {
-
     /// <summary>
     /// Class to hold data for each instrument
     /// </summary>

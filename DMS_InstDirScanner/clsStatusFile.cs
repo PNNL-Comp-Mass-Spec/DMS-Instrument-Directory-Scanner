@@ -262,7 +262,6 @@ namespace DMS_InstDirScanner
                 // Send the XML text to a message queue
                 LogStatusToMessageQueue(xmlText);
             }
-
         }
 
         private string GenerateStatusXML(
@@ -351,7 +350,6 @@ namespace DMS_InstDirScanner
 
                 return xmlText;
             }
-
         }
 
         private void WriteStatusFileToDisk(string xmlText)
@@ -383,7 +381,6 @@ namespace DMS_InstDirScanner
                     // Log a warning that the file copy failed
                     OnWarningEvent("Unable to copy temporary status file to the final status file (" + Path.GetFileName(tempStatusFilePath) +
                                    " to " + Path.GetFileName(FileNamePath) + "):" + ex.Message);
-
                 }
 
                 try
@@ -396,7 +393,6 @@ namespace DMS_InstDirScanner
                     // Log a warning that the file delete failed
                     OnWarningEvent("Unable to delete temporary status file (" + Path.GetFileName(tempStatusFilePath) + "): " + ex.Message);
                 }
-
             }
             else
             {
@@ -424,7 +420,6 @@ namespace DMS_InstDirScanner
                 m_WritingErrorCountSaved = 0;
 
                 success = true;
-
             }
             catch (Exception ex)
             {
@@ -445,7 +440,6 @@ namespace DMS_InstDirScanner
             }
 
             return success;
-
         }
 
         /// <summary>
@@ -457,7 +451,6 @@ namespace DMS_InstDirScanner
         {
             Progress = percentComplete;
             WriteStatusFile();
-
         }
 
         /// <summary>
@@ -593,7 +586,6 @@ namespace DMS_InstDirScanner
                         StatusData.AddErrorMessage(Xn.InnerText);
                     }
                 }
-
             }
             catch (Exception ex)
             {

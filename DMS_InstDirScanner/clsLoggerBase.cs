@@ -7,7 +7,6 @@ namespace DMS_InstDirScanner
     /// </summary>
     public abstract class LoggerBase
     {
-
         /// <summary>
         /// Show a status message at the console and optionally include in the log file, tagging it as a debug message
         /// </summary>
@@ -59,8 +58,5 @@ namespace DMS_InstDirScanner
         {
             UtilityMethods.LogWarning(warningMessage, logToDb);
         }
-
-
     }
-
 }

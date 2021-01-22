@@ -153,6 +153,8 @@ namespace DMS_InstDirScanner
             if (!m_IsDisposed)
             {
                 var textMessage = m_StatusSession.CreateTextMessage(message);
+                textMessage.NMSTimeToLive = TimeSpan.FromMinutes(60);
+                textMessage.NMSDeliveryMode = MsgDeliveryMode.NonPersistent;
                 textMessage.Properties.SetString("ProcessorName", m_MgrSettings.ManagerName);
                 try
                 {

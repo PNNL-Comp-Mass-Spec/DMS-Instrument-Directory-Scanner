@@ -37,10 +37,10 @@ namespace DMS_InstDirScanner
 
         public static Queue<string> ErrorQueue { get; } = new Queue<string>();
 
-        public static void AddErrorMessage(string ErrMsg)
+        public static void AddErrorMessage(string errorMessage)
         {
             // Add the most recent error message
-            ErrorQueue.Enqueue(ErrMsg);
+            ErrorQueue.Enqueue(errorMessage);
 
             // If there are > 4 entries in the queue, delete the oldest ones
             while (ErrorQueue.Count > 4)

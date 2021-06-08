@@ -190,11 +190,12 @@ namespace DMS_InstDirScanner
                 retriesRemaining--;
                 try
                 {
-                    var swOutFile = new StreamWriter(new FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read));
+                    var writer = new StreamWriter(new FileStream(fiStatusFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read));
 
                     // The file always starts with a blank line
-                    swOutFile.WriteLine();
-                    statusFileWriter = swOutFile;
+                    writer.WriteLine();
+
+                    statusFileWriter = writer;
                     return true;
                 }
                 catch (Exception ex)

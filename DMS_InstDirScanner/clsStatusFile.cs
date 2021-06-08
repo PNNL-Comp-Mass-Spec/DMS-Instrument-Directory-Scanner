@@ -13,6 +13,8 @@ using System.Xml;
 using PRISM;
 using PRISM.Logging;
 
+// ReSharper disable UnusedMember.Global
+
 namespace DMS_InstDirScanner
 {
     /// <summary>

@@ -354,26 +354,16 @@ namespace DMS_InstDirScanner
             }
 
             var fileSizeText = fileSize.ToString(formatString);
-            string fileSizeUnits;
 
-            switch (fileSizeIterator)
+            var fileSizeUnits = fileSizeIterator switch
             {
-                case 0:
-                    fileSizeUnits = "bytes";
-                    break;
-                case 1:
-                    fileSizeUnits = "KB";
-                    break;
-                case 2:
-                    fileSizeUnits = "MB";
-                    break;
-                case 3:
-                    fileSizeUnits = "GB";
-                    break;
-                default:
-                    fileSizeUnits = "???";
-                    break;
-            }
+                0 => "bytes",
+                1 => "KB",
+                2 => "MB",
+                3 => "GB",
+                _ => "???"
+            };
+
             return fileSizeText + " " + fileSizeUnits;
         }
 

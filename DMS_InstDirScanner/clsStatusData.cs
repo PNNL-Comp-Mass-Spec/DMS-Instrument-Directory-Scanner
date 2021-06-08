@@ -24,7 +24,7 @@ namespace DMS_InstDirScanner
             set
             {
                 // Filter out routine startup and shutdown messages
-                if (value.Contains("=== Started") || (value.Contains("===== Closing")))
+                if (value.Contains("=== Started") || value.Contains("===== Closing"))
                 {
                     // Do nothing
                 }
@@ -35,7 +35,7 @@ namespace DMS_InstDirScanner
             }
         }
 
-        public static Queue<string> ErrorQueue { get; } = new Queue<string>();
+        public static Queue<string> ErrorQueue { get; } = new();
 
         public static void AddErrorMessage(string errorMessage)
         {

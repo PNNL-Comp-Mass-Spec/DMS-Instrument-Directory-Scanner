@@ -28,7 +28,7 @@ namespace DMS_InstDirScanner
         }
 
         /// <summary>
-        /// Convert string to bool; default false if an error
+        /// Convert string to boolean; default false if an error
         /// </summary>
         /// <param name="value"></param>
         // ReSharper disable once UnusedMember.Global

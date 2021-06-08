@@ -20,8 +20,6 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class MessageHandler : LoggerBase, IDisposable
     {
-        #region "Class variables"
-
         private MgrSettings m_MgrSettings;
 
         private IConnection m_Connection;
@@ -31,10 +29,6 @@ namespace DMS_InstDirScanner
         private bool m_IsDisposed;
         private bool m_HasConnection;
 
-        #endregion
-
-        #region "Properties"
-
         public MgrSettings MgrSettings
         {
             set => m_MgrSettings = value;
@@ -43,10 +37,6 @@ namespace DMS_InstDirScanner
         public string BrokerUri { get; set; }
 
         public string StatusTopicName { get; set; }
-
-        #endregion
-
-        #region "Methods"
 
         /// <summary>
         /// Create set of NMS connection objects necessary to talk to the ActiveMQ broker
@@ -171,10 +161,6 @@ namespace DMS_InstDirScanner
             }
         }
 
-        #endregion
-
-        #region "Cleanup"
-
         /// <summary>
         /// Cleans up a connection after error or when closing
         /// </summary>
@@ -199,7 +185,5 @@ namespace DMS_InstDirScanner
             DestroyConnection();
             m_IsDisposed = true;
         }
-
-        #endregion
     }
 }

@@ -26,15 +26,9 @@ namespace DMS_InstDirScanner
     {
         // Ignore Spelling: Bionet
 
-        #region "Constants"
-
         private const string DEFAULT_BASE_LOGFILE_NAME = @"Logs\InstDirScanner";
 
         private const string MGR_PARAM_DEFAULT_DMS_CONN_STRING = "MgrCnfgDbConnectStr";
-
-        #endregion
-
-        #region "Member variables"
 
         private readonly string m_MgrExeName;
 
@@ -46,10 +40,6 @@ namespace DMS_InstDirScanner
 
         private MessageHandler m_MsgHandler;
 
-        #endregion
-
-        #region "Properties"
-
         /// <summary>
         /// When true, ignore Bionet instruments
         /// </summary>
@@ -59,8 +49,6 @@ namespace DMS_InstDirScanner
         /// When true, preview the stats but don't change any instrument stat files
         /// </summary>
         public bool PreviewMode { get; set; }
-
-        #endregion
 
         /// <summary>
         /// Constructor
@@ -452,8 +440,6 @@ namespace DMS_InstDirScanner
             m_StatusFile.UpdateStopped(true);
         }
 
-        #region "Event Handlers"
-
         private void RegisterEvents(IEventNotifier sourceClass)
         {
             sourceClass.DebugEvent += DebugEventHandler;
@@ -486,7 +472,5 @@ namespace DMS_InstDirScanner
         {
             LogWarning(message);
         }
-
-        #endregion
     }
 }

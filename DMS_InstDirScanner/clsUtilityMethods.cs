@@ -17,8 +17,6 @@ namespace DMS_InstDirScanner
     /// </summary>
     public static class UtilityMethods
     {
-        #region "Methods"
-
         /// <summary>
         /// Convert bytes to Gigabytes
         /// </summary>
@@ -118,7 +116,5 @@ namespace DMS_InstDirScanner
         {
             LogTools.LogDebug(message, writeToLog);
         }
-
-        #endregion
     }
 }

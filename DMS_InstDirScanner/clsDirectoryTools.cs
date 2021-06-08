@@ -23,13 +23,10 @@ namespace DMS_InstDirScanner
     {
         // Ignore Spelling: Bionet, fso, secfso, prepend, ftms, pwd, yyyy-MM-dd, hh:mm:ss tt
 
-        #region "Member variables"
 
         private int mDebugLevel = 1;
 
         private string mMostRecentIOErrorInstrument;
-
-        #endregion
 
         /// <summary>
         /// Instance of FileTools

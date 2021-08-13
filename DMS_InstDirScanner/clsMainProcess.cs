@@ -89,8 +89,12 @@ namespace DMS_InstDirScanner
                 defaultDmsConnectionString = dmsConnectionStringFromConfig;
             }
 
+            var hostName = System.Net.Dns.GetHostName();
+            var applicationName = "InstDirScanner_" + hostName;
+            var defaultDbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(defaultDmsConnectionString, applicationName);
+
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            LogTools.CreateDbLogger(defaultDmsConnectionString, "InstDirScan: " + System.Net.Dns.GetHostName());
+            LogTools.CreateDbLogger(defaultDbLoggerConnectionString, "InstDirScan: " + hostName);
 
             // Get the manager settings
             try
@@ -165,10 +169,13 @@ namespace DMS_InstDirScanner
             // Data Source=gigasax;Initial Catalog=DMS5;Integrated Security=SSPI;
             var logCnStr = m_MgrSettings.GetParam("ConnectionString");
             var moduleName = m_MgrSettings.GetParam("ModuleName");
-            LogTools.CreateDbLogger(logCnStr, moduleName);
+
+            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(logCnStr, m_MgrSettings.ManagerName);
+
+            LogTools.CreateDbLogger(dbLoggerConnectionString, moduleName);
 
             // Make the initial log entry
-            var msg = "=== Started Instrument Directory Scanner V" + GetAppVersion() + " ===== ";
+            var msg = "=== Started Instrument Directory Scanner V" + GetAppVersion() + " === ";
 
             LogTools.LogMessage(msg);
 

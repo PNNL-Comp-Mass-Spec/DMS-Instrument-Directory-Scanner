@@ -330,7 +330,9 @@ namespace DMS_InstDirScanner
                 return null;
             }
 
-            var dbTools = DbToolsFactory.GetDBTools(connectionString);
+            var connectionStringToUse = DbToolsFactory.AddApplicationNameToConnectionString(connectionString, m_MgrSettings.ManagerName);
+
+            var dbTools = DbToolsFactory.GetDBTools(connectionStringToUse);
             RegisterEvents(dbTools);
 
             // Get a table containing the active instruments

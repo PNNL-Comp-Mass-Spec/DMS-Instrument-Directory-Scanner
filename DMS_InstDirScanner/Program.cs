@@ -11,7 +11,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal static class Program
     {
-        public const string PROGRAM_DATE = "November 12, 2021";
+        public const string PROGRAM_DATE = "January 20, 2022";
 
         /// <summary>
         /// Entry method

@@ -192,7 +192,6 @@ namespace DMS_InstDirScanner
             {
                 // Most error messages provided by .Init method, but debug message is here for program tracking
                 LogDebug("Message handler init error");
-                return false;
             }
 
             LogDebug("Message handler initialized");

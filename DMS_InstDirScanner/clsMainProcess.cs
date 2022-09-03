@@ -390,8 +390,8 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Extract the value for the given setting from DMS_InstDirScanner.exe.config
         /// </summary>
-        /// <returns>Setting value if found, otherwise an empty string</returns>
         /// <remarks>Uses a simple text reader in case the file has malformed XML</remarks>
+        /// <returns>Setting value if found, otherwise an empty string</returns>
         private string GetXmlConfigFileSetting(string settingName)
         {
             if (string.IsNullOrWhiteSpace(settingName))

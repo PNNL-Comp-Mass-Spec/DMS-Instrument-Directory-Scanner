@@ -22,7 +22,7 @@ namespace DMS_InstDirScanner
     /// <summary>
     /// Master processing class
     /// </summary>
-    public class MainProcess : LoggerBase
+    public class MainProcess : LoggerBase, IDisposable
     {
         // Ignore Spelling: Bionet
 
@@ -38,7 +38,7 @@ namespace DMS_InstDirScanner
 
         private static StatusFile m_StatusFile;
 
-        private MessageHandler m_MsgHandler;
+        private MessageSender m_MsgSender;
 
         /// <summary>
         /// When true, ignore Bionet instruments
@@ -58,6 +58,15 @@ namespace DMS_InstDirScanner
             var exeInfo = new FileInfo(GetAppPath());
             m_MgrExeName = exeInfo.Name;
             m_MgrDirectoryPath = exeInfo.DirectoryName;
+        }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public void Dispose()
+        {
+            m_MsgSender?.Dispose();
+            m_MsgSender = null;
         }
 
         /// <summary>
@@ -181,14 +190,14 @@ namespace DMS_InstDirScanner
 
             // Setup the message queue
 
-            m_MsgHandler = new MessageHandler
-            {
-                BrokerUri = m_MgrSettings.GetParam("MessageQueueURI"),
-                StatusTopicName = m_MgrSettings.GetParam("MessageQueueTopicMgrStatus"),
-                MgrSettings = m_MgrSettings
-            };
+            m_MsgSender = new MessageSender(
+                m_MgrSettings.GetParam("MessageQueueURI"),
+                m_MgrSettings.GetParam("MessageQueueTopicMgrStatus"),
+                m_MgrSettings.ManagerName);
 
-            if (!m_MsgHandler.Init())
+            RegisterEvents(m_MsgSender);
+
+            if (!m_MsgSender.CreateConnection())
             {
                 // Most error messages provided by .Init method, but debug message is here for program tracking
                 LogDebug("Message handler init error");
@@ -210,7 +219,7 @@ namespace DMS_InstDirScanner
             else
                 statusFileNameLoc = Path.Combine(fInfo.DirectoryName, "Status.xml");
 
-            m_StatusFile = new StatusFile(statusFileNameLoc, m_MsgHandler)
+            m_StatusFile = new StatusFile(statusFileNameLoc, m_MsgSender)
             {
                 LogToMsgQueue = m_MgrSettings.GetParam("LogStatusToMessageQueue", false),
                 MgrName = m_MgrSettings.ManagerName,

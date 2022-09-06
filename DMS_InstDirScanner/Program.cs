@@ -11,7 +11,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal static class Program
     {
-        public const string PROGRAM_DATE = "July 7, 2022";
+        public const string PROGRAM_DATE = "September 6, 2022";
 
         /// <summary>
         /// Entry method
@@ -19,6 +19,8 @@ namespace DMS_InstDirScanner
         /// <returns>0 if no error, error code if an error</returns>
         public static int Main(string[] args)
         {
+            MainProcess mainProcess = null;
+
             try
             {
                 var exeName = System.IO.Path.GetFileName(System.Reflection.Assembly.GetExecutingAssembly().GetName().Name);
@@ -53,7 +55,7 @@ namespace DMS_InstDirScanner
                     return -1;
                 }
 
-                var mainProcess = new MainProcess
+                mainProcess = new MainProcess
                 {
                     NoBionet = options.NoBionet,
                     PreviewMode = options.PreviewMode
@@ -82,9 +84,14 @@ namespace DMS_InstDirScanner
             }
             catch (Exception ex)
             {
-                ShowErrorMessage("Error occurred in modMain->Main", ex);
+                ShowErrorMessage("Error occurred in Program->Main", ex);
                 LogTools.FlushPendingMessages();
                 return -1;
+            }
+            finally
+            {
+                // Properly close down the ActiveMQ connection
+                mainProcess?.Dispose();
             }
         }
 

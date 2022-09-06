@@ -65,7 +65,7 @@ namespace DMS_InstDirScanner
 
         private int m_WritingErrorCountSaved;
 
-        private readonly MessageHandler m_MsgHandler;
+        private readonly MessageSender m_MsgSender;
 
         private int m_MessageQueueExceptionCount;
 
@@ -147,12 +147,12 @@ namespace DMS_InstDirScanner
         /// <summary>
         /// Constructor
         /// </summary>
-        public StatusFile(string statusFilePath, MessageHandler msgHandler)
+        public StatusFile(string statusFilePath, MessageSender msgSender)
         {
             FileNamePath = statusFilePath;
             TaskStartTime = DateTime.UtcNow;
 
-            m_MsgHandler = msgHandler;
+            m_MsgSender = msgSender;
 
             ClearCachedInfo();
         }
@@ -509,12 +509,12 @@ namespace DMS_InstDirScanner
         /// <param name="strStatusXML">A string containing the XML to write</param>
         protected void LogStatusToMessageQueue(string strStatusXML)
         {
-            if (m_MsgHandler == null)
+            if (m_MsgSender == null)
                 return;
 
             try
             {
-                m_MsgHandler.SendMessage(strStatusXML);
+                m_MsgSender.SendMessage(strStatusXML);
                 m_MessageQueueExceptionCount = 0;
             }
             catch (Exception ex)

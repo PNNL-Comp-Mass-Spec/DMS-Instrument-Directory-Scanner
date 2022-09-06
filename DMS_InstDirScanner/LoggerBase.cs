@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PRISM.Logging;
+using PRISM;
+using System;
 
 namespace DMS_InstDirScanner
 {
@@ -15,7 +17,7 @@ namespace DMS_InstDirScanner
         /// <param name="writeToLog">True to write to the log file; false to only display at console</param>
         protected static void LogDebug(string statusMessage, bool writeToLog = true)
         {
-            UtilityMethods.LogDebug(statusMessage, writeToLog);
+            LogTools.LogDebug(statusMessage, writeToLog);
         }
 
         /// <summary>
@@ -25,7 +27,7 @@ namespace DMS_InstDirScanner
         /// <param name="logToDb">When true, log the message to the database and the local log file</param>
         protected static void LogError(string errorMessage, bool logToDb = false)
         {
-            UtilityMethods.LogError(errorMessage, logToDb);
+            LogTools.LogError(errorMessage, null, logToDb);
         }
 
         /// <summary>
@@ -35,7 +37,7 @@ namespace DMS_InstDirScanner
         /// <param name="ex">Exception to log</param>
         protected static void LogError(string errorMessage, Exception ex)
         {
-            UtilityMethods.LogError(errorMessage, ex);
+            LogTools.LogError(errorMessage, ex);
         }
 
         /// <summary>
@@ -46,7 +48,20 @@ namespace DMS_InstDirScanner
         /// <param name="writeToLog">True to write to the log file; false to only display at console</param>
         public static void LogMessage(string statusMessage, bool isError = false, bool writeToLog = true)
         {
-            UtilityMethods.LogMessage(statusMessage, isError, writeToLog);
+            if (writeToLog)
+            {
+                if (isError)
+                    LogTools.LogError(statusMessage);
+                else
+                    LogTools.LogMessage(statusMessage);
+            }
+            else
+            {
+                if (isError)
+                    ConsoleMsgUtils.ShowErrorCustom(statusMessage, false);
+                else
+                    Console.WriteLine(statusMessage);
+            }
         }
 
         /// <summary>
@@ -56,7 +71,7 @@ namespace DMS_InstDirScanner
         /// <param name="logToDb">When true, log the message to the database and the local log file</param>
         protected static void LogWarning(string warningMessage, bool logToDb = false)
         {
-            UtilityMethods.LogWarning(warningMessage, logToDb);
+            LogTools.LogWarning(warningMessage, logToDb);
         }
     }
 }

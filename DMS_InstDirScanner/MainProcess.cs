@@ -327,7 +327,7 @@ namespace DMS_InstDirScanner
                 "vol",
                 "path",
                 "method",
-                "Instrument" };
+                "instrument" };
 
             var sqlQuery = "SELECT " + string.Join(",", columns) + " FROM V_Instrument_Source_Paths";
 
@@ -370,7 +370,7 @@ namespace DMS_InstDirScanner
                     var instrumentInfo = new InstrumentData
                     {
                         CaptureMethod = dbTools.GetColumnValue(result, colMapping, "method"),
-                        InstName = dbTools.GetColumnValue(result, colMapping, "Instrument"),
+                        InstName = dbTools.GetColumnValue(result, colMapping, "instrument"),
                         StoragePath = dbTools.GetColumnValue(result, colMapping, "path"),
                         StorageVolume = dbTools.GetColumnValue(result, colMapping, "vol")
                     };

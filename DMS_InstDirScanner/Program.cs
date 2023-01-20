@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using PRISM;
-using PRISM.FileProcessor;
 using PRISM.Logging;
 
 namespace DMS_InstDirScanner
@@ -11,7 +10,12 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal static class Program
     {
-        public const string PROGRAM_DATE = "September 6, 2022";
+        public static readonly string ProgramDate;
+
+        static Program()
+        {
+            ProgramDate = ThisAssembly.GitCommitDate.ToString("MMMM dd, yyyy");
+        }
 
         /// <summary>
         /// Entry method
@@ -25,7 +29,7 @@ namespace DMS_InstDirScanner
             {
                 var exeName = System.IO.Path.GetFileName(System.Reflection.Assembly.GetExecutingAssembly().GetName().Name);
 
-                var parser = new CommandLineParser<CommandLineOptions>(exeName, AppUtils.GetAppVersion(PROGRAM_DATE))
+                var parser = new CommandLineParser<CommandLineOptions>(exeName, AppUtils.GetAppVersion(ProgramDate))
                 {
                     ProgramInfo = "This program finds the files and directories in the source folder for active DMS instruments. " +
                                   "It creates a text file for each instrument on a central share, listing the files and directories." +

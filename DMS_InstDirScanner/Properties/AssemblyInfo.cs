@@ -29,4 +29,5 @@ using System.Runtime.InteropServices;
 //     Revision
 //
 
-[assembly: AssemblyVersion("1.4.*")]
+// Version specified via version.json
+//[assembly: AssemblyVersion("1.4.*")]

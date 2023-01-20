@@ -414,7 +414,7 @@ namespace DMS_InstDirScanner
 
         private string DecodePassword(string encodedPwd)
         {
-            return Pacifica.Core.Utilities.DecodePassword(encodedPwd);
+            return AppUtils.DecodeShiftCipher(encodedPwd);
         }
 
         /// <summary>

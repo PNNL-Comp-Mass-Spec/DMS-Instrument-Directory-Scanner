@@ -201,7 +201,7 @@ namespace DMS_InstDirScanner
                 {
                     errorMessage = ex.Message;
                     // Delay for 1 second before trying again
-                    ProgRunner.SleepMilliseconds(1000);
+                    AppUtils.SleepMilliseconds(1000);
                 }
             }
 

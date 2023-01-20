@@ -120,7 +120,7 @@ namespace DMS_InstDirScanner
                 RegisterEvents(m_MgrSettings);
                 m_MgrSettings.CriticalErrorEvent += CriticalErrorEvent;
 
-                var mgrExePath = PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
+                var mgrExePath = AppUtils.GetAppPath();
                 var localSettings = m_MgrSettings.LoadMgrSettingsFromFile(mgrExePath + ".config");
 
                 if (localSettings == null)
@@ -309,7 +309,7 @@ namespace DMS_InstDirScanner
         /// <returns>File path</returns>
         public static string GetAppPath()
         {
-            return PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath();
+            return AppUtils.GetAppPath();
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace DMS_InstDirScanner
         /// </summary>
         public static string GetAppVersion()
         {
-            return PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetEntryOrExecutingAssembly().GetName().Version.ToString();
+            return AppUtils.GetEntryOrExecutingAssembly().GetName().Version.ToString();
         }
 
         private List<InstrumentData> GetInstrumentList()

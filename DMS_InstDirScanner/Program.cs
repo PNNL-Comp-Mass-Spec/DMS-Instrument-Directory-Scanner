@@ -25,8 +25,7 @@ namespace DMS_InstDirScanner
             {
                 var exeName = System.IO.Path.GetFileName(System.Reflection.Assembly.GetExecutingAssembly().GetName().Name);
 
-                var parser = new CommandLineParser<CommandLineOptions>(exeName,
-                    ProcessFilesOrDirectoriesBase.GetAppVersion(PROGRAM_DATE))
+                var parser = new CommandLineParser<CommandLineOptions>(exeName, AppUtils.GetAppVersion(PROGRAM_DATE))
                 {
                     ProgramInfo = "This program finds the files and directories in the source folder for active DMS instruments. " +
                                   "It creates a text file for each instrument on a central share, listing the files and directories." +
@@ -66,7 +65,7 @@ namespace DMS_InstDirScanner
                     if (!mainProcess.InitMgr())
                     {
                         FileLogger.FlushPendingMessages();
-                        ProgRunner.SleepMilliseconds(1500);
+                        AppUtils.SleepMilliseconds(1500);
                         return -2;
                     }
                 }

@@ -12,7 +12,7 @@ namespace DMS_InstDirScanner.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.4.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.4.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -25,7 +25,7 @@ namespace DMS_InstDirScanner.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool MgrActive_Local {
             get {
                 return ((bool)(this["MgrActive_Local"]));
@@ -34,8 +34,7 @@ namespace DMS_InstDirScanner.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=proteinseqs;Initial Catalog=manager_control_T3;Integrated Security=SS" +
-            "PI")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=proteinseqs;Initial Catalog=manager_control;Integrated Security=SSPI")]
         public string MgrCnfgDbConnectStr {
             get {
                 return ((string)(this["MgrCnfgDbConnectStr"]));

@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="CommandLineOptions.cs" />
     <Compile Include="DirectoryTools.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="InstData.cs" />
     <Compile Include="LoggerBase.cs" />
     <Compile Include="MainProcess.cs" />

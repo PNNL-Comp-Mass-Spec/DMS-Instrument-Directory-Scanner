@@ -14,7 +14,7 @@ namespace DMS_InstDirScanner
 
         static Program()
         {
-            ProgramDate = ThisAssembly.GitCommitDate.ToString("MMMM dd, yyyy");
+            ProgramDate = ThisAssembly.GitCommitDate.ToLocalTime().ToString("MMMM dd, yyyy");
         }
 
         /// <summary>

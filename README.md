@@ -29,7 +29,7 @@ Folder: \\VOrbiETD03.bionet\ProteomicsData\ at 2017-11-17 10:47:18 AM
 
 Written by Dave Clark and Matthew Monroe for the Department of Energy (PNNL, Richland, WA) \
 E-mail: proteomics@pnnl.gov \
-Website: https://github.com/PNNL-Comp-Mass-Spec/ or https://panomics.pnnl.gov/ or https://www.pnnl.gov/integrative-omics
+Website: https://github.com/PNNL-Comp-Mass-Spec/ or https://www.pnnl.gov/integrative-omics
 
 ## License
 

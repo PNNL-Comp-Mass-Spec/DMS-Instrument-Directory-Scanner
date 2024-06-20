@@ -24,7 +24,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     public class MainProcess : LoggerBase, IDisposable
     {
-        // Ignore Spelling: Bionet
+        // Ignore Spelling: App, Bionet, DMS
 
         private const string DEFAULT_BASE_LOGFILE_NAME = @"Logs\InstDirScanner";
 
@@ -165,7 +165,7 @@ namespace DMS_InstDirScanner
                 }
             }
 
-            // Setup the loggers
+            // Set up the loggers
             var logFileNameBase = m_MgrSettings.GetParam("LogFileName", "InstDirScanner");
 
             var debugLevel = m_MgrSettings.GetParam("DebugLevel", (int)BaseLogger.LogLevels.INFO);
@@ -188,7 +188,7 @@ namespace DMS_InstDirScanner
 
             LogTools.LogMessage(msg);
 
-            // Setup the message queue
+            // Set up the message queue
 
             m_MsgSender = new MessageSender(
                 m_MgrSettings.GetParam("MessageQueueURI"),
@@ -209,7 +209,7 @@ namespace DMS_InstDirScanner
             // m_MsgHandler.CommandReceived += OnMsgHandler_CommandReceived;
             // m_MsgHandler.BroadcastReceived += OnMsgHandler_BroadcastReceived;
 
-            // Setup the status file class
+            // Set up the status file class
             var appPath = GetAppPath();
             var fInfo = new FileInfo(appPath);
 

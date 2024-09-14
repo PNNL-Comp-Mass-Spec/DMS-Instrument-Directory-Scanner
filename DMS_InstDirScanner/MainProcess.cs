@@ -108,7 +108,8 @@ namespace DMS_InstDirScanner
             // This will get updated below
             LogTools.CreateFileLogger(DEFAULT_BASE_LOGFILE_NAME, BaseLogger.LogLevels.DEBUG);
 
-            // Create a database logger connected to DMS5
+            // Create a database logger connected to the DMS database on prismdb2 (previously, DMS5 on Gigasax)
+
             // Once the initial parameters have been successfully read,
             // we update the dbLogger to use the connection string read from the Manager Control DB
             string defaultDmsConnectionString;
@@ -127,7 +128,6 @@ namespace DMS_InstDirScanner
                 defaultDmsConnectionString = dmsConnectionStringFromConfig;
             }
 
-            // Create a database logger connected to the DMS database on prismdb2 (previously, DMS5 on Gigasax)
             var hostName = System.Net.Dns.GetHostName();
             var applicationName = "InstDirScanner_" + hostName;
             var defaultDbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(defaultDmsConnectionString, applicationName);

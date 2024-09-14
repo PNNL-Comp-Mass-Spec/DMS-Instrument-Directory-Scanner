@@ -4,7 +4,7 @@ namespace DMS_InstDirScanner
 {
     internal class CommandLineOptions
     {
-        // Ignore Spelling: bionet
+        // Ignore Spelling: bionet, DMS
 
         [Option("noBionet", HelpShowsDefault = false, HelpText = "Skip instruments on bionet")]
         public bool NoBionet { get; set; }

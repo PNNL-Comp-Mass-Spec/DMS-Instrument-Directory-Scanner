@@ -21,7 +21,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class DirectoryTools : EventNotifier
     {
-        // Ignore Spelling: Bionet, fso, ftms, prepend, pwd, secfso, username, yyyy-MM-dd, hh:mm:ss tt
+        // Ignore Spelling: Bionet, DMS, fso, ftms, prepend, pwd, secfso, username, yyyy-MM-dd, hh:mm:ss tt
 
         private int mDebugLevel = 1;
 

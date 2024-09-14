@@ -10,6 +10,8 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal static class Program
     {
+        // Ignore Spelling: DMS
+
         public static readonly string ProgramDate;
 
         static Program()

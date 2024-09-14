@@ -22,7 +22,7 @@ namespace DMS_InstDirScanner
     /// </summary>
     internal class StatusFile : EventNotifier
     {
-        // Ignore Spelling: yyyy-MM-dd, hh:mm:ss tt
+        // Ignore Spelling: DMS, yyyy-MM-dd, hh:mm:ss tt
 
         /// <summary>
         /// Manager status constants

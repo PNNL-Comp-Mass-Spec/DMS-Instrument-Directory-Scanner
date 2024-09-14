@@ -130,9 +130,9 @@ namespace DMS_InstDirScanner
             // Create a database logger connected to the DMS database on prismdb2 (previously, DMS5 on Gigasax)
             var hostName = System.Net.Dns.GetHostName();
             var applicationName = "InstDirScanner_" + hostName;
-            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(defaultDmsConnectionString, applicationName);
+            var defaultDbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(defaultDmsConnectionString, applicationName);
 
-            CreateDbLogger(dbLoggerConnectionString, "InstDirScan: " + hostName);
+            CreateDbLogger(defaultDbLoggerConnectionString, "InstDirScan: " + hostName);
 
             // Get the manager settings
             try
@@ -207,9 +207,9 @@ namespace DMS_InstDirScanner
             var logCnStr = m_MgrSettings.GetParam("ConnectionString");
             var moduleName = m_MgrSettings.GetParam("ModuleName");
 
-            var updatedDbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(logCnStr, m_MgrSettings.ManagerName);
+            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(logCnStr, m_MgrSettings.ManagerName);
 
-            CreateDbLogger(updatedDbLoggerConnectionString, moduleName);
+            CreateDbLogger(dbLoggerConnectionString, moduleName);
 
             // Make the initial log entry
             var msg = "=== Started Instrument Directory Scanner V" + GetAppVersion() + " === ";

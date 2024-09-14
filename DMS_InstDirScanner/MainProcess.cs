@@ -16,6 +16,7 @@ using PRISM.AppSettings;
 using PRISM.Logging;
 using PRISMDatabaseUtils;
 using PRISMDatabaseUtils.AppSettings;
+using PRISMDatabaseUtils.Logging;
 
 namespace DMS_InstDirScanner
 {
@@ -70,6 +71,34 @@ namespace DMS_InstDirScanner
         }
 
         /// <summary>
+        /// Initializes the database logger in static class PRISM.Logging.LogTools
+        /// </summary>
+        /// <remarks>Supports both SQL Server and Postgres connection strings</remarks>
+        /// <param name="connectionString">Database connection string</param>
+        /// <param name="moduleName">Module name used by logger</param>
+        /// <param name="traceMode">When true, show additional debug messages at the console</param>
+        /// <param name="logLevel">Log threshold level</param>
+        private void CreateDbLogger(
+            string connectionString,
+            string moduleName,
+            bool traceMode = false,
+            BaseLogger.LogLevels logLevel = BaseLogger.LogLevels.INFO)
+        {
+            var databaseType = DbToolsFactory.GetServerTypeFromConnectionString(connectionString);
+
+            DatabaseLogger dbLogger = databaseType switch
+            {
+                DbServerTypes.MSSQLServer => new SQLServerDatabaseLogger(),
+                DbServerTypes.PostgreSQL => new PostgresDatabaseLogger(),
+                _ => throw new Exception("Unsupported database connection string: should be SQL Server or Postgres")
+            };
+
+            dbLogger.ChangeConnectionInfo(moduleName, connectionString);
+
+            LogTools.SetDbLogger(dbLogger, logLevel, traceMode);
+        }
+
+        /// <summary>
         /// Initializes the manager settings and classes
         /// </summary>
         /// <returns>True for success; False if error occurs</returns>
@@ -89,7 +118,7 @@ namespace DMS_InstDirScanner
 
             if (string.IsNullOrWhiteSpace(dmsConnectionStringFromConfig))
             {
-                // Use the hard-coded default that points to Gigasax
+                // Use the hard-coded default that points to prismdb2 (previously Gigasax)
                 defaultDmsConnectionString = Properties.Settings.Default.MgrCnfgDbConnectStr;
             }
             else
@@ -98,12 +127,12 @@ namespace DMS_InstDirScanner
                 defaultDmsConnectionString = dmsConnectionStringFromConfig;
             }
 
+            // Create a database logger connected to the DMS database on prismdb2 (previously, DMS5 on Gigasax)
             var hostName = System.Net.Dns.GetHostName();
             var applicationName = "InstDirScanner_" + hostName;
-            var defaultDbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(defaultDmsConnectionString, applicationName);
+            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(defaultDmsConnectionString, applicationName);
 
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            LogTools.CreateDbLogger(defaultDbLoggerConnectionString, "InstDirScan: " + hostName);
+            CreateDbLogger(dbLoggerConnectionString, "InstDirScan: " + hostName);
 
             // Get the manager settings
             try
@@ -174,14 +203,13 @@ namespace DMS_InstDirScanner
 
             LogTools.CreateFileLogger(logFileNameBase, logLevel);
 
-            // Typically:
-            // Data Source=gigasax;Initial Catalog=DMS5;Integrated Security=SSPI;
+            // This connection string points to the DMS database on prismdb2 (previously, DMS5 on Gigasax)
             var logCnStr = m_MgrSettings.GetParam("ConnectionString");
             var moduleName = m_MgrSettings.GetParam("ModuleName");
 
-            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(logCnStr, m_MgrSettings.ManagerName);
+            var updatedDbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(logCnStr, m_MgrSettings.ManagerName);
 
-            LogTools.CreateDbLogger(dbLoggerConnectionString, moduleName);
+            CreateDbLogger(updatedDbLoggerConnectionString, moduleName);
 
             // Make the initial log entry
             var msg = "=== Started Instrument Directory Scanner V" + GetAppVersion() + " === ";
